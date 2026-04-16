@@ -318,17 +318,33 @@
     .btn-submit:active   { opacity: 0.8; }
     .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* ===== 一覧タブ：フィルター ===== */
-    .filter-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 12px;
+    /* ===== 一覧タブ：フィルタータブ ===== */
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
     }
-    @media (max-width: 480px) {
-      .filter-row { grid-template-columns: 1fr 1fr; }
-      .filter-row select:last-child { grid-column: 1 / -1; }
+    .filter-tab {
+      flex: 1;
+      padding: 8px 4px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text2);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Noto Sans JP', sans-serif;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
+    .filter-tab.active {
+      background: var(--sfc-primary);
+      border-color: var(--sfc-primary);
+      color: #fff;
+    }
+    .filter-panel { margin-bottom: 12px; }
+    .filter-panel select { width: 100%; }
     /* ===== 合計バー ===== */
     .total-bar {
       display: flex;
@@ -619,14 +635,23 @@
     <!-- ===== 一覧タブ ===== -->
     <div class="tab-panel" id="panelList">
       <div class="section">
-        <div class="section-title">フィルター</div>
-        <div class="filter-row">
+        <div class="section-title">絞り込み</div>
+        <div class="filter-tabs">
+          <button class="filter-tab active" id="ftab-property" onclick="switchFilterTab('property')">物件</button>
+          <button class="filter-tab" id="ftab-vendor"   onclick="switchFilterTab('vendor')">業者</button>
+          <button class="filter-tab" id="ftab-contact"  onclick="switchFilterTab('contact')">担当者</button>
+        </div>
+        <div class="filter-panel" id="fpanel-property">
           <select id="filterProperty" onchange="searchPayments()">
             <option value="">すべての物件</option>
           </select>
+        </div>
+        <div class="filter-panel" id="fpanel-vendor" style="display:none">
           <select id="filterVendor" onchange="searchPayments()">
             <option value="">すべての業者</option>
           </select>
+        </div>
+        <div class="filter-panel" id="fpanel-contact" style="display:none">
           <select id="filterContact" onchange="searchPayments()">
             <option value="">すべての担当者</option>
           </select>
@@ -805,10 +830,29 @@ function buildFilterContactOptions() {
   allContacts.forEach(c => {
     const opt = document.createElement('option');
     opt.value = c.id;
-    opt.textContent = c.name;
+    // 同姓対策：名前のあとに（業者名）を付加
+    const vendor = c.vendorIds && c.vendorIds.length
+      ? allVendors.find(v => v.id === c.vendorIds[0])
+      : null;
+    opt.textContent = c.name + (vendor ? `（${vendor.name}）` : '');
     if (c.id === current) opt.selected = true;
     sel.appendChild(opt);
   });
+}
+
+function switchFilterTab(tab) {
+  ['property', 'vendor', 'contact'].forEach(t => {
+    const btn   = document.getElementById('ftab-'   + t);
+    const panel = document.getElementById('fpanel-' + t);
+    if (btn)   btn.classList.toggle('active', t === tab);
+    if (panel) panel.style.display = t === tab ? 'block' : 'none';
+    // 非アクティブタブのselectをリセット
+    if (t !== tab) {
+      const sel = document.getElementById('filter' + t[0].toUpperCase() + t.slice(1));
+      if (sel) sel.value = '';
+    }
+  });
+  searchPayments();
 }
 
 function buildPropertyOptions(selId, selected, placeholder) {

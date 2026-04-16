@@ -3358,6 +3358,29 @@
                 items.map(t => _gtaskItemHtml(t, cls)).join('');
         }
 
+        // 明日以降を日付ごとにグループ化して表示（Google Tasksアプリ準拠）
+        function _gtaskByDateGroupHtml(tasks) {
+            if (!tasks.length) return '';
+            const groups = {};
+            const order = [];
+            tasks.forEach(function(t) {
+                const d = _gtaskParseDue(t);
+                if (!d) return;
+                const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+                if (!groups[key]) { groups[key] = { date: d, items: [] }; order.push(key); }
+                groups[key].items.push(t);
+            });
+            let html = '';
+            order.forEach(function(key) {
+                const { date, items } = groups[key];
+                const label = `${date.getMonth()+1}月${date.getDate()}日(${WEEKDAYS_JP[date.getDay()]})`;
+                const icon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--primary-m)" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+                html += `<div class="gtask-group-label">${icon} ${label} <span class="gtask-count">${items.length}件</span></div>`;
+                html += items.map(function(t) { return _gtaskItemHtml(t, 'later'); }).join('');
+            });
+            return html;
+        }
+
         function renderGoogleTasks() {
             const container = document.getElementById('gtaskList');
             if (!container) return; // ホームタブに当該要素がないバージョンでは何もしない
@@ -3380,7 +3403,7 @@
             let html = '';
             html += _gtaskSimpleGroupHtml('期限切れ', overdue, 'overdue', '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>');
             html += _gtaskSimpleGroupHtml('今日', todays, 'this-week', '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>');
-            html += _gtaskSimpleGroupHtml('近日', upcoming, 'later', '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--primary-m)" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>');
+            html += _gtaskByDateGroupHtml(upcoming);
             html += _gtaskSimpleGroupHtml('日程なし', noDate, 'no-date', '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>');
 
             container.innerHTML = html;
@@ -5592,7 +5615,7 @@
             let gtHtml = '';
             gtHtml += _gtaskSimpleGroupHtml('期限切れ', overdue, 'overdue', '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>');
             gtHtml += _gtaskSimpleGroupHtml('今日', todays, 'this-week', '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>');
-            gtHtml += _gtaskSimpleGroupHtml('近日', upcoming, 'later', '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--primary-m)" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>');
+            gtHtml += _gtaskByDateGroupHtml(upcoming);
             gtHtml += _gtaskSimpleGroupHtml('日程なし', noDate, 'no-date', '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>');
             if(!gtHtml) gtHtml = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">タスクなし</div>';
 
