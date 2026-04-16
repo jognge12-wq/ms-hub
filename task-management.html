@@ -688,15 +688,24 @@ function restoreDisplayStateToCard(cid, propName) {
 }
 // カード描画後にキャッシュからミニバー・完了バッジ・優先パネルを復元
 function restoreTaskCacheToUI() {
+  // propData に含まれる物件のみを対象にする（フィルタ済みのDOMと一致させる）
+  const visibleCids = new Set(
+    [...document.querySelectorAll('#props-list .prop-card')].map(c => c.id)
+  );
   Object.entries(taskCache).forEach(([propName, tasks]) => {
     const cid = 'pc-' + slug(propName);
+    if (!visibleCids.has(cid)) return; // DOMに存在しないカードはスキップ
     refreshProgBar(propName, cid);
     checkAllDone(propName, cid);
     // ★ hide-done-phases フラグをDOMに先行反映（updatePhaseDoneToggle が正しいテキストを出すために必要）
     const state = displayState[cid];
-    if (state && state.hideDonePhases) {
-      const pw = document.getElementById(cid + '-pw');
-      if (pw) pw.classList.add('hide-done-phases');
+    const pw = document.getElementById(cid + '-pw');
+    if (pw) {
+      // 保存状態を先にクリアして正しい状態に設定（二重呼び出し時のクラス重複を防ぐ）
+      pw.classList.remove('hide-done-phases');
+      if (state && state.hideDonePhases) {
+        pw.classList.add('hide-done-phases');
+      }
     }
     updatePhaseDoneToggle(cid, propName);
   });
@@ -781,7 +790,10 @@ async function refreshAllTasks() {
 // ═══════════════════════════════════════════════════════
 //  物件一覧
 // ═══════════════════════════════════════════════════════
+let _loadingProperties = false; // 二重呼び出し防止フラグ
 async function loadProperties() {
+  if (_loadingProperties) return; // 既にロード中なら無視
+  _loadingProperties = true;
   const el = document.getElementById('props-list');
   el.innerHTML = '<div class="center"><div class="spin"></div></div>';
   document.getElementById('lbl-upd').textContent = '読み込み中…';
@@ -802,6 +814,8 @@ async function loadProperties() {
         ※ GASを再デプロイした場合はURLが変わっていないか確認してください
       </span>
     </div>`;
+  } finally {
+    _loadingProperties = false; // ロード完了（成功・失敗どちらでも解放）
   }
 }
 
@@ -812,7 +826,8 @@ function setSortOrder(order) {
     const btn = document.getElementById('sort-btn-' + k);
     if (btn) btn.classList.toggle('on', k === order);
   });
-  renderProps(propData);
+  // propData が未ロードの場合は renderProps を呼ばない（初期化時の空レンダリング防止）
+  if (propData && propData.length > 0) renderProps(propData);
 }
 
 function renderProps(props) {
@@ -1318,9 +1333,10 @@ function refreshProgBar(propName, cid) {
   const mpb = document.getElementById(cid + '-mpb');
   const mpl = document.getElementById(cid + '-mpl');
   if (pb)  pb.querySelector('.prog-fill').style.width = pct + '%';
-  if (pl)  pl.textContent = `${done}/${total}`;
+  if (pl)  pl.textContent = `${pct}%`;
   if (mpb) mpb.style.width = pct + '%';
-  if (mpl) mpl.textContent = `${pct}%`;
+  // タスク0件の場合はミニバーも「―」で統一
+  if (mpl) mpl.textContent = total > 0 ? `${pct}%` : '―';
 }
 
 // ─ 優先タスク パネル ──────────────────────────────────────────
@@ -2113,12 +2129,17 @@ loadProperties();
 // ① 同一ブラウザの別タブからの通知（storage イベント — 最も確実）
 window.addEventListener('storage', (e) => {
   if (e.key === 'propDataInvalidatedAt') {
-    try { loadProperties(); } catch(_) {}
+    // 初期ロード完了後のみ再読み込みを許可（初期ロード中の二重呼び出しを防ぐ）
+    if (propDataLoadedAt > 0) {
+      try { loadProperties(); } catch(_) {}
+    }
   }
 });
 // ② タブ切り替え時の確認（アプリ切り替えや同一タブ遷移に対応）
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible') return;
+  // 初期ロード完了後のみチェック（ページロード直後の誤判定を防ぐ）
+  if (propDataLoadedAt === 0) return;
   try {
     const invalidatedAt = parseInt(localStorage.getItem('propDataInvalidatedAt') || '0');
     if (invalidatedAt > propDataLoadedAt) loadProperties();
