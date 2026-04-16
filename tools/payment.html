@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="../manifest.json">
+  <title>支払い管理 — m's hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="_tool-common.css">
+  <script defer src="_tool-common.js"></script>
+  <style>
+    /* ===== カラートークン（ライト） ===== */
+    :root {
+      --sfc-dark:    #004d29;
+      --sfc-primary: #006837;
+      --sfc-light:   #e8f5e9;
+      --sfc-border:  #a5d6a7;
+      --bg:          #f0f4f2;
+      --surface:     #ffffff;
+      --surface2:    #f8faf9;
+      --border:      #dde8e2;
+      --text1:       #1e293b;
+      --text2:       #475569;
+      --text3:       #64748b;
+      --red:         #ef4444;
+      --check-on:    #2D8A4E;
+    }
+    /* ===== カラートークン（ダーク） ===== */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --sfc-dark:    #0a6b3a;
+        --sfc-primary: #34d399;
+        --sfc-light:   #064e3b;
+        --sfc-border:  #065f46;
+        --bg:          #0f1419;
+        --surface:     #1a1f26;
+        --surface2:    #242a33;
+        --border:      #2d3b33;
+        --text1:       #f3f4f6;
+        --text2:       #d1d5db;
+        --text3:       #9ca3af;
+        --red:         #f87171;
+        --check-on:    #34d399;
+      }
+      body { color-scheme: dark; }
+    }
+
+    /* ===== ベース ===== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 15px;
+      background: var(--bg);
+      color: var(--text1);
+      min-height: 100vh;
+      padding: 0 0 calc(74px + env(safe-area-inset-bottom, 0px));
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== メインカード ===== */
+    .app-wrap {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 8px 16px 24px;
+    }
+    .app-header {
+      background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
+      color: #fff;
+      padding: 18px 20px 16px;
+      border-radius: 16px 16px 0 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .app-header svg {
+      width: 18px; height: 18px;
+      stroke: #fff; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    .app-header-title { font-size: 15px; font-weight: 700; letter-spacing: 0.03em; }
+    .app-header-sub   { font-size: 10px; opacity: 0.65; margin-top: 2px; }
+
+    /* ===== セットアップ画面 ===== */
+    .setup-body {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 16px 16px;
+      padding: 36px 24px 32px;
+      text-align: center;
+    }
+    .setup-body h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text1);
+      margin-bottom: 8px;
+    }
+    .setup-body p {
+      font-size: 13px;
+      color: var(--text3);
+      margin-bottom: 20px;
+      line-height: 1.7;
+    }
+    .setup-body input[type="text"] {
+      display: block;
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-family: 'DM Mono', monospace;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface2);
+      color: var(--text1);
+      -webkit-appearance: none;
+      appearance: none;
+      margin-bottom: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .setup-body input[type="text"]:focus {
+      outline: none;
+      border-color: var(--sfc-primary);
+      box-shadow: 0 0 0 3px rgba(45, 138, 78, 0.12);
+    }
+    .setup-body input[type="text"]::placeholder {
+      font-family: 'Noto Sans JP', sans-serif;
+      color: var(--text3);
+    }
+
+    /* ===== メイン本体 ===== */
+    .main-body {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 16px 16px;
+      padding: 0 0 20px;
+    }
+
+    /* ===== タブ ===== */
+    .tab-bar {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 13px 0;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Noto Sans JP', sans-serif;
+      color: var(--text3);
+      background: transparent;
+      border: none;
+      border-bottom: 2.5px solid transparent;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      letter-spacing: 0.02em;
+    }
+    .tab-btn.active {
+      color: var(--sfc-primary);
+      border-bottom-color: var(--sfc-primary);
+    }
+
+    /* ===== タブパネル ===== */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ===== セクション ===== */
+    .section { padding: 16px 20px 0; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--sfc-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ===== フィールド ===== */
+    .field { margin-bottom: 12px; }
+    .field:last-child { margin-bottom: 0; }
+    .field-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text1);
+      margin-bottom: 5px;
+    }
+    .field-label .req {
+      color: var(--red);
+      font-size: 11px;
+      margin-left: 3px;
+      font-weight: 500;
+    }
+
+    /* select に + ボタンを添える行 */
+    .select-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .select-row select { flex: 1; min-width: 0; }
+    .btn-add {
+      flex-shrink: 0;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      border: 1.5px solid var(--sfc-border);
+      background: var(--sfc-light);
+      color: var(--sfc-primary);
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-family: sans-serif;
+      transition: background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-add:active { background: var(--sfc-border); }
+
+    /* ¥ prefix ラッパー */
+    .yen-wrap {
+      display: flex;
+      align-items: center;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface2);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      overflow: hidden;
+    }
+    .yen-wrap:focus-within {
+      border-color: var(--sfc-primary);
+      box-shadow: 0 0 0 3px rgba(45, 138, 78, 0.12);
+    }
+    .yen-prefix {
+      padding: 0 4px 0 12px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text3);
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .yen-wrap input[type="number"] {
+      flex: 1;
+      min-width: 0;
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      border-radius: 0;
+      padding: 10px 12px 10px 4px;
+      font-size: 14px;
+      font-family: 'Noto Sans JP', sans-serif;
+      color: var(--text1);
+      -webkit-appearance: none;
+      appearance: none;
+      outline: none;
+    }
+    .yen-wrap input[type="number"]::-webkit-inner-spin-button,
+    .yen-wrap input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    /* 共通フォームコントロール */
+    input[type="text"],
+    select,
+    textarea {
+      display: block;
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-family: 'Noto Sans JP', sans-serif;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface2);
+      color: var(--text1);
+      -webkit-appearance: none;
+      appearance: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--sfc-primary);
+      box-shadow: 0 0 0 3px rgba(45, 138, 78, 0.12);
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+    textarea { resize: vertical; min-height: 72px; }
+
+    /* ===== 送信ボタン ===== */
+    .btn-submit {
+      display: block;
+      width: calc(100% - 40px);
+      margin: 16px auto 0;
+      padding: 14px;
+      background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Noto Sans JP', sans-serif;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(29, 107, 64, 0.3);
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.15s;
+    }
+    .btn-submit:active   { opacity: 0.8; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ===== 一覧タブ：フィルター ===== */
+    .filter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .btn-search {
+      display: block;
+      width: 100%;
+      padding: 11px;
+      background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Noto Sans JP', sans-serif;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.15s;
+      margin-bottom: 16px;
+    }
+    .btn-search:active   { opacity: 0.8; }
+    .btn-search:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ===== 検索結果リスト ===== */
+    .result-list  { display: flex; flex-direction: column; gap: 10px; }
+    .result-empty {
+      text-align: center;
+      color: var(--text3);
+      font-size: 13px;
+      padding: 32px 0;
+    }
+    .payment-card {
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      background: var(--surface2);
+      position: relative;
+    }
+    .payment-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text1);
+      margin-bottom: 8px;
+      padding-right: 60px;
+    }
+    .payment-card-meta {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .payment-card-meta-item { display: flex; flex-direction: column; gap: 2px; }
+    .payment-card-meta-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text3);
+      letter-spacing: 0.04em;
+    }
+    .payment-card-meta-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text1);
+      font-variant-numeric: tabular-nums;
+    }
+    .payment-card-meta-value.diff-positive { color: var(--red); }
+    .payment-card-meta-value.diff-negative { color: var(--check-on); }
+    .payment-card-date { font-size: 11px; color: var(--text3); margin-top: 4px; }
+    .btn-edit {
+      position: absolute;
+      top: 14px; right: 14px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Noto Sans JP', sans-serif;
+      background: var(--sfc-light);
+      color: var(--sfc-primary);
+      border: 1.5px solid var(--sfc-border);
+      border-radius: 8px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+    .btn-edit:active { background: var(--sfc-border); }
+
+    /* ===== ボトムシート共通 ===== */
+    .sheet-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 200;
+    }
+    .sheet-overlay.open { display: block; }
+    .sheet {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      padding: 0 0 calc(24px + env(safe-area-inset-bottom, 0px));
+      z-index: 201;
+      max-width: 520px;
+      margin: 0 auto;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .sheet.open { transform: translateY(0); }
+    .sheet-handle {
+      width: 36px; height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      margin: 12px auto 0;
+    }
+    .sheet-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text1);
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .sheet-field { padding: 0 20px; margin-bottom: 14px; }
+    .sheet-field-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text1);
+      margin-bottom: 5px;
+    }
+    .sheet-actions {
+      display: flex;
+      gap: 10px;
+      padding: 16px 20px 0;
+    }
+    .btn-cancel {
+      flex: 1;
+      padding: 13px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Noto Sans JP', sans-serif;
+      background: var(--surface2);
+      color: var(--text2);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+    .btn-cancel:active { background: var(--border); }
+    .btn-primary {
+      flex: 2;
+      padding: 13px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Noto Sans JP', sans-serif;
+      background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 4px 14px rgba(29, 107, 64, 0.3);
+      transition: opacity 0.15s;
+    }
+    .btn-primary:active   { opacity: 0.8; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ===== トースト ===== */
+    .toast {
+      position: fixed;
+      bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+      left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1e293b; color: #fff;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 13px; font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 500;
+      pointer-events: none;
+      max-width: 90vw;
+      text-align: center;
+    }
+    .toast.show  { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.error { background: #dc2626; }
+
+    /* ===== ローディング ===== */
+    .loading-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 32px 0;
+      color: var(--text3);
+      font-size: 13px;
+    }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2.5px solid var(--border);
+      border-top-color: var(--sfc-primary);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- ===== トップバー ===== -->
+<div class="tool-top-bar">
+  <button onclick="openToolDrawer()" aria-label="メニューを開く">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<div class="app-wrap">
+
+  <!-- ===== ヘッダー ===== -->
+  <div class="app-header">
+    <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+    <div>
+      <div class="app-header-title">支払い管理</div>
+      <div class="app-header-sub">個人専用 支払い台帳</div>
+    </div>
+  </div>
+
+  <!-- ===== セットアップ画面（URL 未設定時） ===== -->
+  <div id="setupScreen" class="setup-body" style="display:none">
+    <h2>GAS WebApp URL を設定してください</h2>
+    <p>このツールを使用するには<br>Google Apps Script の WebApp URL が必要です。<br>一度設定すると次回から自動で開きます。</p>
+    <input type="text" id="gasUrlInput"
+           placeholder="https://script.google.com/macros/s/..."
+           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <button class="btn-submit" onclick="setupGasUrl()">このURLで開く</button>
+  </div>
+
+  <!-- ===== メイン画面（URL 設定済み） ===== -->
+  <div id="mainScreen" class="main-body" style="display:none">
+
+    <!-- タブバー -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tabBtnRegister" onclick="switchTab('register')">新規登録</button>
+      <button class="tab-btn"        id="tabBtnList"     onclick="switchTab('list')">一覧</button>
+    </div>
+
+    <!-- ===== 新規登録タブ ===== -->
+    <div class="tab-panel active" id="panelRegister">
+      <div class="section">
+        <div class="section-title">支払い情報</div>
+
+        <div class="field">
+          <label class="field-label">物件 <span class="req">*</span></label>
+          <select id="regProperty">
+            <option value="">（物件を選択）</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label">業者 <span class="req">*</span></label>
+          <div class="select-row">
+            <select id="regVendor" onchange="onRegVendorChange()">
+              <option value="">（業者を選択）</option>
+            </select>
+            <button class="btn-add" onclick="openSheet('vendorSheet')" title="業者を追加">＋</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">担当者</label>
+          <div class="select-row">
+            <select id="regContact">
+              <option value="">（担当者を選択）</option>
+            </select>
+            <button class="btn-add" onclick="openSheet('contactSheet')" title="担当者を追加">＋</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">見積もり額</label>
+          <div class="yen-wrap">
+            <span class="yen-prefix">¥</span>
+            <input type="number" id="regEstimate" min="0" placeholder="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">支払い額</label>
+          <div class="yen-wrap">
+            <span class="yen-prefix">¥</span>
+            <input type="number" id="regPayment" min="0" placeholder="0">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">備考</label>
+          <textarea id="regMemo" placeholder="メモを入力（任意）"></textarea>
+        </div>
+      </div>
+
+      <button class="btn-submit" id="regSubmitBtn" onclick="submitPayment()">Notion に登録する</button>
+    </div><!-- /panelRegister -->
+
+    <!-- ===== 一覧タブ ===== -->
+    <div class="tab-panel" id="panelList">
+      <div class="section">
+        <div class="section-title">フィルター</div>
+        <div class="filter-row">
+          <select id="filterProperty">
+            <option value="">すべての物件</option>
+          </select>
+          <select id="filterVendor">
+            <option value="">すべての業者</option>
+          </select>
+        </div>
+        <button class="btn-search" id="searchBtn" onclick="searchPayments()">検索</button>
+        <div id="resultList" class="result-list">
+          <div class="result-empty">検索ボタンを押すと結果が表示されます</div>
+        </div>
+      </div>
+    </div><!-- /panelList -->
+
+  </div><!-- /mainScreen -->
+
+</div><!-- /app-wrap -->
+
+<!-- ===== トースト ===== -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== 支払い編集ボトムシート ===== -->
+<div class="sheet-overlay" id="editOverlay" onclick="closeSheet('editSheet')"></div>
+<div class="sheet" id="editSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">支払い編集</div>
+  <input type="hidden" id="editPageId">
+  <div class="sheet-field">
+    <label class="sheet-field-label">見積もり額</label>
+    <div class="yen-wrap">
+      <span class="yen-prefix">¥</span>
+      <input type="number" id="editEstimate" min="0" placeholder="0">
+    </div>
+  </div>
+  <div class="sheet-field">
+    <label class="sheet-field-label">支払い額</label>
+    <div class="yen-wrap">
+      <span class="yen-prefix">¥</span>
+      <input type="number" id="editPayment" min="0" placeholder="0">
+    </div>
+  </div>
+  <div class="sheet-field">
+    <label class="sheet-field-label">備考</label>
+    <textarea id="editMemo" placeholder="メモを入力（任意）"></textarea>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn-cancel" onclick="closeSheet('editSheet')">キャンセル</button>
+    <button class="btn-primary" id="editSubmitBtn" onclick="updatePayment()">更新する</button>
+  </div>
+</div>
+
+<!-- ===== 業者追加ボトムシート ===== -->
+<div class="sheet-overlay" id="vendorOverlay" onclick="closeSheet('vendorSheet')"></div>
+<div class="sheet" id="vendorSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">業者を追加</div>
+  <div class="sheet-field">
+    <label class="sheet-field-label">業者名 <span style="color:var(--red);font-size:11px">*</span></label>
+    <input type="text" id="newVendorName" placeholder="例：田中電気工業">
+  </div>
+  <div class="sheet-field">
+    <label class="sheet-field-label">業種</label>
+    <input type="text" id="newVendorType" placeholder="例：電気工事">
+  </div>
+  <div class="sheet-actions">
+    <button class="btn-cancel" onclick="closeSheet('vendorSheet')">キャンセル</button>
+    <button class="btn-primary" id="vendorSubmitBtn" onclick="addVendor()">追加する</button>
+  </div>
+</div>
+
+<!-- ===== 担当者追加ボトムシート ===== -->
+<div class="sheet-overlay" id="contactOverlay" onclick="closeSheet('contactSheet')"></div>
+<div class="sheet" id="contactSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">担当者を追加</div>
+  <div class="sheet-field">
+    <label class="sheet-field-label">担当者名 <span style="color:var(--red);font-size:11px">*</span></label>
+    <input type="text" id="newContactName" placeholder="例：田中 太郎">
+  </div>
+  <div class="sheet-actions">
+    <button class="btn-cancel" onclick="closeSheet('contactSheet')">キャンセル</button>
+    <button class="btn-primary" id="contactSubmitBtn" onclick="addContact()">追加する</button>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// GAS 設定
+// ================================================================
+const GAS_URL_KEY = 'payment_gas_url_v1';
+let GAS_URL = '';
+
+// ================================================================
+// データキャッシュ
+// ================================================================
+let allProperties = [];
+let allVendors    = [];
+let allContacts   = [];
+
+// ================================================================
+// 起動
+// ================================================================
+(function boot() {
+  const saved = localStorage.getItem(GAS_URL_KEY);
+  if (saved) {
+    GAS_URL = saved;
+    document.getElementById('setupScreen').style.display = 'none';
+    document.getElementById('mainScreen').style.display  = 'block';
+    init();
+  } else {
+    document.getElementById('setupScreen').style.display = 'block';
+    document.getElementById('mainScreen').style.display  = 'none';
+  }
+})();
+
+// ================================================================
+// セットアップ
+// ================================================================
+function setupGasUrl() {
+  const val = document.getElementById('gasUrlInput').value.trim();
+  if (!val.startsWith('https://script.google.com/macros/s/')) {
+    showToast('URL は https://script.google.com/macros/s/ で始まる必要があります', true);
+    return;
+  }
+  localStorage.setItem(GAS_URL_KEY, val);
+  GAS_URL = val;
+  document.getElementById('setupScreen').style.display = 'none';
+  document.getElementById('mainScreen').style.display  = 'block';
+  init();
+}
+
+// ================================================================
+// GAS 共通呼び出し
+// ================================================================
+async function callGas(mode, params = {}) {
+  const url = new URL(GAS_URL);
+  url.searchParams.set('mode', mode);
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== '') url.searchParams.set(k, v);
+  });
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+// ================================================================
+// 初期化：全マスタデータ取得
+// ================================================================
+async function init() {
+  const loadingHtml = '<div class="loading-wrap"><div class="spinner"></div>データ取得中...</div>';
+  // タブパネルにローディング表示
+  document.getElementById('panelRegister').querySelector('.section').insertAdjacentHTML('afterbegin', loadingHtml);
+  try {
+    const r = await callGas('getAllFormData');
+    if (!r.ok) throw new Error(r.error || 'データ取得失敗');
+    const d = r.data;
+    allProperties = d.properties || [];
+    allVendors    = d.vendors    || [];
+    allContacts   = d.contacts   || [];
+    populateAllSelects();
+  } catch (e) {
+    // JSON解析エラー＝古いGASがHTML返している可能性
+    const isJsonErr = e instanceof SyntaxError || e.message.includes('token') || e.message.includes('JSON');
+    const msg = isJsonErr
+      ? 'GASの再デプロイが必要です。gas-payment-management.gs を更新してデプロイしてください。'
+      : 'データ取得エラー: ' + e.message;
+    showToast(msg, true);
+    // エラー表示をメインエリアにも出す
+    document.getElementById('panelRegister').querySelector('.section').innerHTML =
+      `<div class="result-empty" style="color:var(--red);padding:24px 0">
+        ⚠️ データを読み込めませんでした<br>
+        <span style="font-size:12px;color:var(--text3);margin-top:6px;display:block">
+          ${isJsonErr ? 'GAS を最新版に再デプロイしてください' : e.message}
+        </span>
+        <button onclick="init()" style="margin-top:16px;padding:8px 20px;background:var(--sfc-primary);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer">再試行</button>
+      </div>`;
+  } finally {
+    // ローディング要素を削除
+    document.querySelectorAll('.loading-wrap').forEach(el => el.remove());
+  }
+}
+
+// ================================================================
+// select 生成ヘルパー
+// ================================================================
+function populateAllSelects() {
+  buildPropertyOptions('regProperty',    '',   '（物件を選択）');
+  buildPropertyOptions('filterProperty', '',   'すべての物件');
+  buildVendorOptions('regVendor',        '',   '（業者を選択）');
+  buildVendorOptions('filterVendor',     '',   'すべての業者');
+  buildContactOptions('regContact',      '',   null);
+}
+
+function buildPropertyOptions(selId, selected, placeholder) {
+  const sel = document.getElementById(selId);
+  sel.innerHTML = `<option value="">${placeholder}</option>`;
+  allProperties.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name;
+    if (p.id === selected) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function buildVendorOptions(selId, selected, placeholder) {
+  const sel = document.getElementById(selId);
+  sel.innerHTML = `<option value="">${placeholder}</option>`;
+  allVendors.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.id;
+    opt.textContent = v.name + (v.type ? `（${v.type}）` : '');
+    if (v.id === selected) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function buildContactOptions(selId, selected, vendorId) {
+  const sel = document.getElementById(selId);
+  sel.innerHTML = '<option value="">（担当者を選択）</option>';
+  const list = vendorId
+    ? allContacts.filter(c => Array.isArray(c.vendorIds) && c.vendorIds.includes(vendorId))
+    : allContacts;
+  list.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name;
+    if (c.id === selected) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+// 業者変更 → 担当者を再フィルタリング
+function onRegVendorChange() {
+  const vendorId = document.getElementById('regVendor').value;
+  buildContactOptions('regContact', '', vendorId || null);
+}
+
+// ================================================================
+// タブ切り替え
+// ================================================================
+function switchTab(tab) {
+  const isReg = tab === 'register';
+  document.getElementById('panelRegister').classList.toggle('active', isReg);
+  document.getElementById('panelList').classList.toggle('active',     !isReg);
+  document.getElementById('tabBtnRegister').classList.toggle('active', isReg);
+  document.getElementById('tabBtnList').classList.toggle('active',     !isReg);
+}
+
+// ================================================================
+// ボトムシート開閉
+// ================================================================
+function openSheet(sheetId) {
+  const overlayId = sheetId.replace('Sheet', 'Overlay');
+  document.getElementById(overlayId).classList.add('open');
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.getElementById(sheetId).classList.add('open');
+    });
+  });
+}
+
+function closeSheet(sheetId) {
+  const overlayId = sheetId.replace('Sheet', 'Overlay');
+  document.getElementById(sheetId).classList.remove('open');
+  setTimeout(() => { document.getElementById(overlayId).classList.remove('open'); }, 300);
+}
+
+// ================================================================
+// 新規登録
+// ================================================================
+async function submitPayment() {
+  const propertyId = document.getElementById('regProperty').value;
+  const vendorId   = document.getElementById('regVendor').value;
+  const contactId  = document.getElementById('regContact').value;
+  const estimate   = document.getElementById('regEstimate').value;
+  const payment    = document.getElementById('regPayment').value;
+  const memo       = document.getElementById('regMemo').value.trim();
+
+  if (!propertyId) { showToast('物件を選択してください', true); return; }
+  if (!vendorId)   { showToast('業者を選択してください', true);  return; }
+
+  const property     = allProperties.find(p => p.id === propertyId);
+  const vendor       = allVendors.find(v => v.id === vendorId);
+  const propertyName = property ? property.name : '';
+  const vendorName   = vendor   ? vendor.name   : '';
+
+  const btn = document.getElementById('regSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = '登録中...';
+
+  try {
+    const r = await callGas('submitPayment', {
+      propertyId,
+      vendorId,
+      contactId:    contactId  || undefined,
+      propertyName,
+      vendorName,
+      estimate:     estimate   || undefined,
+      payment:      payment    || undefined,
+      memo:         memo       || undefined,
+    });
+    if (!r.ok) throw new Error(r.error || '登録失敗');
+    showToast('Notion に登録しました');
+    // フォームリセット
+    document.getElementById('regProperty').value = '';
+    document.getElementById('regVendor').value   = '';
+    document.getElementById('regEstimate').value = '';
+    document.getElementById('regPayment').value  = '';
+    document.getElementById('regMemo').value     = '';
+    buildContactOptions('regContact', '', null);
+  } catch (e) {
+    showToast('エラー: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Notion に登録する';
+  }
+}
+
+// ================================================================
+// 一覧検索
+// ================================================================
+async function searchPayments() {
+  const propertyId = document.getElementById('filterProperty').value;
+  const vendorId   = document.getElementById('filterVendor').value;
+
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true;
+  btn.textContent = '検索中...';
+
+  const resultList = document.getElementById('resultList');
+  resultList.innerHTML = '<div class="loading-wrap"><div class="spinner"></div>読み込み中...</div>';
+
+  try {
+    const r = await callGas('searchPayments', {
+      propertyId: propertyId || undefined,
+      vendorId:   vendorId   || undefined,
+    });
+    if (!r.ok) throw new Error(r.error || '検索失敗');
+    renderResults(r.data || []);
+  } catch (e) {
+    resultList.innerHTML = `<div class="result-empty">エラー: ${escHtml(e.message)}</div>`;
+    showToast('検索エラー: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '検索';
+  }
+}
+
+function renderResults(items) {
+  const resultList = document.getElementById('resultList');
+  if (!items.length) {
+    resultList.innerHTML = '<div class="result-empty">該当する支払い記録がありません</div>';
+    return;
+  }
+
+  resultList.innerHTML = items.map(item => {
+    const est  = item.estimate != null ? Number(item.estimate) : null;
+    const pay  = item.payment  != null ? Number(item.payment)  : null;
+    const diff = (est != null && pay != null) ? est - pay : null;
+
+    const diffClass = diff == null ? ''
+      : diff > 0 ? 'diff-positive'
+      : diff < 0 ? 'diff-negative' : '';
+
+    const fmtYen  = v => v != null ? '¥' + v.toLocaleString() : '—';
+    const fmtDiff = v => {
+      if (v == null) return '—';
+      const sign = v > 0 ? '+' : '';
+      return sign + '¥' + v.toLocaleString();
+    };
+
+    // item を JSON 文字列にして onclick 属性へ埋め込む
+    const itemJson = escAttr(JSON.stringify(item));
+
+    return `
+<div class="payment-card">
+  <div class="payment-card-title">${escHtml(item.title || '（タイトルなし）')}</div>
+  <div class="payment-card-meta">
+    <div class="payment-card-meta-item">
+      <span class="payment-card-meta-label">見積</span>
+      <span class="payment-card-meta-value">${fmtYen(est)}</span>
+    </div>
+    <div class="payment-card-meta-item">
+      <span class="payment-card-meta-label">支払</span>
+      <span class="payment-card-meta-value">${fmtYen(pay)}</span>
+    </div>
+    <div class="payment-card-meta-item">
+      <span class="payment-card-meta-label">差額</span>
+      <span class="payment-card-meta-value ${diffClass}">${fmtDiff(diff)}</span>
+    </div>
+  </div>
+  ${item.date ? `<div class="payment-card-date">${escHtml(item.date)}</div>` : ''}
+  <button class="btn-edit">編集</button>
+</div>`;
+  }).join('');
+
+  // 各カードに item データを data 属性で保持し、編集ボタンにイベントを設定
+  const cards = resultList.querySelectorAll('.payment-card');
+  items.forEach((item, i) => {
+    cards[i].dataset.item = JSON.stringify(item);
+    cards[i].querySelector('.btn-edit').addEventListener('click', function() {
+      openEditSheet(this);
+    });
+  });
+}
+
+// ================================================================
+// 支払い編集
+// ================================================================
+function openEditSheet(btn) {
+  const card = btn.closest('.payment-card');
+  const item = JSON.parse(card.dataset.item);
+  document.getElementById('editPageId').value   = item.id       || '';
+  document.getElementById('editEstimate').value = item.estimate != null ? item.estimate : '';
+  document.getElementById('editPayment').value  = item.payment  != null ? item.payment  : '';
+  document.getElementById('editMemo').value     = item.memo     || '';
+  openSheet('editSheet');
+}
+
+async function updatePayment() {
+  const pageId   = document.getElementById('editPageId').value;
+  const estimate = document.getElementById('editEstimate').value;
+  const payment  = document.getElementById('editPayment').value;
+  const memo     = document.getElementById('editMemo').value.trim();
+
+  if (!pageId) { showToast('ページ ID が取得できません', true); return; }
+
+  const btn = document.getElementById('editSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = '更新中...';
+
+  try {
+    const r = await callGas('updatePayment', {
+      pageId,
+      estimate: estimate || undefined,
+      payment:  payment  || undefined,
+      memo:     memo     || undefined,
+    });
+    if (!r.ok) throw new Error(r.error || '更新失敗');
+    closeSheet('editSheet');
+    showToast('更新しました');
+    await searchPayments();
+  } catch (e) {
+    showToast('エラー: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '更新する';
+  }
+}
+
+// ================================================================
+// 業者追加
+// ================================================================
+async function addVendor() {
+  const name = document.getElementById('newVendorName').value.trim();
+  const type = document.getElementById('newVendorType').value.trim();
+  if (!name) { showToast('業者名を入力してください', true); return; }
+
+  const btn = document.getElementById('vendorSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = '追加中...';
+
+  try {
+    const r = await callGas('addNewVendor', { name, type: type || undefined });
+    if (!r.ok) throw new Error(r.error || '追加失敗');
+    const nv = r.data;
+    allVendors.push(nv);
+    buildVendorOptions('regVendor',    nv.id, '（業者を選択）');
+    buildVendorOptions('filterVendor', '',    'すべての業者');
+    onRegVendorChange();
+    closeSheet('vendorSheet');
+    document.getElementById('newVendorName').value = '';
+    document.getElementById('newVendorType').value = '';
+    showToast(`「${nv.name}」を追加しました`);
+  } catch (e) {
+    showToast('エラー: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '追加する';
+  }
+}
+
+// ================================================================
+// 担当者追加
+// ================================================================
+async function addContact() {
+  const name     = document.getElementById('newContactName').value.trim();
+  const vendorId = document.getElementById('regVendor').value;
+  if (!name) { showToast('担当者名を入力してください', true); return; }
+
+  const btn = document.getElementById('contactSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = '追加中...';
+
+  try {
+    const r = await callGas('addNewContact', { name, vendorId: vendorId || undefined });
+    if (!r.ok) throw new Error(r.error || '追加失敗');
+    const nc = r.data;
+    allContacts.push(nc);
+    buildContactOptions('regContact', nc.id, vendorId || null);
+    closeSheet('contactSheet');
+    document.getElementById('newContactName').value = '';
+    showToast(`「${nc.name}」を追加しました`);
+  } catch (e) {
+    showToast('エラー: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '追加する';
+  }
+}
+
+// ================================================================
+// ユーティリティ
+// ================================================================
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => { t.className = 'toast'; }, 3500);
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function escAttr(str) {
+  return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ---- ネイティブ戻る（スワイプ含む）→ ダッシュボードへ ----
+history.pushState(null, '', window.location.href);
+window.addEventListener('popstate', function() {
+  window.location.replace('../index.html?tab=tools');
+});
+</script>
+
+<!-- ===== 簡易サイドドロワー（CSS は _tool-common.css） ===== -->
+<div class="tdrawer-overlay" id="toolDrawerOverlay" onclick="closeToolDrawer()"></div>
+<nav class="tdrawer" id="toolDrawer">
+  <div class="tdrawer-head"><div class="tdrawer-head-title">m's hub</div></div>
+  <div class="tdrawer-sec">メイン</div>
+  <a class="tdrawer-item" href="../index.html"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>ホーム</a>
+  <a class="tdrawer-item" href="../index.html?tab=tasks"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>タスク</a>
+  <a class="tdrawer-item" href="../index.html?tab=week"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="2" x2="9" y2="6"/><line x1="15" y1="2" x2="15" y2="6"/></svg>予定</a>
+  <a class="tdrawer-item" href="../index.html?tab=properties"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>物件ボード</a>
+  <div class="tdrawer-sep"></div>
+  <div class="tdrawer-sec">ツール</div>
+  <a class="tdrawer-item" href="./inspection.html"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>検査依頼</a>
+  <a class="tdrawer-item active" href="./payment.html"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>支払い管理</a>
+  <a class="tdrawer-item" href="./property.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>新規物件登録</a>
+  <a class="tdrawer-item" href="./schedule.html"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>工程作成</a>
+  <div class="tdrawer-sep"></div>
+  <div class="tdrawer-sec">外部サービス</div>
+  <a class="tdrawer-item" href="https://calendar.google.com" target="_blank"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="2" x2="9" y2="6"/><line x1="15" y1="2" x2="15" y2="6"/></svg>Google カレンダー<svg class="tdrawer-ext" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
+  <a class="tdrawer-item" href="https://notion.so" target="_blank"><svg viewBox="0 0 24 24"><path d="M4 4h16v4H4zm0 6h16v2H4zm0 4h16v2H4zm0 4h10v2H4z"/></svg>Notion<svg class="tdrawer-ext" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
+  <a class="tdrawer-item" href="https://tasks.google.com" target="_blank"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Google Tasks<svg class="tdrawer-ext" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
+</nav>
+
+<!-- ===== ボトムナビ（CSS は _tool-common.css） ===== -->
+<nav class="tool-bottom-nav">
+  <a class="tni" href="../index.html"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="tni-lbl">ホーム</span></a>
+  <a class="tni" href="../index.html?tab=tasks"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span class="tni-lbl">タスク</span></a>
+  <a class="tni" href="../index.html?tab=week"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="2" x2="9" y2="6"/><line x1="15" y1="2" x2="15" y2="6"/></svg><span class="tni-lbl">予定</span></a>
+  <a class="tni" href="../index.html?tab=properties"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="tni-lbl">物件</span></a>
+  <a class="tni active" href="../index.html?tab=tools"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><span class="tni-lbl">ツール</span></a>
+</nav>
+</body>
+</html>

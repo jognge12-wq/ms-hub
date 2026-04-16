@@ -1,0 +1,169 @@
+/* ================================================================
+   tools 共通スタイル（inspection / payment / property / schedule）
+   ツール画面のトップバー・ドロワー・ボトムナビの見た目を統一
+   個別ファイルに同じ CSS を書かず、この 1 枚で完結させる
+   ================================================================ */
+
+/* ---- スピナー（schedule / payment / property で使用） ---- */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 28px; height: 28px; border: 3px solid #d1d5db;
+  border-top-color: #004d29; border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ---- トップバー（全ツール共通） ---- */
+.tool-top-bar {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 52px; background: #fff; border-bottom: 1px solid #e8eaed;
+  display: flex; align-items: center; padding: 0 16px; z-index: 100;
+}
+.tool-top-bar > button {
+  width: 24px; height: 24px;
+  display: flex; flex-direction: column; justify-content: space-around;
+  background: none; border: none; padding: 0; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.tool-top-bar > button span {
+  width: 100%; height: 2px; background: #1f2937; display: block; border-radius: 1px;
+}
+
+/* ---- body の上部余白（トップバー分）+ レスポンシブ高さ ---- */
+body { padding-top: 68px !important; }
+@media (min-width: 768px) {
+  body { padding-top: 84px !important; }
+  [data-responsive-height] { height: calc(100vh - 116px) !important; }
+}
+@media (min-width: 1024px) {
+  body { padding-top: 100px !important; }
+  [data-responsive-height] { height: calc(100vh - 148px) !important; }
+}
+
+/* ---- サイドドロワー（ハンバーガーで開く） ---- */
+.tdrawer-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.4);
+  z-index: 200; opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.tdrawer-overlay.open { opacity: 1; pointer-events: auto; }
+.tdrawer {
+  position: fixed; left: -270px; top: 0; bottom: 0;
+  width: 260px; background: #fff; z-index: 201;
+  transition: left .22s cubic-bezier(0.22, 1, 0.36, 1);
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 0 0 calc(24px + env(safe-area-inset-bottom, 0px));
+}
+.tdrawer.open { left: 0; }
+.tdrawer-head {
+  background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
+  color: white; padding: 20px 18px 16px;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.tdrawer-head-title { font-size: 15px; font-weight: 700; }
+.tdrawer-head-sub { font-size: 11px; opacity: .65; margin-top: 2px; }
+.tdrawer-sec {
+  font-size: 11px; font-weight: 700; color: #9ca3af;
+  letter-spacing: .06em; text-transform: uppercase;
+  padding: 14px 18px 4px;
+}
+.tdrawer-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 18px; font-size: 14px; font-weight: 500;
+  color: #374151; cursor: pointer; text-decoration: none;
+  font-family: 'Noto Sans JP', sans-serif; transition: background .12s;
+}
+.tdrawer-item:active { background: #f3f4f6; }
+.tdrawer-item.active { color: #006837; font-weight: 600; }
+.tdrawer-item svg {
+  width: 18px; height: 18px; stroke: currentColor; fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
+}
+.tdrawer-sep { height: 1px; background: #e8eaed; margin: 6px 0; }
+.tdrawer-ext { width: 13px !important; height: 13px !important; margin-left: auto; opacity: .45; }
+
+/* ---- ボトムナビ（index.html と完全統一） ---- */
+.tool-bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: calc(62px + env(safe-area-inset-bottom, 0px));
+  background: #fff; border-top: 1px solid #e8eaed;
+  display: flex; justify-content: space-around; align-items: flex-start;
+  padding-top: 4px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: max(env(safe-area-inset-left, 0px), 20px);
+  padding-right: max(env(safe-area-inset-right, 0px), 20px);
+  z-index: 99; font-family: 'Noto Sans JP', sans-serif;
+}
+.tni {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  flex: 1; cursor: pointer; color: #9ca3af;
+  transition: color .12s; text-decoration: none; position: relative;
+}
+.tni.active { color: #006837; }
+.tni.active::before {
+  content: ''; position: absolute; top: 0; left: 50%;
+  transform: translateX(-50%); width: 20px; height: 2px;
+  background: #006837; border-radius: 0 0 2px 2px;
+}
+.tni svg {
+  width: 22px; height: 22px; stroke: currentColor; fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+}
+.tni-lbl { font-size: 10px; font-weight: 500; }
+
+/* ボトムナビ分の #app 下余白 */
+#app { padding-bottom: calc(62px + env(safe-area-inset-bottom, 0px)); }
+
+/* ================================================================
+   ダークモード対応（OS 設定に自動追従）
+   tools/*.html は Tailwind CDN を使っているためこちらで個別上書き
+   ⚠️ iframe の中（GAS アプリ本体）は外から着色できないため白いまま残る
+   ================================================================ */
+@media (prefers-color-scheme: dark) {
+  body { color-scheme: dark; }
+
+  /* ---- Tailwind クラス上書き ---- */
+  /* 画面背景（tools 各ファイルで body に bg-slate-100 が当たっている） */
+  body.bg-slate-100 { background-color: #0f1419 !important; }
+  /* 白カード（#app の bg-white） */
+  .bg-white { background-color: #1a1f26 !important; }
+  /* 薄い灰色背景（セットアップ画面の背景など） */
+  .bg-slate-50 { background-color: #242a33 !important; }
+  /* 濃い文字色 → 明るめに */
+  .text-slate-900 { color: #f3f4f6 !important; }
+  .text-slate-800 { color: #f3f4f6 !important; }
+  .text-slate-700 { color: #e5e7eb !important; }
+  .text-slate-600 { color: #d1d5db !important; }
+  .text-slate-500 { color: #cbd5e1 !important; }
+  .text-slate-400 { color: #9ca3af !important; }
+  /* ボーダーも暗色寄りに */
+  .border-gray-200 { border-color: #2d333b !important; }
+  .border-slate-200 { border-color: #2d333b !important; }
+
+  /* ---- カスタムクラスの上書き ---- */
+  .tool-top-bar {
+    background: #1a1f26;
+    border-bottom-color: #2d333b;
+  }
+  .tool-top-bar > button span { background: #e5e7eb; }
+
+  .tdrawer { background: #1a1f26; }
+  .tdrawer-item { color: #e5e7eb; }
+  .tdrawer-item:active { background: #242a33; }
+  .tdrawer-item.active { color: #34d399; }
+  .tdrawer-sep { background: #2d333b; }
+
+  .tool-bottom-nav {
+    background: #1a1f26;
+    border-top-color: #2d333b;
+  }
+  .tni { color: #9ca3af; }
+  .tni.active { color: #34d399; }
+  .tni.active::before { background: #34d399; }
+
+  /* セットアップ入力欄（payment / schedule） */
+  .setup-input {
+    background: #242a33 !important;
+    border-color: #3a4049 !important;
+    color: #f3f4f6 !important;
+  }
+  .setup-input::placeholder { color: #9ca3af !important; }
+}

@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="../manifest.json">
+  <title>検査依頼</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sfc: {
+              dark:    '#004d29',
+              primary: '#006837',
+              light:   '#e8f5e9',
+              border:  '#a5d6a7'
+            }
+          },
+          fontFamily: {
+            sans: ['Noto Sans JP', 'sans-serif'],
+            mono: ['DM Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="_tool-common.css">
+  <script defer src="_tool-common.js"></script>
+  <style>
+    @keyframes spin-loader {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    .icon-spin { animation: spin-loader 0.9s linear infinite; display: inline-block; }
+    @keyframes modal-in {
+      from { opacity: 0; transform: scale(0.94) translateY(8px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-card { animation: modal-in 0.18s ease-out forwards; }
+    /* チェックボックスのアクセントカラー */
+    #delegate-check { accent-color: #006837; }
+
+    /* ── カスタム日付ピッカー ── */
+    #date-display-btn { -webkit-tap-highlight-color: transparent; }
+
+    /* ── ドラムロール時刻ピッカー ── */
+    .drum-column { position: relative; height: 200px; overflow: hidden; width: 68px; }
+    .drum-track  { position: relative; z-index: 1; transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1); }
+    .drum-item   {
+      height: 40px; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 700; font-family: 'Noto Sans JP', sans-serif;
+      color: #cbd5e1; transition: color 0.2s;
+      user-select: none; -webkit-user-select: none;
+    }
+    .drum-item.active { color: #1e293b; font-weight: 800; }
+    .drum-fade-top, .drum-fade-bottom {
+      position: absolute; left: 0; right: 0; height: 80px; pointer-events: none; z-index: 2;
+    }
+    .drum-fade-top    { top: 0; background: linear-gradient(to bottom, #ffffff 10%, transparent); }
+    .drum-fade-bottom { bottom: 0; background: linear-gradient(to top, #ffffff 10%, transparent); }
+    @keyframes slide-up {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+    .time-sheet { animation: slide-up 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+    .drum-highlight {
+      position: absolute; top: 80px; left: 4px; right: 4px; height: 40px;
+      border-radius: 10px; background: #e8f5e9; border: 2px solid #a5d6a7; z-index: 0;
+    }
+    .drum-separator {
+      font-size: 24px; font-weight: 800; color: #94a3b8; line-height: 200px;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen p-4 md:p-8 lg:p-12 font-sans text-slate-900">
+<script>
+const GAS_CONFIG = {
+  GAS_URL: 'https://script.google.com/macros/s/AKfycbxZvu3-7dYrh3_f9lMS1etMp4_20F9D5Z6bgwgJPryOKdwtttyyDQz2oaSJIVmexXhA/exec',
+  SENDER: {
+    name: '城岸 政行',
+    company: '住友林業株式会社 岐阜支店 生産G',
+    phone: '',
+    bcc: '',
+  },
+  EMAILS: {
+    '基礎':   'JOUGAN_masayuki@star.sfc.co.jp',
+    '躯体':   'JOUGAN_masayuki@star.sfc.co.jp',
+    '断熱':   'JOUGAN_masayuki@star.sfc.co.jp',
+    '竣工':   'JOUGAN_masayuki@star.sfc.co.jp',
+    '完了検査': 'JOUGAN_masayuki@star.sfc.co.jp',
+  },
+  PROCESS_LABELS: {
+    '基礎':   '基礎検査',
+    '躯体':   '躯体検査',
+    '断熱':   '断熱検査',
+    '竣工':   '竣工検査',
+    '完了検査': '完了検査',
+  },
+};
+</script>
+
+<!-- ===== トップバー（index.html と同一スタイル） ===== -->
+<div class="tool-top-bar">
+  <button onclick="openToolDrawer()" aria-label="メニューを開く">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<div id="app"
+     class="max-w-md md:max-w-2xl lg:max-w-5xl mx-auto bg-white shadow-2xl rounded-3xl overflow-hidden border border-gray-200 flex flex-col"
+     style="height: calc(100vh - 84px);"
+     data-responsive-height>
+
+  <!-- ===== Main View（スクロール領域） ===== -->
+  <div id="main-view" class="flex-1 overflow-y-auto min-h-0">
+
+    <!-- Header -->
+    <div class="bg-sfc-dark text-white px-5 py-4 rounded-b-xl shadow-md flex items-center gap-2 flex-shrink-0">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+           fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      <div>
+        <h1 class="text-base font-bold tracking-wide">検査依頼</h1>
+        <p class="text-[10px] text-white/65 font-medium mt-0.5">性能評価検査依頼 → メール送信 ＆ カレンダー登録</p>
+      </div>
+    </div>
+
+    <div class="p-5 space-y-5">
+
+      <!-- ── Step 1: 物件 ── -->
+      <div>
+        <div class="flex items-center gap-2 mb-2.5">
+          <span class="w-5 h-5 rounded-full bg-sfc-primary text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">1</span>
+          <span class="text-[10px] font-black text-slate-400 tracking-widest uppercase">物件を選択</span>
+        </div>
+
+        <select id="project-select" onchange="onProjectChange(this.value)"
+          class="w-full p-4 border-2 border-slate-200 rounded-xl bg-white focus:border-sfc-primary outline-none text-base font-bold appearance-none">
+          <option value="">物件を選択してください</option>
+        </select>
+
+        <!-- 設計交付番号（インライン） -->
+        <div id="project-info" class="hidden mt-3">
+
+          <!-- 設計交付番号あり：表示モード -->
+          <div id="reg-has-value" class="hidden">
+            <div class="px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-100 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">設計交付番号</span>
+                  <span id="reg-value-display" class="font-mono font-bold text-sm text-sfc-primary"></span>
+                </div>
+                <button onclick="startEditReg()"
+                  class="flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-600 font-bold px-2.5 py-1.5 rounded-lg hover:bg-slate-200 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                  </svg>
+                  編集
+                </button>
+              </div>
+              <!-- 所在地（市町村）：Notionから取得できた場合のみ表示 -->
+              <div id="city-row" class="hidden">
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">所在地</span>
+                  <span id="city-display" class="text-xs font-bold text-slate-600"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 未設定 or 編集中：入力モード -->
+          <div id="reg-edit-section" class="hidden">
+            <div class="flex items-center gap-1.5 mb-2 px-0.5">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">設計交付番号</span>
+              <span id="reg-unset-badge" class="text-[10px] font-bold text-amber-500">（未設定）</span>
+            </div>
+            <div class="flex gap-2">
+              <input type="text" id="inline-reg-input" placeholder="2026-001"
+                class="flex-1 p-3.5 border-2 border-slate-200 rounded-xl outline-none focus:border-sfc-primary text-sm font-bold font-mono bg-white">
+              <button onclick="saveInlineReg()"
+                class="px-5 rounded-xl text-sm font-bold text-white bg-sfc-primary active:scale-95 transition-all">保存</button>
+            </div>
+            <button id="reg-cancel-edit" onclick="cancelEditReg()"
+              class="hidden mt-2 text-[11px] text-slate-400 hover:text-slate-600 px-0.5">
+              キャンセル
+            </button>
+          </div>
+
+          <!-- ── 確認交付番号（完了検査用・設計交付番号と同時に登録） ── -->
+          <div id="kanryo-reg-section" class="hidden mt-2">
+            <div class="flex items-center gap-1.5 mb-1.5 px-0.5">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">確認交付番号</span>
+              <span class="text-[10px] text-slate-400">（完了検査用・任意）</span>
+            </div>
+            <div class="flex gap-2">
+              <input type="text" id="inline-kanryo-input" placeholder="第〇〇〇号"
+                oninput="onKanryoInputChange()"
+                class="flex-1 p-3 border-2 border-slate-200 rounded-xl outline-none focus:border-purple-400 text-sm font-bold font-mono bg-white">
+              <button onclick="saveInlineKanryo()"
+                class="px-4 rounded-xl text-sm font-bold text-white bg-purple-500 active:scale-95 transition-all">保存</button>
+            </div>
+          </div>
+          <!-- 確認交付番号あり：表示モード -->
+          <div id="kanryo-has-value" class="hidden mt-2">
+            <div class="flex items-center justify-between px-3 py-2 bg-purple-50 rounded-xl border border-purple-100">
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider">確認交付番号</span>
+                <span id="kanryo-value-display" class="font-mono font-bold text-sm text-purple-600"></span>
+              </div>
+              <button onclick="startEditKanryo()"
+                class="text-[11px] text-slate-400 hover:text-slate-600 font-bold px-2 py-1 rounded-lg hover:bg-slate-200 transition-colors">
+                編集
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="border-t border-slate-100"></div>
+
+      <!-- ── Step 2: 検査区分 ── -->
+      <div id="section-inspection" class="opacity-30 pointer-events-none transition-opacity duration-300">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="w-5 h-5 rounded-full bg-sfc-primary text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">2</span>
+          <span class="text-[10px] font-black text-slate-400 tracking-widest uppercase">検査区分を選択</span>
+        </div>
+        <div class="grid grid-cols-6 gap-3" id="inspection-grid"></div>
+      </div>
+
+      <div class="border-t border-slate-100"></div>
+
+      <!-- ── Step 3: 日程 ── -->
+      <div id="section-datetime" class="opacity-30 pointer-events-none transition-opacity duration-300">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="w-5 h-5 rounded-full bg-sfc-primary text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">3</span>
+          <span class="text-[10px] font-black text-slate-400 tracking-widest uppercase">検査依頼日</span>
+        </div>
+
+        <div class="bg-slate-50 rounded-2xl border border-slate-100 p-4 space-y-4">
+
+          <!-- 希望日（カスタム表示 + hidden native input） -->
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 block mb-1.5">希望日</label>
+            <div class="relative">
+              <button type="button" id="date-display-btn"
+                class="w-full flex items-center justify-between p-3.5 border-2 border-slate-200 rounded-xl bg-white transition-colors text-left pointer-events-none">
+                <span id="date-display-text" class="text-base font-bold text-slate-400">日付を選択</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                  fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </button>
+              <input type="date" id="inspection-date" onchange="updateDay()"
+                style="position:absolute;inset:0;width:100%;height:100%;opacity:0;-webkit-appearance:none;cursor:pointer;font-size:16px;"
+                tabindex="-1">
+            </div>
+          </div>
+
+          <!-- 開始時刻（タップで選択） -->
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 block mb-1.5">開始時刻</label>
+            <button type="button" id="time-display-btn" onclick="openTimePicker()"
+              class="w-full flex items-center justify-between p-3.5 border-2 border-slate-200 rounded-xl bg-white hover:border-sfc-primary active:border-sfc-primary transition-colors text-left">
+              <span id="time-display-text" class="text-base font-bold text-slate-700">10:00</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </button>
+            <input type="hidden" id="start-time" value="10:00">
+          </div>
+
+          <!-- 代理人チェック -->
+          <div class="pt-3 border-t border-slate-100">
+            <label class="flex items-center gap-3 cursor-pointer select-none py-1">
+              <input type="checkbox" id="delegate-check" onchange="onDelegateChange()"
+                class="w-5 h-5 rounded border-2 border-slate-300 cursor-pointer flex-shrink-0">
+              <div>
+                <p class="text-sm font-bold text-slate-700">代理人が申込む</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">カレンダー登録のみ（メール送信なし）</p>
+              </div>
+            </label>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── 竣工+完了検査 同時依頼セクション（竣工選択時に表示） ── -->
+      <div id="kanryo-together-section" class="hidden">
+        <div class="border-t border-slate-100 pt-4">
+          <label class="flex items-center gap-3 cursor-pointer select-none bg-amber-50 rounded-2xl p-3.5 border border-amber-200">
+            <input type="checkbox" id="kanryo-together-check" onchange="onKanryoTogetherChange()"
+              class="w-5 h-5 rounded border-2 border-amber-300 cursor-pointer flex-shrink-0" style="accent-color:#f59e0b">
+            <div>
+              <p class="text-sm font-bold text-amber-700">完了検査も同時に依頼する</p>
+              <p class="text-[11px] text-amber-600 mt-0.5">竣工＋完了検査を1通のメールにまとめて送信</p>
+            </div>
+          </label>
+
+          <!-- 完了検査の日程入力（チェックON時に表示） -->
+          <div id="kanryo-together-fields" class="hidden mt-3 bg-purple-50 rounded-2xl p-4 border border-purple-200 space-y-3">
+            <p class="text-[11px] font-bold text-purple-500 uppercase tracking-wider">完了検査の日程</p>
+
+            <!-- 完了検査の希望日 -->
+            <div>
+              <label class="text-[11px] font-bold text-slate-400 block mb-1.5">完了検査 希望日</label>
+              <div class="relative">
+                <button type="button" id="kanryo-date-display-btn"
+                  class="w-full flex items-center justify-between p-3.5 border-2 border-slate-200 rounded-xl bg-white transition-colors text-left pointer-events-none">
+                  <span id="kanryo-date-display-text" class="text-base font-bold text-slate-400">日付を選択</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </button>
+                <input type="date" id="kanryo-inspection-date" onchange="updateKanryoDay()"
+                  style="position:absolute;inset:0;width:100%;height:100%;opacity:0;-webkit-appearance:none;cursor:pointer;font-size:16px;"
+                  tabindex="-1">
+              </div>
+            </div>
+
+            <!-- 完了検査の開始時刻 -->
+            <div>
+              <label class="text-[11px] font-bold text-slate-400 block mb-1.5">完了検査 開始時刻</label>
+              <button type="button" id="kanryo-time-display-btn" onclick="openKanryoTimePicker()"
+                class="w-full flex items-center justify-between p-3.5 border-2 border-slate-200 rounded-xl bg-white hover:border-purple-400 active:border-purple-400 transition-colors text-left">
+                <span id="kanryo-time-display-text" class="text-base font-bold text-slate-700">10:00</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                  fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </button>
+              <input type="hidden" id="kanryo-start-time" value="10:00">
+            </div>
+
+            <!-- 確認交付番号（project-infoに入力済みのものを表示） -->
+            <div id="kanryo-num-preview" class="hidden">
+              <div class="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-purple-200">
+                <span class="text-[10px] font-bold text-purple-400">確認交付番号</span>
+                <span id="kanryo-num-preview-val" class="font-mono font-bold text-sm text-purple-600"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 実行ボタン -->
+      <button id="btn-execute" onclick="executeRequest()"
+        class="w-full py-4 px-5 rounded-2xl font-bold text-white bg-slate-300 pointer-events-none shadow-sm active:scale-95 transition-all duration-200">
+        <span id="btn-execute-label" class="text-base">検査依頼を送信</span>
+      </button>
+
+      <!-- GAS未設定通知 -->
+      <p id="gas-notice" class="text-[11px] text-center text-amber-600 bg-amber-50 border border-amber-200 rounded-xl p-3 hidden">
+        <span class="flex items-center justify-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          GAS_URL が未設定です。
+        </span>
+      </p>
+
+    </div>
+  </div>
+
+    </div><!-- /p-5 space-y-5 -->
+
+  <!-- ===== ローディングオーバーレイ ===== -->
+  <div id="loading-overlay" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="modal-card bg-white rounded-2xl p-8 text-center shadow-2xl max-w-xs mx-4">
+      <div class="flex justify-center mb-4">
+        <span class="icon-spin">
+          <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="#e2e8f0" stroke-width="3"/>
+            <path d="M12 2a10 10 0 0 1 10 10" stroke="#006837" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </span>
+      </div>
+      <p id="loading-title" class="font-bold text-lg text-sfc-dark">処理中...</p>
+    </div>
+  </div>
+
+  <!-- ===== 時刻選択モーダル（ボトムシート） ===== -->
+  <div id="time-modal" class="hidden fixed inset-0 z-50 flex items-end justify-center">
+    <div onclick="closeTimePicker()" class="absolute inset-0 bg-black/40"></div>
+    <div class="time-sheet relative w-full max-w-md bg-white rounded-t-3xl shadow-2xl">
+      <!-- ハンドルバー -->
+      <div class="flex justify-center pt-3 pb-1">
+        <div class="w-10 h-1 rounded-full bg-slate-200"></div>
+      </div>
+      <!-- ヘッダー -->
+      <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+        <button onclick="closeTimePicker()"
+          class="text-sm font-bold text-slate-400 px-3 py-2 rounded-lg hover:bg-slate-100 active:bg-slate-200 transition-colors">
+          キャンセル
+        </button>
+        <span class="text-sm font-bold text-sfc-dark">開始時刻を選択</span>
+        <button onclick="confirmTimePicker()"
+          class="text-sm font-bold text-sfc-primary px-3 py-2 rounded-lg hover:bg-sfc-light active:bg-sfc-light/70 transition-colors">
+          確定
+        </button>
+      </div>
+      <!-- ドラムロール -->
+      <div class="flex items-center justify-center gap-2 py-6 bg-white">
+        <div class="drum-column" id="drum-hour">
+          <div class="drum-highlight"></div>
+          <div class="drum-fade-top"></div>
+          <div class="drum-fade-bottom"></div>
+          <div class="drum-track" id="drum-hour-track"></div>
+        </div>
+        <span class="drum-separator select-none">:</span>
+        <div class="drum-column" id="drum-minute">
+          <div class="drum-highlight"></div>
+          <div class="drum-fade-top"></div>
+          <div class="drum-fade-bottom"></div>
+          <div class="drum-track" id="drum-minute-track"></div>
+        </div>
+      </div>
+      <div class="h-8"></div>
+    </div>
+  </div>
+
+  <!-- ===== 完了検査 時刻選択モーダル ===== -->
+  <div id="kanryo-time-modal" class="hidden fixed inset-0 z-50 flex items-end justify-center">
+    <div onclick="closeKanryoTimePicker()" class="absolute inset-0 bg-black/40"></div>
+    <div class="time-sheet relative w-full max-w-md bg-white rounded-t-3xl shadow-2xl">
+      <div class="flex justify-center pt-3 pb-1">
+        <div class="w-10 h-1 rounded-full bg-slate-200"></div>
+      </div>
+      <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+        <button onclick="closeKanryoTimePicker()"
+          class="text-sm font-bold text-slate-400 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">キャンセル</button>
+        <span class="text-sm font-bold text-purple-600">完了検査 開始時刻</span>
+        <button onclick="confirmKanryoTimePicker()"
+          class="text-sm font-bold text-purple-600 px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors">確定</button>
+      </div>
+      <div class="flex items-center justify-center gap-2 py-6 bg-white">
+        <div class="drum-column" id="drum-kanryo-hour">
+          <div class="drum-highlight" style="background:#f3e8ff;border-color:#c084fc;"></div>
+          <div class="drum-fade-top"></div><div class="drum-fade-bottom"></div>
+          <div class="drum-track" id="drum-kanryo-hour-track"></div>
+        </div>
+        <span class="drum-separator select-none">:</span>
+        <div class="drum-column" id="drum-kanryo-minute">
+          <div class="drum-highlight" style="background:#f3e8ff;border-color:#c084fc;"></div>
+          <div class="drum-fade-top"></div><div class="drum-fade-bottom"></div>
+          <div class="drum-track" id="drum-kanryo-minute-track"></div>
+        </div>
+      </div>
+      <div class="h-8"></div>
+    </div>
+  </div>
+
+  <!-- ===== 削除確認モーダル ===== -->
+  <div id="delete-confirm-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="modal-card bg-white rounded-2xl p-6 shadow-2xl max-w-xs mx-4 w-full">
+      <div class="flex justify-center mb-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+        </svg>
+      </div>
+      <h2 class="text-base font-bold text-center mb-2 text-slate-800">申込みを削除しますか？</h2>
+      <p id="delete-confirm-text" class="text-sm text-center text-slate-500 bg-slate-50 rounded-xl p-3 mb-5"></p>
+      <div class="flex gap-3">
+        <button onclick="closeDeleteConfirm()" class="flex-1 py-3 rounded-xl font-bold border-2 border-slate-200 text-slate-600 active:scale-95 transition-all">キャンセル</button>
+        <button onclick="executeDeleteInspection()" class="flex-1 py-3 rounded-xl font-bold text-white bg-red-500 active:scale-95 transition-all">削除する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 結果モーダル ===== -->
+  <div id="result-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="modal-card bg-white rounded-2xl p-6 shadow-2xl max-w-xs mx-4 w-full">
+      <div id="result-icon" class="flex justify-center mb-3"></div>
+      <h2 id="result-title" class="text-lg font-bold text-center mb-3"></h2>
+      <div id="result-body" class="text-sm text-slate-500 space-y-1.5 text-center bg-slate-50 rounded-xl p-3"></div>
+      <button id="result-close-btn" onclick="closeResultModal()"
+        class="w-full mt-5 p-3.5 rounded-xl font-bold text-white bg-sfc-primary active:scale-95 transition-all">OK</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   定数・アイコン
+============================================================ */
+const types = ['基礎', '躯体', '断熱', '竣工'];
+
+const TYPE_ICONS = {
+  '基礎': `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+    <polyline points="2 17 12 22 22 17"/>
+    <polyline points="2 12 12 17 22 12"/>
+  </svg>`,
+  '躯体': `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2"/>
+    <line x1="3" y1="9" x2="21" y2="9"/>
+    <line x1="9" y1="21" x2="9" y2="9"/>
+  </svg>`,
+  '断熱': `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+  </svg>`,
+  '竣工': `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </svg>`,
+  '完了検査': `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+    <polyline points="22 4 12 14.01 9 11.01"/>
+  </svg>`,
+};
+
+const ICON_SUCCESS = `<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#006837" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+  <polyline points="22 4 12 14.01 9 11.01"/>
+</svg>`;
+const ICON_ERROR = `<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="12" r="10"/>
+  <line x1="15" y1="9" x2="9" y2="15"/>
+  <line x1="9" y1="9" x2="15" y2="15"/>
+</svg>`;
+
+/* ============================================================
+   状態変数
+============================================================ */
+let projects     = JSON.parse(localStorage.getItem('myProjects')) || [];
+let currentProject = null;
+let currentType    = null;
+const todayStr   = new Date().toISOString().split('T')[0];
+
+/* ============================================================
+   ナビゲーション
+============================================================ */
+function goToDashboard() { window.location.replace('../index.html'); }
+
+/* ============================================================
+   初期化
+============================================================ */
+async function init() {
+  const gasNotice = document.getElementById('gas-notice');
+  if (GAS_CONFIG.GAS_URL.includes('YOUR_DEPLOYMENT_ID')) {
+    gasNotice.classList.remove('hidden');
+    document.getElementById('btn-execute-label').textContent = 'Gmail作成（設定前モード）';
+  } else {
+    gasNotice.classList.add('hidden');
+    setLoading(true, 'データを読み込み中...');
+    try {
+      const cached = JSON.parse(localStorage.getItem('myProjects')) || [];
+      const result = await postToGAS({ action: 'getProjects' });
+      if (result.success && Array.isArray(result.projects)) {
+        // GASデータにローカルの times/history/delegate をマージ
+        const cacheMap = {};
+        cached.forEach(p => { cacheMap[p.id] = p; });
+        projects = result.projects.map(p => {
+          const c = cacheMap[p.id] || {};
+          // GAS側に times がなければキャッシュから復元
+          if (!p.times || !Object.keys(p.times).length) p.times = c.times || {};
+          // history/delegate もGAS側が空ならキャッシュから復元
+          if (!p.history || !Object.keys(p.history).length) p.history = c.history || {};
+          if (!p.delegate || !Object.keys(p.delegate).length) p.delegate = c.delegate || {};
+          return p;
+        });
+        localStorage.setItem('myProjects', JSON.stringify(projects));
+        await autoDeleteCompletedProjects();
+
+        // キャッシュから復元した times をGASに同期（初回のみ・バックグラウンド）
+        for (const p of projects) {
+          if (p.times && Object.keys(p.times).length && p.history && Object.keys(p.history).length) {
+            postToGAS({ action: 'updateProject', id: p.id,
+              reg: p.reg || '', history: p.history, delegate: p.delegate || {}, times: p.times
+            }).catch(() => {});
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('GAS読み込み失敗。キャッシュを使用:', e);
+    }
+    setLoading(false);
+  }
+  renderProjectList();
+  renderButtons();
+  initDrumRolls();
+  initKanryoDrumRolls();
+}
+
+/* ============================================================
+   竣工済み自動削除
+============================================================ */
+async function autoDeleteCompletedProjects() {
+  const toDelete = projects.filter(p => {
+    const d = p.history?.['竣工'];
+    return d && d < todayStr;
+  });
+  if (!toDelete.length) return;
+  for (const p of toDelete) {
+    try { await postToGAS({ action: 'deleteProject', id: p.id }); } catch(e) {}
+  }
+  projects = projects.filter(p => !(p.history?.['竣工'] && p.history['竣工'] < todayStr));
+  localStorage.setItem('myProjects', JSON.stringify(projects));
+}
+
+/* ============================================================
+   物件リスト描画
+   - 竣工完了は非表示
+   - 設計交付番号（着工）順にソート、未設定は末尾
+============================================================ */
+function renderProjectList() {
+  const select = document.getElementById('project-select');
+  const currentVal = select.value;
+  select.innerHTML = '<option value="">物件を選択してください</option>';
+
+  const sorted = [...projects]
+    .filter(p => !isProjectComplete(p))
+    .sort((a, b) => {
+      if (a.reg && b.reg) return a.reg.localeCompare(b.reg);
+      if (!a.reg && !b.reg) return a.name.localeCompare(b.name, 'ja');
+      return a.reg ? -1 : 1; // 設計交付番号あり → 前、なし → 末尾
+    });
+
+  sorted.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.reg ? p.name : `${p.name}（番号未設定）`;
+    select.appendChild(opt);
+  });
+
+  // 選択状態を復元
+  if (currentVal) select.value = currentVal;
+}
+
+/* ============================================================
+   検査区分ボタン描画（削除ボタン付き・col-span-2で均等4列）
+============================================================ */
+function renderButtons() {
+  const grid = document.getElementById('inspection-grid');
+  // 基礎/躯体/断熱 → col-span-2, 竣工 → col-span-6（全幅）
+  grid.innerHTML = types.map(type => {
+    const isShunko = type === '竣工';
+    const colClass  = isShunko ? 'col-span-6' : 'col-span-2';
+    const label     = GAS_CONFIG.PROCESS_LABELS[type] || type;
+    return `
+    <div class="relative ${colClass}">
+      <button id="btn-${type}" onclick="selectType('${type}')"
+        class="type-btn w-full p-4 rounded-2xl border-2 border-slate-200 bg-white font-bold text-slate-700 transition-all flex flex-col items-center justify-center min-h-[86px] gap-2">
+        <span class="type-icon opacity-60">${TYPE_ICONS[type]}</span>
+        <span class="type-label text-sm">${label}</span>
+        <span class="history-tag text-[11px] px-2.5 py-0.5 rounded-full hidden font-bold"></span>
+      </button>
+      <button id="del-btn-${type}" onclick="event.stopPropagation();confirmDeleteInspectionType('${type}')"
+        class="del-inspect-btn absolute top-1.5 right-1.5 hidden p-1.5 rounded-lg bg-red-50 active:bg-red-100 transition-colors z-10"
+        title="申込みを削除">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+        </svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+/* ============================================================
+   設計交付番号 インライン表示・編集
+============================================================ */
+function updateRegDisplay() {
+  const info     = document.getElementById('project-info');
+  const hasValue = document.getElementById('reg-has-value');
+  const editSec  = document.getElementById('reg-edit-section');
+  const cancelBtn = document.getElementById('reg-cancel-edit');
+  const unsetBadge = document.getElementById('reg-unset-badge');
+
+  info.classList.remove('hidden');
+
+  if (currentProject.reg) {
+    document.getElementById('reg-value-display').textContent = currentProject.reg;
+    // 所在地（市町村）を表示
+    const cityRow = document.getElementById('city-row');
+    const cityDisplay = document.getElementById('city-display');
+    if (currentProject.city) {
+      cityDisplay.textContent = currentProject.city;
+      cityRow.classList.remove('hidden');
+    } else {
+      cityRow.classList.add('hidden');
+    }
+    hasValue.classList.remove('hidden');
+    editSec.classList.add('hidden');
+  } else {
+    hasValue.classList.add('hidden');
+    editSec.classList.remove('hidden');
+    cancelBtn.classList.add('hidden');   // 新規登録時はキャンセル不要
+    unsetBadge.classList.remove('hidden');
+    document.getElementById('inline-reg-input').value = '';
+  }
+}
+
+function startEditReg() {
+  document.getElementById('reg-has-value').classList.add('hidden');
+  document.getElementById('reg-edit-section').classList.remove('hidden');
+  document.getElementById('reg-cancel-edit').classList.remove('hidden');
+  document.getElementById('reg-unset-badge').classList.add('hidden'); // 編集中は「未設定」非表示
+  const input = document.getElementById('inline-reg-input');
+  input.value = currentProject.reg || '';
+  input.focus();
+}
+
+function cancelEditReg() {
+  updateRegDisplay();
+}
+
+async function saveInlineReg() {
+  const reg = document.getElementById('inline-reg-input').value.trim();
+  if (!reg) { alert('設計交付番号を入力してください'); return; }
+  setLoading(true, 'データを保存中...');
+  currentProject.reg = reg;
+  try {
+    await saveCurrentProjectToGAS();
+  } catch(e) { console.warn('GAS保存失敗:', e); }
+  localStorage.setItem('myProjects', JSON.stringify(projects));
+  setLoading(false);
+  renderProjectList();
+  document.getElementById('project-select').value = currentProject.id;
+  updateRegDisplay();
+  updateKanryoRegDisplay();
+  checkReady();
+}
+
+/** プロジェクト全フィールドをGASに保存するヘルパー */
+async function saveCurrentProjectToGAS() {
+  return postToGAS({
+    action: 'saveProject',
+    id: currentProject.id,
+    reg: currentProject.reg || '',
+    history: currentProject.history || {},
+    delegate: currentProject.delegate || {},
+    times: currentProject.times || {},
+    kanryo: currentProject.kanryo || '',
+    address: currentProject.address || '',
+    excluded: currentProject.excluded || {}
+  });
+}
+
+/* ============================================================
+   確認交付番号 インライン表示・編集
+============================================================ */
+function updateKanryoRegDisplay() {
+  const section = document.getElementById('kanryo-reg-section');
+  const hasVal  = document.getElementById('kanryo-has-value');
+  const display = document.getElementById('kanryo-value-display');
+  const input   = document.getElementById('inline-kanryo-input');
+  if (!section) return;
+
+  // 設計交付番号がある場合のみ確認交付番号セクションを表示
+  if (!currentProject?.reg) {
+    section.classList.add('hidden');
+    hasVal.classList.add('hidden');
+    return;
+  }
+
+  if (currentProject.kanryo) {
+    hasVal.classList.remove('hidden');
+    section.classList.add('hidden');
+    if (display) display.textContent = currentProject.kanryo;
+  } else {
+    hasVal.classList.add('hidden');
+    section.classList.remove('hidden');
+    if (input) input.value = currentProject.kanryo || '';
+  }
+}
+
+function startEditKanryo() {
+  document.getElementById('kanryo-has-value').classList.add('hidden');
+  document.getElementById('kanryo-reg-section').classList.remove('hidden');
+  const input = document.getElementById('inline-kanryo-input');
+  input.value = currentProject.kanryo || '';
+  input.focus();
+}
+
+function onKanryoInputChange() { /* リアルタイム更新不要 */ }
+
+async function saveInlineKanryo() {
+  const kanryo = document.getElementById('inline-kanryo-input').value.trim();
+  currentProject.kanryo = kanryo;
+  setLoading(true, '保存中...');
+  try { await saveCurrentProjectToGAS(); } catch(e) { console.warn('GAS保存失敗:', e); }
+  localStorage.setItem('myProjects', JSON.stringify(projects));
+  setLoading(false);
+  updateKanryoRegDisplay();
+  updateKanryoNumPreview();
+  checkReady();
+}
+
+/** 完了検査の確認交付番号プレビュー（竣工+完了統合フォーム内） */
+function updateKanryoNumPreview() {
+  const preview = document.getElementById('kanryo-num-preview');
+  const val     = document.getElementById('kanryo-num-preview-val');
+  if (!preview || !val) return;
+  if (currentProject?.kanryo) {
+    preview.classList.remove('hidden');
+    val.textContent = currentProject.kanryo;
+  } else {
+    preview.classList.add('hidden');
+  }
+}
+
+/* ============================================================
+   竣工+完了検査 同時依頼
+============================================================ */
+function onKanryoTogetherChange() {
+  const chk    = document.getElementById('kanryo-together-check');
+  const fields = document.getElementById('kanryo-together-fields');
+  if (!chk || !fields) return;
+  if (chk.checked) {
+    fields.classList.remove('hidden');
+    updateKanryoNumPreview();
+  } else {
+    fields.classList.add('hidden');
+    // 完了検査の日付・時刻をリセット
+    document.getElementById('kanryo-inspection-date').value = '';
+    document.getElementById('kanryo-date-display-text').textContent = '日付を選択';
+    document.getElementById('kanryo-date-display-text').style.color = '';
+    document.getElementById('kanryo-date-display-btn').classList.remove('border-purple-400');
+    document.getElementById('kanryo-date-display-btn').classList.add('border-slate-200');
+  }
+  checkReady();
+}
+
+function updateKanryoDay() {
+  const d   = document.getElementById('kanryo-inspection-date').value;
+  const btn = document.getElementById('kanryo-date-display-btn');
+  const txt = document.getElementById('kanryo-date-display-text');
+  if (d) {
+    const dt  = new Date(d);
+    const day = ['日','月','火','水','木','金','土'][dt.getDay()];
+    const col = dt.getDay() === 0 ? '#ef4444' : dt.getDay() === 6 ? '#3b82f6' : '#1e293b';
+    txt.innerHTML = `<span style="color:#1e293b">${dt.getMonth()+1}月${dt.getDate()}日</span><span style="color:${col};margin-left:2px">(${day})</span>`;
+    btn.classList.remove('border-slate-200'); btn.classList.add('border-purple-400');
+  } else {
+    txt.textContent = '日付を選択'; txt.style.color = '';
+    btn.classList.add('border-slate-200'); btn.classList.remove('border-purple-400');
+  }
+  checkReady();
+}
+
+/* ============================================================
+   完了検査用ドラムロール時刻
+============================================================ */
+let drumKanryoHourIdx   = 10;
+let drumKanryoMinuteIdx = 0;
+
+function initKanryoDrumRolls() {
+  buildDrumTrack('drum-kanryo-hour-track',   DRUM_HOURS,   drumKanryoHourIdx,   v => v.toString().padStart(2,'0'));
+  buildDrumTrack('drum-kanryo-minute-track', DRUM_MINUTES, drumKanryoMinuteIdx, v => v.toString().padStart(2,'0'));
+  makeDrumDraggable('drum-kanryo-hour',   DRUM_HOURS,   () => drumKanryoHourIdx,   i => { drumKanryoHourIdx = i; syncKanryoDrumTime(); });
+  makeDrumDraggable('drum-kanryo-minute', DRUM_MINUTES, () => drumKanryoMinuteIdx, i => { drumKanryoMinuteIdx = i; syncKanryoDrumTime(); });
+}
+
+function syncKanryoDrumTime() {
+  const hh = DRUM_HOURS[drumKanryoHourIdx].toString().padStart(2, '0');
+  const mm = DRUM_MINUTES[drumKanryoMinuteIdx].toString().padStart(2, '0');
+  const t  = `${hh}:${mm}`;
+  document.getElementById('kanryo-start-time').value = t;
+  const disp = document.getElementById('kanryo-time-display-text');
+  if (disp) disp.textContent = t;
+}
+
+function openKanryoTimePicker() {
+  const modal = document.getElementById('kanryo-time-modal');
+  modal.classList.remove('hidden');
+  const sheet = modal.querySelector('.time-sheet');
+  if (sheet) { sheet.style.animation = 'none'; sheet.offsetHeight; sheet.style.animation = ''; }
+}
+function closeKanryoTimePicker() {
+  document.getElementById('kanryo-time-modal').classList.add('hidden');
+}
+function confirmKanryoTimePicker() {
+  syncKanryoDrumTime();
+  const btn = document.getElementById('kanryo-time-display-btn');
+  if (btn) { btn.classList.remove('border-slate-200'); btn.classList.add('border-purple-400'); }
+  closeKanryoTimePicker();
+}
+
+/* ============================================================
+   物件選択変更
+============================================================ */
+function onProjectChange(id) {
+  currentProject = projects.find(p => p.id === id) || null;
+  const isSelected = !!currentProject;
+
+  // Step 2/3 の有効・無効
+  ['section-inspection', 'section-datetime'].forEach(s => {
+    const el = document.getElementById(s);
+    el.style.opacity      = isSelected ? '1'    : '0.3';
+    el.style.pointerEvents = isSelected ? 'auto' : 'none';
+  });
+
+  // 設計交付番号表示
+  if (isSelected) {
+    updateRegDisplay();
+    updateButtonStates();
+  } else {
+    document.getElementById('project-info').classList.add('hidden');
+  }
+
+  // 確認交付番号 表示更新
+  if (isSelected) {
+    updateKanryoRegDisplay();
+  } else {
+    document.getElementById('kanryo-reg-section').classList.add('hidden');
+    document.getElementById('kanryo-has-value').classList.add('hidden');
+  }
+
+  // 代理チェックをリセット
+  const delegateCheck = document.getElementById('delegate-check');
+  if (delegateCheck) delegateCheck.checked = false;
+  currentType = null;
+  // 竣工+完了セクションをリセット
+  const kanryoTogether = document.getElementById('kanryo-together-section');
+  if (kanryoTogether) { kanryoTogether.classList.add('hidden'); }
+  checkReady();
+}
+
+/* ============================================================
+   検査区分ボタン状態更新
+   ・未検査    : 白背景 / スレートボーダー（明確）
+   ・予約済み  : 青背景（disabled なし）
+   ・代理人申込: オレンジ
+   ・検査完了  : グレー
+============================================================ */
+function updateButtonStates() {
+  types.forEach(type => {
+    const btn  = document.getElementById(`btn-${type}`);
+    const tag  = btn.querySelector('.history-tag');
+    const icon = btn.querySelector('.type-icon');
+    const scheduledDate = currentProject.history?.[type];
+    const isDelegated   = !!(currentProject.delegate?.[type]);
+
+    // ── リセット ──
+    btn.disabled = false;
+    btn.classList.remove(
+      'bg-white', 'bg-slate-100', 'bg-slate-200', 'bg-slate-50',
+      'bg-blue-50', 'bg-sfc-light',
+      'text-slate-400', 'text-slate-600', 'text-slate-700',
+      'text-blue-700', 'text-sfc-primary',
+      'border-slate-100', 'border-slate-200',
+      'border-blue-300', 'border-sfc-primary',
+      'ring-2', 'ring-sfc-primary'
+    );
+    tag.classList.remove(
+      'hidden',
+      'bg-blue-500', 'bg-blue-100', 'text-blue-700',
+      'bg-slate-200', 'bg-slate-300', 'text-slate-500', 'text-white',
+      'bg-sfc-light', 'text-sfc-primary'
+    );
+    tag.classList.add('hidden');
+    if (icon) { icon.classList.remove('opacity-30', 'opacity-40', 'opacity-60', 'opacity-100'); icon.classList.add('opacity-60'); }
+
+    // 削除ボタン: 申込み日程があれば表示（代理人申込みも含む）
+    const delBtn = document.getElementById(`del-btn-${type}`);
+    if (delBtn) {
+      if (scheduledDate) {
+        delBtn.classList.remove('hidden');
+      } else {
+        delBtn.classList.add('hidden');
+      }
+    }
+
+    const isPast     = scheduledDate && scheduledDate <= todayStr;
+    const dayNames   = ['日','月','火','水','木','金','土'];
+    let dateDisplay  = '';
+    if (scheduledDate) {
+      const [, sm, sd] = scheduledDate.split('-');
+      const dayChar = dayNames[new Date(scheduledDate).getDay()];
+      dateDisplay = `${parseInt(sm)}/${parseInt(sd)}(${dayChar})`;
+    }
+
+    // ── 検査完了（グレー）：過去日付が最優先 ──
+    if (isPast) {
+      btn.classList.add('bg-slate-200', 'text-slate-400', 'border-slate-200');
+      if (icon) { icon.classList.replace('opacity-60', 'opacity-30'); }
+      tag.classList.remove('hidden');
+      tag.innerText = `${dateDisplay} 検査完了`;
+      tag.classList.add('bg-slate-300', 'text-slate-500');
+
+    // ── 代理人が申込み（青・テキストで区別） ──
+    } else if (isDelegated) {
+      btn.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-300');
+      tag.classList.remove('hidden');
+      tag.innerText = dateDisplay
+        ? `${dateDisplay} 代理人が申込み`
+        : '代理人が申込み';
+      tag.classList.add('bg-blue-500', 'text-white');
+
+    // ── 予約済み（青・日付+曜日付き） ──
+    } else if (scheduledDate) {
+      btn.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-300');
+      tag.classList.remove('hidden');
+      tag.innerText = `${dateDisplay} 予約済み`;
+      tag.classList.add('bg-blue-500', 'text-white');
+
+    // ── 未検査（デフォルト：白・クリア） ──
+    } else {
+      btn.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
+    }
+  });
+}
+
+/* ============================================================
+   検査区分タップ
+============================================================ */
+function selectType(type, restoreState = true) {
+  if (!currentProject) return;
+
+  // 既に同じタイプが選択中ならドラム等をリセットしない
+  if (currentType === type && restoreState) {
+    return;
+  }
+
+  currentType = type;
+
+  const existingDate     = currentProject.history?.[type];
+  const existingTime     = currentProject.times?.[type] || '';
+  const existingDelegate = !!(currentProject.delegate?.[type]);
+  const delegateCheck    = document.getElementById('delegate-check');
+
+  // 初回選択時のみ既存データを復元（チェック外し操作時は復元しない）
+  if (restoreState) {
+    // 日付：既存なら復元、なければクリア
+    const dateInput = document.getElementById('inspection-date');
+    if (existingDate) {
+      dateInput.value = existingDate;
+    } else {
+      dateInput.value = '';
+    }
+    updateDay();
+
+    // 代理人チェック
+    if (delegateCheck) {
+      delegateCheck.checked = existingDelegate;
+    }
+
+    // 時刻ドラム：既存なら復元（ボーダー緑）、なければ 10:00（ボーダーグレー）
+    if (typeof setDrumTime === 'function') {
+      if (existingTime) {
+        const [eh, em] = existingTime.split(':').map(Number);
+        setDrumTime(eh, em, true);
+      } else {
+        setDrumTime(10, 0, false);
+        // ボーダーをグレーにリセット
+        const timeBtn = document.getElementById('time-display-btn');
+        if (timeBtn) { timeBtn.classList.remove('border-sfc-primary'); timeBtn.classList.add('border-slate-200'); }
+      }
+    }
+  }
+
+  // 竣工+完了検査 同時依頼セクションの表示切り替え
+  const kanryoTogetherSection = document.getElementById('kanryo-together-section');
+  if (kanryoTogetherSection) {
+    if (type === '竣工') {
+      kanryoTogetherSection.classList.remove('hidden');
+      // 確認交付番号プレビュー更新
+      updateKanryoNumPreview();
+    } else {
+      kanryoTogetherSection.classList.add('hidden');
+      const chk = document.getElementById('kanryo-together-check');
+      if (chk) { chk.checked = false; }
+      const fields = document.getElementById('kanryo-together-fields');
+      if (fields) { fields.classList.add('hidden'); }
+    }
+  }
+
+  // 全リセット
+  updateButtonStates();
+
+  // 選択ボタンに緑を適用（完了・代理人済みでも強制選択可能）
+  const selected = document.getElementById(`btn-${type}`);
+  if (selected) {
+    selected.classList.remove(
+      'bg-white', 'text-slate-700', 'border-slate-200',
+      'bg-blue-50', 'text-blue-700', 'border-blue-300',
+      'bg-slate-200', 'text-slate-400'
+    );
+    selected.classList.add('bg-sfc-light', 'text-sfc-primary', 'border-sfc-primary', 'ring-2', 'ring-sfc-primary');
+    const ic = selected.querySelector('.type-icon');
+    if (ic) { ic.classList.remove('opacity-30', 'opacity-40', 'opacity-60'); ic.classList.add('opacity-100'); }
+
+    // 既存データがある場合はタグを「変更可能」表示に（プレビューで上書きしない）
+    const tag = selected.querySelector('.history-tag');
+    if (tag && (existingDate || existingDelegate)) {
+      tag.classList.remove('hidden', 'bg-blue-500', 'bg-slate-300',
+        'text-slate-500', 'text-white');
+      tag.innerText = '変更可能';
+      tag.classList.add('bg-sfc-light', 'text-sfc-primary');
+    }
+  }
+
+  checkReady();
+}
+
+/* ============================================================
+   代理チェック変更
+============================================================ */
+function onDelegateChange() {
+  const isDelegate = document.getElementById('delegate-check').checked;
+
+  if (currentType) {
+    if (isDelegate) {
+      applyDelegatePreview(currentType, true);
+    } else {
+      // チェックを外した → restoreState=false で再描画（チェックが戻らないように）
+      selectType(currentType, false);
+      return;
+    }
+  }
+
+  checkReady();
+}
+
+function applyDelegatePreview(type, isDelegate) {
+  const btn  = document.getElementById(`btn-${type}`);
+  const tag  = btn?.querySelector('.history-tag');
+  if (!btn) return;
+
+  if (isDelegate) {
+    btn.classList.remove('bg-sfc-light', 'text-sfc-primary', 'border-sfc-primary', 'ring-2', 'ring-sfc-primary',
+      'bg-white', 'text-slate-700', 'border-slate-200');
+    btn.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-300');
+    const ic = btn.querySelector('.type-icon');
+    if (ic) { ic.classList.remove('opacity-100', 'opacity-60'); ic.classList.add('opacity-40'); }
+    if (tag) {
+      tag.classList.remove('hidden', 'bg-slate-300', 'text-slate-500', 'bg-sfc-light', 'text-sfc-primary');
+      const dateVal = document.getElementById('inspection-date').value;
+      if (dateVal) {
+        const [, pm, pd] = dateVal.split('-');
+        const pDay = ['日','月','火','水','木','金','土'][new Date(dateVal).getDay()];
+        tag.innerText = `${parseInt(pm)}/${parseInt(pd)}(${pDay}) 代理人が申込み`;
+      } else {
+        tag.innerText = '代理人が申込み';
+      }
+      tag.classList.add('bg-blue-500', 'text-white');
+    }
+  }
+}
+
+/* ============================================================
+   実行可能チェック
+============================================================ */
+function checkReady() {
+  const btn          = document.getElementById('btn-execute');
+  const label        = document.getElementById('btn-execute-label');
+  const isDelegate   = document.getElementById('delegate-check')?.checked;
+  const dateVal      = document.getElementById('inspection-date').value;
+  // 竣工+完了 同時依頼: 完了検査日もチェック
+  const isKanryoTogether = currentType === '竣工' && document.getElementById('kanryo-together-check')?.checked;
+  const kanryoDateVal    = document.getElementById('kanryo-inspection-date')?.value;
+  const kanryoTogetherOk = !isKanryoTogether || !!kanryoDateVal;
+  const isReady      = currentProject && currentProject.reg && currentType && dateVal && kanryoTogetherOk;
+  const sekkeiNum    = null; // 設計交付番号は project.reg から取得するため不要
+  const kakuninNum   = null; // 確認交付番号は project.kanryo から取得するため不要
+  const isPastDate   = dateVal && dateVal <= todayStr;
+
+  btn.classList.toggle('bg-slate-300',       !isReady);
+  btn.classList.toggle('pointer-events-none', !isReady);
+  btn.classList.toggle('bg-sfc-primary',      !!isReady);
+
+  // 既存予約があるかどうかで「新規」vs「変更」ラベルを切り替え
+  const isChange = currentType && !!(currentProject?.history?.[currentType]);
+
+  if (isReady) {
+    if (isPastDate) {
+      label.textContent = isDelegate ? '代理人として記録' : (isChange ? '記録を変更' : '過去の検査を記録');
+    } else if (isDelegate) {
+      label.textContent = isChange ? '代理人の申込みを変更' : '代理人の申込みを登録';
+    } else {
+      label.textContent = isChange ? '日程変更を送信' : '検査依頼を送信';
+    }
+  } else {
+    label.textContent = '検査依頼を送信';
+  }
+}
+
+/* ============================================================
+   日付ピッカー：表示更新のみ（input がボタン上にオーバーレイ）
+============================================================ */
+function updateDay() {
+  const d   = document.getElementById('inspection-date').value;
+  const btn = document.getElementById('date-display-btn');
+  const txt = document.getElementById('date-display-text');
+  if (d) {
+    const dt      = new Date(d);
+    const dayName = ['日','月','火','水','木','金','土'][dt.getDay()];
+    const dayColor = dt.getDay() === 0 ? '#ef4444' : dt.getDay() === 6 ? '#3b82f6' : '#1e293b';
+    txt.innerHTML = `<span style="color:#1e293b">${dt.getMonth()+1}月${dt.getDate()}日</span><span style="color:${dayColor};margin-left:2px">(${dayName})</span>`;
+    btn.classList.remove('border-slate-200');
+    btn.classList.add('border-sfc-primary');
+  } else {
+    txt.textContent = '日付を選択';
+    txt.style.color = '';
+    btn.classList.add('border-slate-200');
+    btn.classList.remove('border-sfc-primary');
+  }
+  checkReady();
+}
+
+/* ============================================================
+   時刻ピッカー：ドラムロール（タッチ＆スワイプ対応）
+============================================================ */
+const DRUM_HOURS   = Array.from({length: 24}, (_, i) => i);
+const DRUM_MINUTES = [0, 15, 30, 45];
+const DRUM_ITEM_H  = 40;   // px per item
+const DRUM_VISIBLE = 5;    // visible items count (200px / 40px)
+let drumHourIdx   = 10;    // default 10時
+let drumMinuteIdx = 0;     // default 00分
+
+function initDrumRolls() {
+  buildDrumTrack('drum-hour-track',   DRUM_HOURS,   drumHourIdx,   v => v.toString().padStart(2,'0'));
+  buildDrumTrack('drum-minute-track', DRUM_MINUTES, drumMinuteIdx, v => v.toString().padStart(2,'0'));
+  makeDrumDraggable('drum-hour',   DRUM_HOURS,   () => drumHourIdx,   i => { drumHourIdx = i; syncDrumTime(); });
+  makeDrumDraggable('drum-minute', DRUM_MINUTES, () => drumMinuteIdx, i => { drumMinuteIdx = i; syncDrumTime(); });
+}
+
+function buildDrumTrack(trackId, values, activeIdx, fmt) {
+  const track = document.getElementById(trackId);
+  // padding items top/bottom for centering
+  const pad = Math.floor(DRUM_VISIBLE / 2);
+  let html = '';
+  for (let i = 0; i < pad; i++) html += `<div class="drum-item" style="height:${DRUM_ITEM_H}px"></div>`;
+  values.forEach((v, i) => {
+    html += `<div class="drum-item${i === activeIdx ? ' active' : ''}" data-idx="${i}" style="height:${DRUM_ITEM_H}px">${fmt(v)}</div>`;
+  });
+  for (let i = 0; i < pad; i++) html += `<div class="drum-item" style="height:${DRUM_ITEM_H}px"></div>`;
+  track.innerHTML = html;
+  track.style.transform = `translateY(${-activeIdx * DRUM_ITEM_H}px)`;
+}
+
+function makeDrumDraggable(colId, values, getIdx, setIdx) {
+  const col   = document.getElementById(colId);
+  const track = col.querySelector('.drum-track');
+  let startY = 0, startOffset = 0, isDragging = false;
+
+  function onStart(e) {
+    isDragging = true;
+    startY = (e.touches ? e.touches[0].clientY : e.clientY);
+    startOffset = -getIdx() * DRUM_ITEM_H;
+    track.style.transition = 'none';
+    e.preventDefault();
+  }
+  function onMove(e) {
+    if (!isDragging) return;
+    const y = (e.touches ? e.touches[0].clientY : e.clientY);
+    const diff = y - startY;
+    track.style.transform = `translateY(${startOffset + diff}px)`;
+    e.preventDefault();
+  }
+  function onEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+    track.style.transition = '';
+    const current = parseFloat(track.style.transform.replace(/[^-\d.]/g, '')) || 0;
+    let idx = Math.round(-current / DRUM_ITEM_H);
+    idx = Math.max(0, Math.min(values.length - 1, idx));
+    setIdx(idx);
+    track.style.transform = `translateY(${-idx * DRUM_ITEM_H}px)`;
+    // update active class
+    track.querySelectorAll('.drum-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.idx == idx);
+    });
+  }
+
+  col.addEventListener('touchstart', onStart, {passive: false});
+  col.addEventListener('touchmove',  onMove,  {passive: false});
+  col.addEventListener('touchend',   onEnd);
+  col.addEventListener('mousedown',  onStart);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup',   onEnd);
+
+  // タップで直接選択
+  track.addEventListener('click', e => {
+    const item = e.target.closest('.drum-item');
+    if (!item || item.dataset.idx == null) return;
+    const idx = parseInt(item.dataset.idx);
+    setIdx(idx);
+    track.style.transform = `translateY(${-idx * DRUM_ITEM_H}px)`;
+    track.querySelectorAll('.drum-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.idx == idx);
+    });
+  });
+}
+
+function syncDrumTime() {
+  const hh = DRUM_HOURS[drumHourIdx].toString().padStart(2, '0');
+  const mm = DRUM_MINUTES[drumMinuteIdx].toString().padStart(2, '0');
+  const timeStr = `${hh}:${mm}`;
+  document.getElementById('start-time').value = timeStr;
+  const disp = document.getElementById('time-display-text');
+  if (disp) disp.textContent = timeStr;
+}
+
+/* ============================================================
+   時刻モーダル
+============================================================ */
+function openTimePicker() {
+  const modal = document.getElementById('time-modal');
+  modal.classList.remove('hidden');
+  // スライドアニメーションをリセットして再生
+  const sheet = modal.querySelector('.time-sheet');
+  if (sheet) { sheet.style.animation = 'none'; sheet.offsetHeight; sheet.style.animation = ''; }
+}
+function closeTimePicker() {
+  document.getElementById('time-modal').classList.add('hidden');
+}
+function confirmTimePicker() {
+  syncDrumTime();
+  // 時刻ボタンのボーダーを緑に
+  const btn = document.getElementById('time-display-btn');
+  if (btn) { btn.classList.remove('border-slate-200'); btn.classList.add('border-sfc-primary'); }
+  closeTimePicker();
+}
+
+function setDrumTime(h, m, markSelected = false) {
+  drumHourIdx = DRUM_HOURS.indexOf(h);
+  if (drumHourIdx < 0) drumHourIdx = 10;
+  // 分は最も近い15分刻みに丸める
+  const closest = DRUM_MINUTES.reduce((prev, curr) => Math.abs(curr - m) < Math.abs(prev - m) ? curr : prev);
+  drumMinuteIdx = DRUM_MINUTES.indexOf(closest);
+  buildDrumTrack('drum-hour-track',   DRUM_HOURS,   drumHourIdx,   v => v.toString().padStart(2,'0'));
+  buildDrumTrack('drum-minute-track', DRUM_MINUTES, drumMinuteIdx, v => v.toString().padStart(2,'0'));
+  syncDrumTime();
+  // 既存データ復元時はボーダーを緑に
+  if (markSelected) {
+    const btn = document.getElementById('time-display-btn');
+    if (btn) { btn.classList.remove('border-slate-200'); btn.classList.add('border-sfc-primary'); }
+  }
+}
+
+/* ============================================================
+   竣工完了判定
+============================================================ */
+function isProjectComplete(project) {
+  const d = project.history?.['竣工'];
+  return !!(project.delegate?.['竣工']) || (d && d <= todayStr);
+}
+
+/* ============================================================
+   実行（メール送信 / 代理登録）
+============================================================ */
+async function executeRequest() {
+  const date         = document.getElementById('inspection-date').value;
+  const startTime    = document.getElementById('start-time').value;
+  const isDelegate   = document.getElementById('delegate-check').checked;
+  const isPastDate   = date <= todayStr;
+  const isKanryo      = currentType === '完了検査';   // 完了検査
+  const isShunko      = currentType === '竣工';       // 竣工検査
+  // 設計交付番号 = 登録番号（既入力済みの reg を使用）、完了検査のみ確認交付番号を別途入力
+  const sekkeiNumber  = currentProject.reg || '';
+  const kakuninNumber = isKanryo ? (document.getElementById('kakunin-number')?.value?.trim() || '') : '';
+  const [, mm, dd]   = date.split('-');
+  const processLabel = GAS_CONFIG.PROCESS_LABELS[currentType] || `${currentType}`;
+
+  const dayChar    = ['日','月','火','水','木','金','土'][new Date(date).getDay()];
+  const dateLabel  = `${parseInt(mm)}/${parseInt(dd)}(${dayChar})`;
+
+  // 既存予約があるか（=変更操作か）
+  const prevDate     = currentProject.history?.[currentType] || '';
+  const prevDelegate = !!(currentProject.delegate?.[currentType]);
+  const isChange     = !!prevDate;
+
+  // ── 過去日付モード：記録のみ（メール・カレンダーなし） ──
+  if (isPastDate) {
+    setLoading(true, '記録中...');
+    if (!currentProject.history) currentProject.history = {};
+    if (!currentProject.times)   currentProject.times   = {};
+    currentProject.history[currentType] = date;
+    currentProject.times[currentType]   = startTime;
+    if (isDelegate) {
+      if (!currentProject.delegate) currentProject.delegate = {};
+      currentProject.delegate[currentType] = '代理人';
+    } else {
+      if (currentProject.delegate) delete currentProject.delegate[currentType];
+    }
+    try {
+      await postToGAS({ action: 'updateProject', id: currentProject.id,
+        reg: currentProject.reg, history: currentProject.history, delegate: currentProject.delegate || {}, times: currentProject.times || {} });
+    } catch(e) { console.warn('GAS同期失敗:', e); }
+    localStorage.setItem('myProjects', JSON.stringify(projects));
+    setLoading(false);
+    const suffix = isDelegate ? '（代理人）' : '';
+    const numSuffix = isShunko  ? `\n設計交付番号：${sekkeiNumber}` :
+                      isKanryo  ? `\n確認交付番号：${kakuninNumber}` : '';
+    showResultModal('success', isChange ? '変更完了' : '記録完了',
+      `${processLabel} を ${dateLabel} に記録しました${suffix}。\nメール・カレンダー登録はありません。${numSuffix}`);
+    return;
+  }
+
+  // ── 代理人の申込み（カレンダー登録のみ・メールなし） ──
+  if (isDelegate) {
+    setLoading(true, isChange ? 'カレンダーを更新中...' : '代理人の申込みを登録中...');
+    if (!currentProject.history)  currentProject.history  = {};
+    if (!currentProject.delegate) currentProject.delegate = {};
+    if (!currentProject.times)    currentProject.times    = {};
+    currentProject.history[currentType]  = date;
+    currentProject.delegate[currentType] = '代理人';
+    currentProject.times[currentType]    = startTime;
+
+    try {
+      const delegateNotes = isKanryo
+        ? `確認交付番号: ${kakuninNumber}\n代理人が申込み`
+        : `設計交付番号: ${sekkeiNumber}\n代理人が申込み`;
+      const payload = {
+        action:          'submitInspection',
+        propertyName:    currentProject.name,
+        propertyAddress: currentProject.address || '',
+        location:        currentProject.city || currentProject.address || '',
+        process:         processLabel,
+        inspectionDate:  date,
+        inspectionTime:  startTime,
+        notes:           delegateNotes,
+        recipientEmail:  '',
+        skipEmail:       true,
+        officeType:      isKanryo ? 'gifu' : undefined,
+        sekkeiNumber:    !isKanryo ? sekkeiNumber  : undefined,
+        kanryoNumber:    isKanryo  ? kakuninNumber : undefined,
+        isUpdate:        isChange,
+        previousDate:    prevDate,
+        senderName:      GAS_CONFIG.SENDER.name,
+        senderCompany:   GAS_CONFIG.SENDER.company,
+        senderPhone:     GAS_CONFIG.SENDER.phone,
+        bccEmail:        '',
+      };
+      const result = await postToGAS(payload);
+
+      await postToGAS({ action: 'updateProject', id: currentProject.id,
+        reg: currentProject.reg, history: currentProject.history, delegate: currentProject.delegate, times: currentProject.times || {} });
+      localStorage.setItem('myProjects', JSON.stringify(projects));
+      setLoading(false);
+
+      const details = [];
+      if (result.results?.calendar?.success) {
+        details.push(`${dateLabel} カレンダーに${isChange ? '更新' : '登録'}完了`);
+      } else if (result.results?.calendar?.error) {
+        details.push(`カレンダー: ${result.results.calendar.error}`);
+      }
+      details.push(`${dateLabel} 代理人の申込みとして登録`);
+      details.push('メールは送信されません');
+      showResultModal('success',
+        isChange ? '代理人の申込み変更完了' : '代理人の申込み完了',
+        details.join('\n'));
+    } catch (err) {
+      setLoading(false);
+      showResultModal('error', '通信エラー', `GASへの接続に失敗しました。\n${err.message}`);
+    }
+    return;
+  }
+
+  // ── 設定前レガシーモード ──
+  if (GAS_CONFIG.GAS_URL.includes('YOUR_DEPLOYMENT_ID')) {
+    executeLegacyMode(date, startTime);
+    return;
+  }
+
+  // ── 通常: メール送信 ＆ カレンダー登録 ──
+  const recipientEmail = GAS_CONFIG.EMAILS[currentType];
+  if (!recipientEmail) {
+    showResultModal('error', '送信先未設定', `工程「${currentType}」の送信先が設定されていません。`);
+    return;
+  }
+
+  // 竣工+完了 同時依頼のデータ収集
+  const isKanryoTogether = currentType === '竣工' &&
+    document.getElementById('kanryo-together-check')?.checked;
+  const kanryoDate = isKanryoTogether ? document.getElementById('kanryo-inspection-date')?.value : '';
+  const kanryoTime = isKanryoTogether ? document.getElementById('kanryo-start-time')?.value || '10:00' : '';
+
+  if (isKanryoTogether && !kanryoDate) {
+    showResultModal('error', '入力不足', '完了検査の希望日を入力してください。');
+    return;
+  }
+
+  // 建物場所を保存（入力があれば）
+  const addressInput = document.getElementById('inline-address-input');
+  if (addressInput && addressInput.value.trim()) {
+    currentProject.address = addressInput.value.trim();
+    try { await saveCurrentProjectToGAS(); } catch(e) {}
+    localStorage.setItem('myProjects', JSON.stringify(projects));
+  }
+
+  const buildingLocation = currentProject.address || currentProject.city || '';
+
+  setLoading(true, isChange ? '変更通知を送信中...' : 'メール・カレンダー処理中...');
+  try {
+    // 変更時は旧日付を整形
+    let prevDateLabel = '';
+    if (isChange && prevDate) {
+      const [, pm, pd] = prevDate.split('-');
+      const pdc = ['日','月','火','水','木','金','土'][new Date(prevDate).getDay()];
+      prevDateLabel = `${parseInt(pm)}/${parseInt(pd)}(${pdc})`;
+    }
+
+    // 備考
+    const baseNote = isKanryo
+      ? `確認交付番号: ${kakuninNumber}`
+      : `設計交付番号: ${sekkeiNumber}`;
+    const mainNotes = isChange
+      ? `${baseNote}\n※ 検査日程変更: ${prevDateLabel} → ${dateLabel} ${startTime}`
+      : baseNote;
+
+    const payload = {
+      action:           'submitInspection',
+      propertyName:     currentProject.name,
+      propertyAddress:  currentProject.address || '',
+      buildingLocation: buildingLocation,
+      location:         buildingLocation,
+      process:          processLabel,
+      inspectionDate:   date,
+      inspectionTime:   startTime,
+      recipientEmail,
+      senderName:       GAS_CONFIG.SENDER.name,
+      senderCompany:    GAS_CONFIG.SENDER.company,
+      senderPhone:      GAS_CONFIG.SENDER.phone,
+      bccEmail:         GAS_CONFIG.SENDER.bcc,
+      officeType:       isKanryo ? 'gifu' : undefined,
+      sekkeiNumber:     !isKanryo ? sekkeiNumber  : undefined,
+      kanryoNumber:     isKanryo  ? kakuninNumber : (currentProject.kanryo || undefined),
+      isUpdate:         isChange,
+      previousDate:     prevDate,
+      notes:            mainNotes,
+      emailSubject:     isKanryoTogether
+        ? `【検査依頼】${currentProject.name} 竣工検査・完了検査`
+        : isChange
+          ? `【検査日程変更】${currentProject.name} ${processLabel}`
+          : `【検査依頼】${currentProject.name} ${processLabel}`,
+      // 竣工+完了 統合依頼
+      includeKanryo:    isKanryoTogether || undefined,
+      kanryoDate:       kanryoDate       || undefined,
+      kanryoTime:       kanryoTime       || undefined,
+    };
+    const result = await postToGAS(payload);
+    if (result.success) {
+      if (!currentProject.history) currentProject.history = {};
+      if (!currentProject.times)   currentProject.times   = {};
+      currentProject.history[currentType] = date;
+      currentProject.times[currentType]   = startTime;
+      if (currentProject.delegate) delete currentProject.delegate[currentType];
+
+      const details = [];
+      if (result.results?.saved?.success)       details.push('スプレッドシートに記録');
+      else if (result.results?.saved?.error)    details.push(`記録: ${result.results.saved.error}`);
+      if (result.results?.email?.success)       details.push(`${recipientEmail} に${isChange ? '変更通知' : '依頼'}送信完了`);
+      else if (result.results?.email?.error)    details.push(`メール: ${result.results.email.error}`);
+      if (result.results?.calendar?.success)    details.push(`${dateLabel} カレンダーに${isChange ? '更新' : '登録'}完了`);
+      else if (result.results?.calendar?.error) details.push(`カレンダー: ${result.results.calendar.error}`);
+      if (!details.length) details.push(`${dateLabel} ${isChange ? '変更' : '依頼'}完了`);
+
+      try {
+        await postToGAS({ action: 'updateProject', id: currentProject.id, name: currentProject.name,
+          reg: currentProject.reg, history: currentProject.history, delegate: currentProject.delegate || {}, times: currentProject.times || {} });
+      } catch(e) {}
+      localStorage.setItem('myProjects', JSON.stringify(projects));
+      setLoading(false);
+      showResultModal('success', isChange ? '日程変更完了' : '依頼完了', details.join('\n'));
+    } else {
+      setLoading(false);
+      showResultModal('error', '送信エラー', result.error || '不明なエラー');
+    }
+  } catch (err) {
+    setLoading(false);
+    showResultModal('error', '通信エラー', `GASへの接続に失敗しました。\n${err.message}`);
+  }
+}
+
+function executeLegacyMode(date, startTime) {
+  const processLabel = GAS_CONFIG.PROCESS_LABELS[currentType] || `${currentType}検査`;
+  const subject = `【検査依頼】${currentProject.name} ${processLabel}`;
+  const body    = `物件：${currentProject.name}\n設計交付番号：${currentProject.reg}\n検査種別：${processLabel}\n日時：${date} ${startTime}〜`;
+  currentProject.history[currentType] = date;
+  if (!currentProject.times) currentProject.times = {};
+  currentProject.times[currentType] = startTime;
+  localStorage.setItem('myProjects', JSON.stringify(projects));
+  window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+  const startDT = date.replace(/-/g, '') + 'T' + startTime.replace(':', '') + '00';
+  const endHour = parseInt(startTime.split(':')[0]) + 1;
+  const endDT   = date.replace(/-/g, '') + 'T' + endHour.toString().padStart(2, '0') + startTime.split(':')[1] + '00';
+  setTimeout(() => {
+    if (confirm('Gmailを開きました。続けてカレンダーに追加しますか？')) {
+      window.open(`https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(subject)}&dates=${startDT}/${endDT}&details=${encodeURIComponent(body)}&colorid=1`, '_blank');
+    }
+    // UIリフレッシュ（リロードなし）
+    if (currentProject) {
+      updateButtonStates();
+      renderProjectList();
+      document.getElementById('project-select').value = currentProject.id;
+    }
+    currentType = null;
+    document.getElementById('inspection-date').value = '';
+    updateDay();
+    if (typeof setDrumTime === 'function') {
+      setDrumTime(10, 0, false);
+      const timeBtn = document.getElementById('time-display-btn');
+      if (timeBtn) { timeBtn.classList.remove('border-sfc-primary'); timeBtn.classList.add('border-slate-200'); }
+    }
+    const extraInfoL = document.getElementById('extra-info');
+    if (extraInfoL) extraInfoL.classList.add('hidden');
+    const sekkeiElL  = document.getElementById('sekkei-number');
+    const kakuninElL = document.getElementById('kakunin-number');
+    if (sekkeiElL)  sekkeiElL.value  = '';
+    if (kakuninElL) kakuninElL.value = '';
+    checkReady();
+  }, 500);
+}
+
+/* ============================================================
+   GAS通信
+============================================================ */
+async function postToGAS(payload) {
+  const response = await fetch(GAS_CONFIG.GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload),
+    redirect: 'follow',
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+}
+
+/* ============================================================
+   UI ヘルパー
+============================================================ */
+function setLoading(isLoading, statusText = '') {
+  document.getElementById('loading-overlay').classList.toggle('hidden', !isLoading);
+  const t = document.getElementById('loading-title');
+  if (t) t.textContent = statusText || '処理中...';
+}
+
+function showResultModal(type, title, bodyText) {
+  document.getElementById('result-icon').innerHTML    = type === 'success' ? ICON_SUCCESS : ICON_ERROR;
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-body').innerHTML    = bodyText.split('\n').map(l => `<p>${l}</p>`).join('');
+  document.getElementById('result-modal').classList.remove('hidden');
+}
+
+function closeResultModal() {
+  document.getElementById('result-modal').classList.add('hidden');
+
+  // 物件選択を維持したままUIをリフレッシュ
+  if (currentProject) {
+    updateButtonStates();
+    renderProjectList();
+    document.getElementById('project-select').value = currentProject.id;
+  }
+
+  // 検査区分・入力欄をリセット
+  currentType = null;
+  const dc = document.getElementById('delegate-check');
+  if (dc) dc.checked = false;
+  document.getElementById('inspection-date').value = '';
+  updateDay();
+  if (typeof setDrumTime === 'function') {
+    setDrumTime(10, 0, false);
+    const timeBtn = document.getElementById('time-display-btn');
+    if (timeBtn) { timeBtn.classList.remove('border-sfc-primary'); timeBtn.classList.add('border-slate-200'); }
+  }
+  // 竣工+完了セクションをリセット
+  const kanryoTog = document.getElementById('kanryo-together-section');
+  if (kanryoTog) kanryoTog.classList.add('hidden');
+  const kanryoChk = document.getElementById('kanryo-together-check');
+  if (kanryoChk) kanryoChk.checked = false;
+  const kanryoFields = document.getElementById('kanryo-together-fields');
+  if (kanryoFields) kanryoFields.classList.add('hidden');
+  const kanryoDateEl = document.getElementById('kanryo-inspection-date');
+  if (kanryoDateEl) kanryoDateEl.value = '';
+  const kanryoDateBtn = document.getElementById('kanryo-date-display-btn');
+  const kanryoDateTxt = document.getElementById('kanryo-date-display-text');
+  if (kanryoDateBtn) { kanryoDateBtn.classList.add('border-slate-200'); kanryoDateBtn.classList.remove('border-purple-400'); }
+  if (kanryoDateTxt) { kanryoDateTxt.textContent = '日付を選択'; }
+  checkReady();
+}
+
+/* ============================================================
+   検査申込み 削除（ボタンタップから）
+============================================================ */
+let _pendingDeleteType = null;
+
+function confirmDeleteInspectionType(type) {
+  if (!currentProject) return;
+  const scheduledDate = currentProject.history?.[type];
+  if (!scheduledDate) return;
+  _pendingDeleteType = type;
+  const label = GAS_CONFIG.PROCESS_LABELS[type] || type;
+  const [, mm, dd] = scheduledDate.split('-');
+  const dayChar = ['日','月','火','水','木','金','土'][new Date(scheduledDate).getDay()];
+  const txt = document.getElementById('delete-confirm-text');
+  if (txt) txt.textContent = `${currentProject.name}\n${label}：${parseInt(mm)}/${parseInt(dd)}(${dayChar})`;
+  document.getElementById('delete-confirm-modal').classList.remove('hidden');
+}
+
+function closeDeleteConfirm() {
+  _pendingDeleteType = null;
+  document.getElementById('delete-confirm-modal').classList.add('hidden');
+}
+
+async function executeDeleteInspection() {
+  if (!_pendingDeleteType || !currentProject) return;
+  const type = _pendingDeleteType;
+  const scheduledDate = currentProject.history?.[type];
+  closeDeleteConfirm();
+  setLoading(true, '削除中...');
+  try {
+    // GASでスプレッドシート+カレンダーを削除
+    await postToGAS({
+      action: 'deleteInspectionByRef',
+      propertyName: currentProject.name,
+      process: GAS_CONFIG.PROCESS_LABELS[type] || type,
+      inspectionDate: scheduledDate
+    });
+    // ローカルのhistory/timesをクリア
+    if (currentProject.history) delete currentProject.history[type];
+    if (currentProject.times)   delete currentProject.times[type];
+    if (currentProject.delegate) delete currentProject.delegate[type];
+    try {
+      await postToGAS({ action: 'updateProject', id: currentProject.id,
+        reg: currentProject.reg || '', history: currentProject.history || {},
+        delegate: currentProject.delegate || {}, times: currentProject.times || {},
+        kanryo: currentProject.kanryo || '', excluded: currentProject.excluded || {} });
+    } catch(e) {}
+    localStorage.setItem('myProjects', JSON.stringify(projects));
+    setLoading(false);
+    updateButtonStates();
+    if (currentType === type) {
+      currentType = null;
+      document.getElementById('kanryo-together-section').classList.add('hidden');
+      checkReady();
+    }
+    showResultModal('success', '削除完了',
+      `${GAS_CONFIG.PROCESS_LABELS[type] || type} の申込みを削除しました。\nGoogleカレンダーの予定も削除されます。`);
+  } catch (e) {
+    setLoading(false);
+    showResultModal('error', '削除エラー', e.message || '不明なエラー');
+  }
+}
+
+/* ============================================================
+   起動
+============================================================ */
+init();
+</script>
+
+<!-- ===== 簡易サイドドロワー（CSS は _tool-common.css） ===== -->
+<div class="tdrawer-overlay" id="toolDrawerOverlay" onclick="closeToolDrawer()"></div>
+<nav class="tdrawer" id="toolDrawer">
+  <div class="tdrawer-head">
+    <div class="tdrawer-head-title">m's hub</div>
+  </div>
+  <div class="tdrawer-sec">メイン</div>
+  <a class="tdrawer-item" href="../index.html"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>ホーム</a>
+  <a class="tdrawer-item" href="../index.html?tab=tasks"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>タスク</a>
+  <a class="tdrawer-item" href="../index.html?tab=week"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="2" x2="9" y2="6"/><line x1="15" y1="2" x2="15" y2="6"/></svg>予定</a>
+  <a class="tdrawer-item" href="../index.html?tab=properties"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>物件ボード</a>
+  <div class="tdrawer-sep"></div>
+  <div class="tdrawer-sec">ツール</div>
+  <a class="tdrawer-item active" href="./inspection.html"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>検査依頼</a>
+  <a class="tdrawer-item" href="./payment.html"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>支払い管理</a>
+  <a class="tdrawer-item" href="./property.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>新規物件登録</a>
+  <a class="tdrawer-item" href="./schedule.html"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>工程作成</a>
+  <div class="tdrawer-sep"></div>
+  <div class="tdrawer-sec">外部サービス</div>
+  <a class="tdrawer-item" href="https://calendar.google.com" target="_blank"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="2" x2="9" y2="6"/><line x1="15" y1="2" x2="15" y2="6"/></svg>Google カレンダー<svg class="tdrawer-ext" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
+  <a class="tdrawer-item" href="https://notion.so" target="_blank"><svg viewBox="0 0 24 24"><path d="M4 4h16v4H4zm0 6h16v2H4zm0 4h16v2H4zm0 4h10v2H4z"/></svg>Notion<svg class="tdrawer-ext" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
+  <a class="tdrawer-item" href="https://tasks.google.com" target="_blank"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Google Tasks<svg class="tdrawer-ext" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
+</nav>
+<!-- ===== ボトムナビ（CSS は _tool-common.css） ===== -->
+<nav class="tool-bottom-nav">
+  <a class="tni" href="../index.html"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="tni-lbl">ホーム</span></a>
+  <a class="tni" href="../index.html?tab=tasks"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span class="tni-lbl">タスク</span></a>
+  <a class="tni" href="../index.html?tab=week"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="2" x2="9" y2="6"/><line x1="15" y1="2" x2="15" y2="6"/></svg><span class="tni-lbl">予定</span></a>
+  <a class="tni" href="../index.html?tab=properties"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="tni-lbl">物件</span></a>
+  <a class="tni active" href="../index.html?tab=tools"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><span class="tni-lbl">ツール</span></a>
+  
+  
+</nav>
+</body>
+</html>
