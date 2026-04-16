@@ -1079,14 +1079,14 @@ function renderResults(items) {
     } else {
       const totalEst  = items.reduce((s, i) => s + (Number(i.estimate) || 0), 0);
       const totalPay  = items.reduce((s, i) => s + (Number(i.payment)  || 0), 0);
-      const totalDiff = totalEst - totalPay;
+      const totalDiff = totalPay - totalEst;
       const fmtY = v => '¥' + v.toLocaleString();
       totalBar.style.display = 'flex';
       totalBar.innerHTML = `
         <div class="total-bar-item"><span class="total-bar-label">件数</span><span class="total-bar-value">${items.length}件</span></div>
         <div class="total-bar-item"><span class="total-bar-label">見積合計</span><span class="total-bar-value">${fmtY(totalEst)}</span></div>
         <div class="total-bar-item"><span class="total-bar-label">支払合計</span><span class="total-bar-value">${fmtY(totalPay)}</span></div>
-        <div class="total-bar-item"><span class="total-bar-label">差額合計</span><span class="total-bar-value${totalDiff < 0 ? ' diff-neg' : ''}">${totalDiff >= 0 ? '+' : ''}${fmtY(totalDiff)}</span></div>`;
+        <div class="total-bar-item"><span class="total-bar-label">差額合計</span><span class="total-bar-value${totalDiff > 0 ? ' diff-neg' : ''}">${totalDiff >= 0 ? '+' : ''}${fmtY(totalDiff)}</span></div>`;
     }
   }
 
@@ -1099,7 +1099,7 @@ function renderResults(items) {
   const fmtDiff = v => (v >= 0 ? '+' : '') + '¥' + v.toLocaleString();
 
   resultList.innerHTML = groups.map(g => {
-    const diff = g.estimate - g.payment;
+    const diff = g.payment - g.estimate;
     const diffClass = diff > 0 ? 'diff-positive' : diff < 0 ? 'diff-negative' : '';
     return `
 <div class="payment-card">
