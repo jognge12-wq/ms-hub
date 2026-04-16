@@ -3315,13 +3315,16 @@
 
         // 1件のタスク行 HTML
         function _gtaskItemHtml(t, cls) {
-            let dueText = '';
-            if (t.due) dueText = _gtaskFmtDate(t.due);
-            if (t.deadline) dueText += (dueText ? ' ' : '') + '(期限: ' + _gtaskFmtDate(t.deadline) + ')';
-            if (!t.due && !t.deadline) dueText = '期限なし';
             const isOverdue = cls === 'overdue';
             const tid = (t.id || '').replace(/'/g, '');
             const lid = (t.listId || '').replace(/'/g, '');
+            // 期限切れのみ日付を表示（他はグループヘッダーに日付があるので不要）
+            let dueLine = '';
+            if (isOverdue) {
+                let dueText = t.due ? _gtaskFmtDate(t.due) : '期限不明';
+                if (t.deadline) dueText += ' (期限: ' + _gtaskFmtDate(t.deadline) + ')';
+                dueLine = `<div class="gtask-due overdue-text">${dueText}</div>`;
+            }
             return `<div class="gtask-item ${cls}">
                     <label class="gtask-cb-wrap" onclick="event.stopPropagation()">
                         <input type="checkbox" class="gtask-cb" ${tid ? `onchange="completeGoogleTask('${tid}','${lid}',this)"` : 'disabled'}>
@@ -3329,7 +3332,7 @@
                     </label>
                     <div class="task-content">
                         <div class="gtask-title">${t.title}</div>
-                        <div class="gtask-due${isOverdue ? ' overdue-text' : ''}">${dueText}</div>
+                        ${dueLine}
                     </div>
                 </div>`;
         }
