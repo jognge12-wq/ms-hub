@@ -1025,7 +1025,7 @@ function renderResults(items) {
   const resultList = document.getElementById('resultList');
   const totalBar   = document.getElementById('totalBar');
 
-  // アイテムの表示名をマスタデータから補完
+  // 表示名を補完（contactLabel はマスタから生成）
   items.forEach(item => {
     if (!item.propertyName && item.propertyId) {
       const p = allProperties.find(p => p.id === item.propertyId);
@@ -1045,21 +1045,40 @@ function renderResults(items) {
     }
   });
 
-  // タブに応じてカードのメインタイトルを決定
-  function cardTitle(item) {
-    if (_activeFilterTab === 'property') return item.propertyName || item.title || '（物件名なし）';
-    if (_activeFilterTab === 'vendor')   return item.vendorName   || item.title || '（業者名なし）';
-    if (_activeFilterTab === 'contact')  return item.contactLabel || item.title || '（担当者名なし）';
-    return item.title || '（タイトルなし）';
+  // タブに応じたグループキーとラベル
+  function itemGroupKey(item) {
+    if (_activeFilterTab === 'property') return item.propertyId || '__none__';
+    if (_activeFilterTab === 'vendor')   return item.vendorId   || '__none__';
+    return item.contactId || '__none__';
+  }
+  function itemGroupLabel(item) {
+    if (_activeFilterTab === 'property') return item.propertyName || '（物件名なし）';
+    if (_activeFilterTab === 'vendor')   return item.vendorName   || '（業者名なし）';
+    return item.contactLabel || '（担当者名なし）';
   }
 
-  // 合計バー
+  // グループ集計
+  const groupMap = {};
+  const groupOrder = [];
+  items.forEach(item => {
+    const key = itemGroupKey(item);
+    if (!groupMap[key]) {
+      groupMap[key] = { label: itemGroupLabel(item), count: 0, estimate: 0, payment: 0 };
+      groupOrder.push(key);
+    }
+    groupMap[key].count++;
+    groupMap[key].estimate += Number(item.estimate) || 0;
+    groupMap[key].payment  += Number(item.payment)  || 0;
+  });
+  const groups = groupOrder.map(k => groupMap[k]);
+
+  // 合計バー（全件ベース）
   if (totalBar) {
     if (!items.length) {
       totalBar.style.display = 'none';
     } else {
-      const totalEst  = items.reduce((s, i) => s + (i.estimate != null ? Number(i.estimate) : 0), 0);
-      const totalPay  = items.reduce((s, i) => s + (i.payment  != null ? Number(i.payment)  : 0), 0);
+      const totalEst  = items.reduce((s, i) => s + (Number(i.estimate) || 0), 0);
+      const totalPay  = items.reduce((s, i) => s + (Number(i.payment)  || 0), 0);
       const totalDiff = totalEst - totalPay;
       const fmtY = v => '¥' + v.toLocaleString();
       totalBar.style.display = 'flex';
@@ -1076,58 +1095,32 @@ function renderResults(items) {
     return;
   }
 
-  resultList.innerHTML = items.map(item => {
-    const est  = item.estimate != null ? Number(item.estimate) : null;
-    const pay  = item.payment  != null ? Number(item.payment)  : null;
-    const diff = (est != null && pay != null) ? est - pay : null;
+  const fmtYen  = v => '¥' + v.toLocaleString();
+  const fmtDiff = v => (v >= 0 ? '+' : '') + '¥' + v.toLocaleString();
 
-    const diffClass = diff == null ? ''
-      : diff > 0 ? 'diff-positive'
-      : diff < 0 ? 'diff-negative' : '';
-
-    const fmtYen  = v => v != null ? '¥' + v.toLocaleString() : '—';
-    const fmtDiff = v => {
-      if (v == null) return '—';
-      const sign = v > 0 ? '+' : '';
-      return sign + '¥' + v.toLocaleString();
-    };
-
-    // メモがあれば小さく表示
-    const memoHtml = item.memo
-      ? `<div style="font-size:11px;color:var(--text3);margin-bottom:6px;">${escHtml(item.memo)}</div>`
-      : '';
-
+  resultList.innerHTML = groups.map(g => {
+    const diff = g.estimate - g.payment;
+    const diffClass = diff > 0 ? 'diff-positive' : diff < 0 ? 'diff-negative' : '';
     return `
 <div class="payment-card">
-  <div class="payment-card-title">${escHtml(cardTitle(item))}</div>
-  ${memoHtml}
+  <div class="payment-card-title">${escHtml(g.label)}</div>
+  <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">${g.count}件</div>
   <div class="payment-card-meta">
     <div class="payment-card-meta-item">
-      <span class="payment-card-meta-label">見積</span>
-      <span class="payment-card-meta-value">${fmtYen(est)}</span>
+      <span class="payment-card-meta-label">見積合計</span>
+      <span class="payment-card-meta-value">${fmtYen(g.estimate)}</span>
     </div>
     <div class="payment-card-meta-item">
-      <span class="payment-card-meta-label">支払</span>
-      <span class="payment-card-meta-value">${fmtYen(pay)}</span>
+      <span class="payment-card-meta-label">支払合計</span>
+      <span class="payment-card-meta-value">${fmtYen(g.payment)}</span>
     </div>
     <div class="payment-card-meta-item">
       <span class="payment-card-meta-label">差額</span>
       <span class="payment-card-meta-value ${diffClass}">${fmtDiff(diff)}</span>
     </div>
   </div>
-  ${item.date ? `<div class="payment-card-date">${escHtml(item.date)}</div>` : ''}
-  <button class="btn-edit">編集</button>
 </div>`;
   }).join('');
-
-  // 各カードに item データを data 属性で保持し、編集ボタンにイベントを設定
-  const cards = resultList.querySelectorAll('.payment-card');
-  items.forEach((item, i) => {
-    cards[i].dataset.item = JSON.stringify(item);
-    cards[i].querySelector('.btn-edit').addEventListener('click', function() {
-      openEditSheet(this);
-    });
-  });
 }
 
 // ================================================================
