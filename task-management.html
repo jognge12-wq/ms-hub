@@ -271,10 +271,14 @@
 
     /* ─ Add task button (top toolbar) ────────────────────── */
     .add-task-btn { display: flex; align-items: center; gap: 5px; padding: 6px 12px;
-                    background: var(--green); color: white; border: none; border-radius: 7px;
-                    font-family: var(--fp); font-size: 12px; cursor: pointer;
+                    background: var(--card); border: 1px solid var(--border); border-radius: 7px;
+                    font-family: var(--fp); font-size: 12px; color: var(--t2); cursor: pointer;
                     -webkit-tap-highlight-color: transparent; }
-    .add-task-btn:active { background: var(--green-dark); }
+    .add-task-btn:active { background: var(--bg); }
+    /* スマホ：ボタンラベルを非表示にしてアイコンのみ表示 */
+    @media (max-width: 480px) {
+      .btn-label { display: none; }
+    }
 
     /* ─ Master phase header (updated) ────────────────────── */
     .m-ghdr-new { display: flex; align-items: center; padding: 11px 14px;
@@ -527,21 +531,21 @@
   <div class="toolbar">
     <span class="tbar-meta" id="lbl-master">全現場共通 マスタータスク</span>
     <div style="display:flex;gap:8px;align-items:center">
-      <button class="add-task-btn" onclick="openAddTaskModal()">
+      <button class="add-task-btn" onclick="openAddTaskModal()" title="タスクを追加">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>+ タスクを追加
+        </svg><span class="btn-label">タスクを追加</span>
       </button>
-      <button class="btn-xs" onclick="openAddPhase()">
+      <button class="btn-xs" onclick="openAddPhase()" title="工程を追加">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>工程を追加
+        </svg><span class="btn-label">工程を追加</span>
       </button>
-      <button class="btn-xs" onclick="loadMaster()">
+      <button class="btn-xs" onclick="loadMaster()" title="更新">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
           <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-        </svg>更新
+        </svg><span class="btn-label">更新</span>
       </button>
     </div>
   </div>
@@ -859,6 +863,10 @@ function propCardHTML(p) {
   const frameFmt    = p.frame    ? fmtDate(p.frame)    : '';
   const handoverFmt = p.handover ? fmtDate(p.handover) : '';
   const cal = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>`;
+  // キャッシュがあれば初期値をパーセントで表示
+  const cachedTasks = taskCache[p.name];
+  const hasCached   = cachedTasks && cachedTasks.length > 0;
+  const cachedPct   = hasCached ? Math.round(cachedTasks.filter(t=>t.done).length / cachedTasks.length * 100) : null;
   return `
 <div class="prop-card" id="${cid}" data-prop="${esc(p.name)}" data-alldone="false" data-notion-id="${esc(p.notionPageId||'')}" data-progress="${esc(p.progress||'')}">
   <div class="prop-hdr" onclick="toggleProp('${cid}')">
@@ -872,8 +880,8 @@ function propCardHTML(p) {
       <div class="prop-name">${esc(p.name)}</div>
       ${p.city ? `<div class="prop-addr">${esc(p.city)}</div>` : ''}
       <div class="prop-mini-row">
-        <div class="prop-mini-bg"><div class="prop-mini-fill" id="${cid}-mpb" style="width:0%"></div></div>
-        <span class="prop-mini-lbl" id="${cid}-mpl">―</span>
+        <div class="prop-mini-bg"><div class="prop-mini-fill" id="${cid}-mpb" style="width:${cachedPct !== null ? cachedPct : 0}%"></div></div>
+        <span class="prop-mini-lbl" id="${cid}-mpl">${cachedPct !== null ? cachedPct + '%' : '―'}</span>
       </div>
       ${(startFmt || frameFmt || handoverFmt) ? `
       <div class="prop-dates">

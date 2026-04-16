@@ -577,6 +577,10 @@ async function init() {
           // history/delegate もGAS側が空ならキャッシュから復元
           if (!p.history || !Object.keys(p.history).length) p.history = c.history || {};
           if (!p.delegate || !Object.keys(p.delegate).length) p.delegate = c.delegate || {};
+          // 確認交付番号・住所・除外もキャッシュから復元
+          if (!p.kanryo)    p.kanryo   = c.kanryo   || '';
+          if (!p.address)   p.address  = c.address  || '';
+          if (!p.excluded || !Object.keys(p.excluded).length) p.excluded = c.excluded || {};
           return p;
         });
         localStorage.setItem('myProjects', JSON.stringify(projects));
@@ -663,7 +667,7 @@ function renderButtons() {
         class="type-btn w-full p-4 rounded-2xl border-2 border-slate-200 bg-white font-bold text-slate-700 transition-all flex flex-col items-center justify-center min-h-[86px] gap-2">
         <span class="type-icon opacity-60">${TYPE_ICONS[type]}</span>
         <span class="type-label text-sm">${label}</span>
-        <span class="history-tag text-[11px] px-2.5 py-0.5 rounded-full hidden font-bold"></span>
+        <span class="history-tag text-[11px] px-2 py-0.5 rounded hidden font-bold"></span>
       </button>
       <button id="del-btn-${type}" onclick="event.stopPropagation();confirmDeleteInspectionType('${type}')"
         class="del-inspect-btn absolute top-1.5 right-1.5 hidden p-1.5 rounded-lg bg-red-50 active:bg-red-100 transition-colors z-10"
@@ -1222,7 +1226,7 @@ function updateDay() {
    時刻ピッカー：ドラムロール（タッチ＆スワイプ対応）
 ============================================================ */
 const DRUM_HOURS   = Array.from({length: 24}, (_, i) => i);
-const DRUM_MINUTES = [0, 15, 30, 45];
+const DRUM_MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 const DRUM_ITEM_H  = 40;   // px per item
 const DRUM_VISIBLE = 5;    // visible items count (200px / 40px)
 let drumHourIdx   = 10;    // default 10時

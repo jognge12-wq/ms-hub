@@ -722,8 +722,9 @@ let allContacts   = [];
 // 起動
 // ================================================================
 (function boot() {
-  document.getElementById('setupScreen').style.display = 'none';
-  document.getElementById('mainScreen').style.display  = 'block';
+  const setup = document.getElementById('setupScreen');
+  if (setup) setup.style.display = 'none';
+  document.getElementById('mainScreen').style.display = 'block';
   init();
 })();
 
