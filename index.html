@@ -3066,45 +3066,6 @@
             </div>
         </div>
 
-        <!-- ツールへのポータルカード（最下部） -->
-        <div class="portal-tools-grid">
-            <div class="portal-tool-card" onclick="navigateTo('tools/property.html')">
-                <div class="portal-tool-icon">
-                    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                </div>
-                <div>
-                    <div class="portal-tool-name">新規物件登録</div>
-                    <div class="portal-tool-sub">物件＋タスク一括登録</div>
-                </div>
-            </div>
-            <div class="portal-tool-card" onclick="navigateTo('tools/schedule.html')">
-                <div class="portal-tool-icon">
-                    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="10" x2="12" y2="22"/></svg>
-                </div>
-                <div>
-                    <div class="portal-tool-name">工程作成</div>
-                    <div class="portal-tool-sub">カレンダーへ自動登録</div>
-                </div>
-            </div>
-            <div class="portal-tool-card" onclick="navigateTo('tools/inspection.html')">
-                <div class="portal-tool-icon">
-                    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                </div>
-                <div>
-                    <div class="portal-tool-name">検査依頼</div>
-                    <div class="portal-tool-sub">依頼メール自動送信</div>
-                </div>
-            </div>
-            <div class="portal-tool-card" onclick="navigateTo('tools/payment.html')">
-                <div class="portal-tool-icon">
-                    <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg>
-                </div>
-                <div>
-                    <div class="portal-tool-name">支払い管理</div>
-                    <div class="portal-tool-sub">個人専用 支払い台帳</div>
-                </div>
-            </div>
-        </div>
     </main>
     </div><!-- /tab-home -->
 
@@ -3971,11 +3932,18 @@
         //   var weekOffset = parseInt(e.parameter.weekOffset) || 0;
         //   var startDate = getStartOfWeek(new Date(), weekOffset);
         //   var endDate = addDays(startDate, 42); // 6週分
+        let _fetchLiveDataLastAt = 0;
+        const _FETCH_TTL = 5 * 60 * 1000; // 5分キャッシュ
+
         async function fetchLiveData(weekOffset) {
             if (!GAS_WEBAPP_URL) return;
+            // 週ナビ以外（バックグラウンド更新）は5分以内なら再取得しない
+            const isWeekNav = weekOffset !== undefined && weekOffset !== 0;
+            if (!isWeekNav && Date.now() - _fetchLiveDataLastAt < _FETCH_TTL) return;
+            if (!isWeekNav) _fetchLiveDataLastAt = Date.now();
             try {
                 var params = '?mode=getDashboardData';
-                if (weekOffset !== undefined && weekOffset !== 0) {
+                if (isWeekNav) {
                     params += '&weekOffset=' + weekOffset;
                 }
                 // 常に6週分のデータをリクエスト（GASが対応していれば返る）
@@ -4085,11 +4053,18 @@
                     window._initialLoadDone = true;
                 });
 
-                // タスクタブ・週間タブを次回表示時に再レンダリング（データが変わったため）
-                const _taskTab = document.getElementById('tab-tasks');
-                if (_taskTab) _taskTab.dataset.rendered = '';
-                const _weekTab = document.getElementById('tab-week');
-                if (_weekTab) _weekTab.dataset.rendered = '';
+                // 週ナビ以外のフルリフレッシュ時のみ各タブを再レンダリング対象にする
+                // 週ナビ時にリセットするとタブ戻り時に現場タスクが再読み込みされてチラつく
+                if (!isWeekNav) {
+                    const _taskTab = document.getElementById('tab-tasks');
+                    if (_taskTab && _taskTab.dataset.rendered) {
+                        // データ更新をDOMに反映（再構築せずGoogleタスク部分だけ差し替え）
+                        const gtPane = document.getElementById('taskPane-gtask');
+                        if (gtPane) renderGoogleTasks();
+                    }
+                    const _weekTab = document.getElementById('tab-week');
+                    if (_weekTab) _weekTab.dataset.rendered = '';
+                }
 
                 // 最終更新時刻を更新・保存
                 var syncText = '最終更新: ' + (data.timestamp || '');
