@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>m's hub — デザインモックアップ</title>
+<style>
+/* ===== BASE ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f6f7f9;--surface:#fff;--surface2:#f0f2f5;
+  --border:#e4e6ea;--border2:#d0d3d9;
+  --text1:#1a1d23;--text2:#5a6170;--text3:#9aa3b0;
+  --accent:#2563eb;--accent-light:#eff4ff;
+  --green:#16a34a;--green-bg:#f0fdf4;
+  --yellow:#d97706;--yellow-bg:#fffbeb;
+  --red:#dc2626;--red-bg:#fef2f2;
+  --purple:#7c3aed;--purple-bg:#f5f3ff;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);
+  --shadow-md:0 4px 16px rgba(0,0,0,.1);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.14);
+  --radius-sm:8px;--radius-md:12px;--radius-lg:16px;
+  --transition:.18s ease;
+  --font:'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;
+}
+[data-dark]{
+  --bg:#0f1117;--surface:#1a1d24;--surface2:#22262f;
+  --border:#2e3340;--border2:#3a3f4e;
+  --text1:#eef0f4;--text2:#8b95a3;--text3:#4e5564;
+  --accent:#3b82f6;--accent-light:#1e2d4a;
+  --green:#22c55e;--green-bg:#0d2318;
+  --yellow:#f59e0b;--yellow-bg:#1f1800;
+  --red:#f87171;--red-bg:#2d1212;
+  --purple:#a78bfa;--purple-bg:#1e1535;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.3);
+  --shadow-md:0 4px 16px rgba(0,0,0,.4);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.5);
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text1);font-size:14px;line-height:1.5;transition:background var(--transition),color var(--transition)}
+
+/* ===== LAYOUT ===== */
+.app-shell{max-width:420px;margin:0 auto;min-height:100dvh;position:relative;padding-bottom:80px}
+.section-title{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--text3);text-transform:uppercase;padding:20px 16px 8px;margin-top:4px}
+
+/* ===== TOP BAR ===== */
+.top-bar{
+  position:sticky;top:0;z-index:100;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:12px 16px;display:flex;align-items:center;justify-content:space-between;
+  backdrop-filter:blur(12px);
+}
+.top-bar-title{font-size:17px;font-weight:700;letter-spacing:-.02em}
+.top-bar-actions{display:flex;gap:8px;align-items:center}
+.icon-btn{
+  width:34px;height:34px;border-radius:50%;border:none;
+  background:var(--surface2);color:var(--text2);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:background var(--transition),transform var(--transition);
+}
+.icon-btn:active{transform:scale(.92)}
+.icon-btn:hover{background:var(--border)}
+
+/* ===== TAB BAR ===== */
+.tab-bar{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:420px;z-index:100;
+  background:var(--surface);border-top:1px solid var(--border);
+  display:flex;padding:8px 0 max(8px, env(safe-area-inset-bottom));
+  backdrop-filter:blur(12px);
+}
+.tab-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:4px 0;cursor:pointer;transition:color var(--transition);
+  color:var(--text3);border:none;background:none;font-size:10px;font-weight:600;
+  -webkit-tap-highlight-color:transparent;
+}
+.tab-item.active{color:var(--accent)}
+.tab-item svg{width:22px;height:22px}
+.tab-dot{
+  width:5px;height:5px;border-radius:50%;background:var(--accent);
+  position:absolute;top:-2px;right:-4px;
+}
+.tab-icon-wrap{position:relative;display:inline-flex}
+
+/* ===== KPI CARDS ===== */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px}
+.kpi-card{
+  background:var(--surface);border-radius:var(--radius-md);
+  padding:14px;border:1px solid var(--border);
+  box-shadow:var(--shadow-sm);transition:box-shadow var(--transition),transform var(--transition);
+}
+.kpi-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.kpi-card.wide{grid-column:span 2}
+.kpi-label{font-size:11px;color:var(--text3);font-weight:600;margin-bottom:6px}
+.kpi-value{font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.kpi-sub{display:flex;align-items:center;gap:4px;margin-top:6px;font-size:11px}
+.kpi-badge{
+  display:inline-flex;align-items:center;gap:2px;
+  padding:2px 6px;border-radius:100px;font-size:10px;font-weight:700;
+}
+.badge-up{background:var(--green-bg);color:var(--green)}
+.badge-down{background:var(--red-bg);color:var(--red)}
+.badge-flat{background:var(--surface2);color:var(--text3)}
+.sparkline{margin-top:8px}
+
+/* ===== PROJECT CARDS ===== */
+.prop-list{display:flex;flex-direction:column;gap:8px;padding:0 16px}
+.prop-card{
+  background:var(--surface);border-radius:var(--radius-md);
+  border:1px solid var(--border);box-shadow:var(--shadow-sm);
+  overflow:hidden;transition:box-shadow var(--transition),transform var(--transition);
+  position:relative;
+}
+.prop-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.prop-card:active{transform:scale(.99)}
+
+/* リスクカラーバー（上部3px） */
+.prop-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  border-radius:2px 2px 0 0;
+}
+.prop-card.risk-green::before{background:var(--green)}
+.prop-card.risk-yellow::before{background:var(--yellow)}
+.prop-card.risk-red::before{background:var(--red)}
+.prop-card.risk-blue::before{background:var(--accent)}
+
+.prop-body{padding:14px 14px 12px}
+.prop-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.prop-name{font-size:15px;font-weight:700;letter-spacing:-.01em;line-height:1.3}
+.prop-addr{font-size:11px;color:var(--text3);margin-top:2px}
+.status-chip{
+  flex-shrink:0;padding:3px 8px;border-radius:100px;
+  font-size:10px;font-weight:700;white-space:nowrap;
+}
+.status-施工中{background:var(--accent-light);color:var(--accent)}
+.status-着工前{background:var(--yellow-bg);color:var(--yellow)}
+.status-引渡し待{background:var(--purple-bg);color:var(--purple)}
+
+/* 進捗バー */
+.prop-progress{margin-top:12px}
+.progress-row{display:flex;align-items:center;gap:8px}
+.progress-bg{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.progress-fill.green{background:var(--green)}
+.progress-fill.blue{background:var(--accent)}
+.progress-fill.yellow{background:var(--yellow)}
+.progress-pct{font-size:11px;font-weight:700;color:var(--text2);min-width:32px;text-align:right}
+
+.prop-dates{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap}
+.prop-date-item{font-size:10px;color:var(--text3);display:flex;align-items:center;gap:3px}
+.prop-date-item b{color:var(--text2);font-weight:600}
+
+/* ===== BUDGET GAUGE ===== */
+.budget-section{padding:0 16px}
+.budget-card{
+  background:var(--surface);border-radius:var(--radius-md);
+  border:1px solid var(--border);box-shadow:var(--shadow-sm);padding:16px;
+}
+.budget-title{font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.budget-row{margin-bottom:12px}
+.budget-name{font-size:12px;color:var(--text2);margin-bottom:5px;display:flex;justify-content:space-between}
+.budget-gauge-bg{height:10px;background:var(--surface2);border-radius:5px;overflow:visible;position:relative}
+.budget-gauge-fill{
+  height:100%;border-radius:5px;transition:width .6s cubic-bezier(.4,0,.2,1);
+  position:relative;
+}
+.budget-gauge-fill::after{
+  content:'';position:absolute;right:-1px;top:-2px;
+  width:14px;height:14px;border-radius:50%;
+  background:inherit;border:2px solid var(--surface);
+  box-shadow:var(--shadow-sm);
+}
+.gauge-green{background:var(--green)}
+.gauge-yellow{background:var(--yellow)}
+.gauge-red{background:var(--red)}
+.budget-labels{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--text3)}
+.budget-amount{display:flex;justify-content:space-between;align-items:baseline;margin-top:2px}
+.budget-spent{font-size:13px;font-weight:700}
+.budget-limit{font-size:11px;color:var(--text3)}
+.budget-diff{font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px}
+.diff-ok{color:var(--green);background:var(--green-bg)}
+.diff-warn{color:var(--yellow);background:var(--yellow-bg)}
+.diff-over{color:var(--red);background:var(--red-bg)}
+
+/* ===== TODAY WIDGET ===== */
+.today-card{
+  margin:0 16px;
+  background:linear-gradient(135deg,var(--accent) 0%,#1d4ed8 100%);
+  border-radius:var(--radius-md);padding:16px;color:#fff;
+  box-shadow:0 4px 20px rgba(37,99,235,.4);
+}
+[data-dark] .today-card{box-shadow:0 4px 20px rgba(59,130,246,.3)}
+.today-date{font-size:11px;opacity:.75;font-weight:600}
+.today-headline{font-size:18px;font-weight:700;margin-top:2px;letter-spacing:-.02em}
+.today-chips{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.today-chip{
+  background:rgba(255,255,255,.18);backdrop-filter:blur(8px);
+  border-radius:100px;padding:5px 10px;font-size:11px;font-weight:600;
+  display:flex;align-items:center;gap:4px;
+}
+.today-chip-dot{width:6px;height:6px;border-radius:50%;background:#fff}
+
+/* ===== TASK LIST ===== */
+.task-list-card{
+  margin:0 16px;
+  background:var(--surface);border-radius:var(--radius-md);
+  border:1px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden;
+}
+.task-list-hdr{
+  padding:12px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.task-list-title{font-size:13px;font-weight:700}
+.view-btns{display:flex;gap:2px;background:var(--surface2);border-radius:6px;padding:2px}
+.view-btn{
+  padding:4px 8px;border-radius:4px;border:none;background:none;
+  font-size:11px;font-weight:600;color:var(--text3);cursor:pointer;
+  transition:background var(--transition),color var(--transition);
+}
+.view-btn.active{background:var(--surface);color:var(--text1);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.task-row{
+  display:flex;align-items:center;gap:10px;padding:11px 14px;
+  border-bottom:1px solid var(--border);transition:background var(--transition);
+  cursor:pointer;
+}
+.task-row:last-child{border-bottom:none}
+.task-row:hover{background:var(--surface2)}
+.task-row:active{background:var(--border)}
+.chk-box{
+  width:20px;height:20px;border-radius:5px;border:2px solid var(--border2);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  transition:all var(--transition);cursor:pointer;
+}
+.chk-box.done{background:var(--green);border-color:var(--green)}
+.task-name{font-size:13px;font-weight:500;flex:1}
+.task-name.done{color:var(--text3);text-decoration:line-through}
+.task-meta-row{display:flex;align-items:center;gap:6px;margin-top:2px}
+.task-phase{font-size:10px;color:var(--text3);background:var(--surface2);padding:1px 6px;border-radius:4px}
+.task-due{font-size:10px;color:var(--text3)}
+.task-due.late{color:var(--red)}
+.priority-dot{width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0}
+
+/* ===== KANBAN ===== */
+.kanban-wrap{overflow-x:auto;padding:0 16px 4px;display:flex;gap:10px;scrollbar-width:none}
+.kanban-wrap::-webkit-scrollbar{display:none}
+.kanban-col{flex-shrink:0;width:200px}
+.kanban-col-hdr{
+  display:flex;align-items:center;gap:6px;padding:8px 10px;
+  background:var(--surface2);border-radius:var(--radius-sm) var(--radius-sm) 0 0;
+  border:1px solid var(--border);border-bottom:none;
+}
+.kanban-col-name{font-size:11px;font-weight:700;color:var(--text2)}
+.kanban-col-cnt{font-size:10px;background:var(--border);color:var(--text3);padding:1px 6px;border-radius:10px}
+.kanban-body{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:0 0 var(--radius-sm) var(--radius-sm);
+  padding:8px;display:flex;flex-direction:column;gap:6px;min-height:80px;
+}
+.kanban-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-sm);padding:10px;
+  box-shadow:var(--shadow-sm);cursor:grab;
+  transition:box-shadow var(--transition),transform var(--transition);
+}
+.kanban-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.kanban-card-name{font-size:12px;font-weight:600;line-height:1.4}
+.kanban-card-prop{font-size:10px;color:var(--text3);margin-top:4px}
+.kanban-card-due{font-size:10px;color:var(--text2);margin-top:6px;display:flex;align-items:center;gap:3px}
+
+/* ===== SWIPE DEMO ===== */
+.swipe-demo{margin:0 16px}
+.swipe-item-wrap{position:relative;overflow:hidden;border-radius:var(--radius-sm);margin-bottom:6px}
+.swipe-bg{
+  position:absolute;inset:0;display:flex;align-items:center;
+  padding:0 16px;font-size:12px;font-weight:700;
+}
+.swipe-bg.left{justify-content:flex-end;background:var(--green);color:#fff}
+.swipe-bg.right{justify-content:flex-start;background:var(--red-bg);color:var(--red)}
+.swipe-item{
+  background:var(--surface);padding:12px 14px;position:relative;
+  display:flex;align-items:center;gap:10px;
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  cursor:grab;border:1px solid var(--border);
+  touch-action:pan-y;
+}
+.swipe-item.swiped-right{transform:translateX(70px)}
+.swipe-item.swiped-left{transform:translateX(-70px)}
+.swipe-hint{font-size:10px;color:var(--text3);text-align:center;padding:4px 0 8px;display:flex;align-items:center;justify-content:center;gap:4px}
+
+/* ===== COMPAT NAV ===== */
+.demo-nav{
+  display:flex;background:var(--surface);border-bottom:1px solid var(--border);
+  position:sticky;top:57px;z-index:90;overflow-x:auto;scrollbar-width:none;
+}
+.demo-nav::-webkit-scrollbar{display:none}
+.demo-nav-btn{
+  flex-shrink:0;padding:10px 16px;font-size:12px;font-weight:600;
+  color:var(--text3);border:none;background:none;cursor:pointer;
+  border-bottom:2px solid transparent;transition:all var(--transition);white-space:nowrap;
+}
+.demo-nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ===== SECTION ===== */
+.demo-section{display:none}
+.demo-section.active{display:block}
+
+/* ===== FLOATING ACTION BUTTON ===== */
+.fab{
+  position:fixed;bottom:90px;right:20px;
+  width:52px;height:52px;border-radius:50%;
+  background:var(--accent);color:#fff;border:none;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(37,99,235,.5);cursor:pointer;
+  transition:transform var(--transition),box-shadow var(--transition);
+  z-index:90;
+}
+.fab:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(37,99,235,.6)}
+.fab:active{transform:scale(.95)}
+.fab-menu{
+  position:fixed;bottom:150px;right:16px;
+  display:flex;flex-direction:column;gap:8px;align-items:flex-end;
+  z-index:89;opacity:0;pointer-events:none;
+  transition:opacity .2s ease,transform .2s ease;
+  transform:translateY(10px);
+}
+.fab-menu.open{opacity:1;pointer-events:all;transform:translateY(0)}
+.fab-sub{
+  display:flex;align-items:center;gap:8px;background:var(--surface);
+  border:1px solid var(--border);border-radius:100px;
+  padding:8px 14px 8px 10px;box-shadow:var(--shadow-md);
+  font-size:12px;font-weight:600;color:var(--text1);cursor:pointer;
+  white-space:nowrap;
+}
+.fab-sub-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
+
+/* ===== TOAST ===== */
+.toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--text1);color:var(--surface);padding:10px 18px;
+  border-radius:100px;font-size:12px;font-weight:600;
+  box-shadow:var(--shadow-lg);opacity:0;
+  transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;z-index:200;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===== DARK TOGGLE BADGE ===== */
+.dark-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 10px;background:var(--surface2);border-radius:100px;
+  font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;
+  border:1px solid var(--border);transition:all var(--transition);
+}
+.dark-badge:hover{background:var(--border)}
+
+/* ===== ANIMATIONS ===== */
+@keyframes check-pop{
+  0%{transform:scale(0.6)}
+  60%{transform:scale(1.25)}
+  100%{transform:scale(1)}
+}
+.chk-animate{animation:check-pop .25s cubic-bezier(.4,0,.2,1) forwards}
+
+@keyframes slide-up{
+  from{transform:translateY(20px);opacity:0}
+  to{transform:translateY(0);opacity:1}
+}
+.slide-up{animation:slide-up .3s ease forwards}
+
+/* ===== RESPONSIVE HEADER ===== */
+@media(prefers-color-scheme:dark){
+  :root:not([data-dark=false]){
+    --bg:#0f1117;--surface:#1a1d24;--surface2:#22262f;
+    --border:#2e3340;--border2:#3a3f4e;
+    --text1:#eef0f4;--text2:#8b95a3;--text3:#4e5564;
+    --accent:#3b82f6;--accent-light:#1e2d4a;
+    --green:#22c55e;--green-bg:#0d2318;
+    --yellow:#f59e0b;--yellow-bg:#1f1800;
+    --red:#f87171;--red-bg:#2d1212;
+    --purple:#a78bfa;--purple-bg:#1e1535;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.3);
+    --shadow-md:0 4px 16px rgba(0,0,0,.4);
+    --shadow-lg:0 8px 32px rgba(0,0,0,.5);
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-bar-title">m's hub <span style="font-size:11px;font-weight:400;color:var(--text3);margin-left:4px">デザインモック</span></div>
+    <div class="top-bar-actions">
+      <div class="dark-badge" onclick="toggleDark()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <span id="dark-lbl">ダーク</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEMO NAV -->
+  <div class="demo-nav" id="demoNav">
+    <button class="demo-nav-btn active" onclick="showSection('dashboard',this)">ダッシュボード</button>
+    <button class="demo-nav-btn" onclick="showSection('tasks',this)">タスク</button>
+    <button class="demo-nav-btn" onclick="showSection('kanban',this)">カンバン</button>
+    <button class="demo-nav-btn" onclick="showSection('budget',this)">支払い</button>
+    <button class="demo-nav-btn" onclick="showSection('swipe',this)">スワイプ</button>
+  </div>
+
+  <!-- ===================== DASHBOARD ===================== -->
+  <div id="section-dashboard" class="demo-section active">
+
+    <!-- 今日のウィジェット -->
+    <div style="padding:16px 0 0">
+      <div class="today-card slide-up">
+        <div class="today-date">2026年4月17日（金） · 施工中案件 7件</div>
+        <div class="today-headline">今日のアクション 3件</div>
+        <div class="today-chips">
+          <div class="today-chip">
+            <div class="today-chip-dot"></div>
+            本日期限タスク 5件
+          </div>
+          <div class="today-chip">
+            <div class="today-chip-dot" style="background:#fbbf24"></div>
+            検査予定 1件
+          </div>
+          <div class="today-chip">
+            <div class="today-chip-dot" style="background:#f87171"></div>
+            遅延タスク 2件
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI -->
+    <div class="section-title">概況</div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">施工中案件</div>
+        <div class="kpi-value">7</div>
+        <div class="kpi-sub">
+          <span class="kpi-badge badge-up">▲2 先週比</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">完了タスク率</div>
+        <div class="kpi-value">68<span style="font-size:16px;font-weight:500;color:var(--text3)">%</span></div>
+        <div class="kpi-sub">
+          <span class="kpi-badge badge-up">▲5% 先週比</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">今月引渡し</div>
+        <div class="kpi-value">2</div>
+        <div class="kpi-sub" style="color:var(--text3);font-size:11px">予定通り</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">遅延タスク</div>
+        <div class="kpi-value" style="color:var(--red)">3</div>
+        <div class="kpi-sub">
+          <span class="kpi-badge badge-down">▼要対応</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 案件カード -->
+    <div class="section-title">施工中の案件</div>
+    <div class="prop-list">
+
+      <!-- カード1: 緑（順調） -->
+      <div class="prop-card risk-green" onclick="showToast('箕浦Y様邸 を開きます')">
+        <div class="prop-body">
+          <div class="prop-top">
+            <div>
+              <div class="prop-name">箕浦Y様邸</div>
+              <div class="prop-addr">岐阜市 · 木造2階建</div>
+            </div>
+            <div class="status-chip status-施工中">施工中</div>
+          </div>
+          <div class="prop-progress">
+            <div class="progress-row">
+              <div class="progress-bg"><div class="progress-fill green" style="width:78%"></div></div>
+              <div class="progress-pct">78%</div>
+            </div>
+          </div>
+          <div class="prop-dates">
+            <div class="prop-date-item">🏗 着工 <b>3/1</b></div>
+            <div class="prop-date-item">🏠 引渡 <b>5/20</b></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- カード2: 黄（注意） -->
+      <div class="prop-card risk-yellow" onclick="showToast('中村T様邸 を開きます')">
+        <div class="prop-body">
+          <div class="prop-top">
+            <div>
+              <div class="prop-name">中村T様邸</div>
+              <div class="prop-addr">各務原市 · RC造3階建</div>
+            </div>
+            <div class="status-chip status-施工中">施工中</div>
+          </div>
+          <div class="prop-progress">
+            <div class="progress-row">
+              <div class="progress-bg"><div class="progress-fill yellow" style="width:45%"></div></div>
+              <div class="progress-pct">45%</div>
+            </div>
+          </div>
+          <div class="prop-dates">
+            <div class="prop-date-item">🏗 着工 <b>2/15</b></div>
+            <div class="prop-date-item" style="color:var(--yellow)">⚠ 引渡 <b>4/30</b></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- カード3: 赤（遅延） -->
+      <div class="prop-card risk-red" onclick="showToast('田中K様邸 を開きます')">
+        <div class="prop-body">
+          <div class="prop-top">
+            <div>
+              <div class="prop-name">田中K様邸</div>
+              <div class="prop-addr">羽島市 · 木造平屋</div>
+            </div>
+            <div class="status-chip status-着工前">着工前</div>
+          </div>
+          <div class="prop-progress">
+            <div class="progress-row">
+              <div class="progress-bg"><div class="progress-fill" style="width:12%;background:var(--red)"></div></div>
+              <div class="progress-pct" style="color:var(--red)">12%</div>
+            </div>
+          </div>
+          <div class="prop-dates">
+            <div class="prop-date-item" style="color:var(--red)">🚨 遅延 3日</div>
+            <div class="prop-date-item">🏠 引渡 <b>6/15</b></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- カード4: 青（通常） -->
+      <div class="prop-card risk-blue" onclick="showToast('鈴木H様邸 を開きます')">
+        <div class="prop-body">
+          <div class="prop-top">
+            <div>
+              <div class="prop-name">鈴木H様邸</div>
+              <div class="prop-addr">大垣市 · 木造2階建</div>
+            </div>
+            <div class="status-chip status-引渡し待">引渡し待</div>
+          </div>
+          <div class="prop-progress">
+            <div class="progress-row">
+              <div class="progress-bg"><div class="progress-fill" style="width:95%;background:var(--purple)"></div></div>
+              <div class="progress-pct" style="color:var(--purple)">95%</div>
+            </div>
+          </div>
+          <div class="prop-dates">
+            <div class="prop-date-item">🏠 引渡 <b>4/25</b></div>
+            <div class="prop-date-item" style="color:var(--green)">✓ ほぼ完了</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TASKS ===================== -->
+  <div id="section-tasks" class="demo-section">
+    <div style="padding:16px 0 0"></div>
+
+    <!-- フィルターチップ -->
+    <div style="display:flex;gap:6px;padding:0 16px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px">
+      <button class="filter-chip active" id="chip-all" onclick="filterChip(this,'all')" style="flex-shrink:0;padding:6px 12px;border-radius:100px;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);font-size:11px;font-weight:700;cursor:pointer">すべて</button>
+      <button class="filter-chip" id="chip-mine" onclick="filterChip(this,'mine')" style="flex-shrink:0;padding:6px 12px;border-radius:100px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:11px;font-weight:600;cursor:pointer">今週期限</button>
+      <button class="filter-chip" id="chip-late" onclick="filterChip(this,'late')" style="flex-shrink:0;padding:6px 12px;border-radius:100px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:11px;font-weight:600;cursor:pointer">⚠ 遅延</button>
+      <button class="filter-chip" id="chip-prio" onclick="filterChip(this,'prio')" style="flex-shrink:0;padding:6px 12px;border-radius:100px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:11px;font-weight:600;cursor:pointer">◆ 優先</button>
+    </div>
+
+    <div class="section-title">タスク一覧</div>
+    <div class="task-list-card">
+      <div class="task-list-hdr">
+        <div class="task-list-title">進行中タスク <span style="color:var(--text3);font-weight:400">12件</span></div>
+        <div class="view-btns">
+          <button class="view-btn active" onclick="switchView(this,'list')">リスト</button>
+          <button class="view-btn" onclick="switchView(this,'group')">工程別</button>
+        </div>
+      </div>
+
+      <div id="task-list-body">
+        <!-- タスク行 -->
+        <div class="task-row" onclick="toggleTask(this)">
+          <div class="chk-box" onclick="event.stopPropagation();toggleChk(this)"></div>
+          <div style="flex:1">
+            <div class="task-name">基礎コンクリート打設 確認</div>
+            <div class="task-meta-row">
+              <div class="task-phase">基礎工事</div>
+              <div class="task-due late">期限超過 4/14</div>
+            </div>
+          </div>
+          <div class="priority-dot"></div>
+        </div>
+        <div class="task-row" onclick="toggleTask(this)">
+          <div class="chk-box" onclick="event.stopPropagation();toggleChk(this)"></div>
+          <div style="flex:1">
+            <div class="task-name">屋根防水シート施工 確認</div>
+            <div class="task-meta-row">
+              <div class="task-phase">躯体工事</div>
+              <div class="task-due">4/18</div>
+            </div>
+          </div>
+        </div>
+        <div class="task-row" onclick="toggleTask(this)">
+          <div class="chk-box done" onclick="event.stopPropagation();toggleChk(this)">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><polyline points="20,6 9,17 4,12"/></svg>
+          </div>
+          <div style="flex:1">
+            <div class="task-name done">建方工事 完了確認</div>
+            <div class="task-meta-row">
+              <div class="task-phase">躯体工事</div>
+              <div class="task-due">4/15 完了</div>
+            </div>
+          </div>
+        </div>
+        <div class="task-row" onclick="toggleTask(this)">
+          <div class="chk-box" onclick="event.stopPropagation();toggleChk(this)"></div>
+          <div style="flex:1">
+            <div class="task-name">外壁サイディング選定</div>
+            <div class="task-meta-row">
+              <div class="task-phase">仕上げ工事</div>
+              <div class="task-due">4/22</div>
+            </div>
+          </div>
+        </div>
+        <div class="task-row" onclick="toggleTask(this)">
+          <div class="chk-box" onclick="event.stopPropagation();toggleChk(this)"></div>
+          <div style="flex:1">
+            <div class="task-name">電気配線検査立会い</div>
+            <div class="task-meta-row">
+              <div class="task-phase">電気工事</div>
+              <div class="task-due">4/20</div>
+            </div>
+          </div>
+          <div class="priority-dot"></div>
+        </div>
+        <div class="task-row" onclick="toggleTask(this)">
+          <div class="chk-box" onclick="event.stopPropagation();toggleChk(this)"></div>
+          <div style="flex:1">
+            <div class="task-name">断熱材施工 完了確認</div>
+            <div class="task-meta-row">
+              <div class="task-phase">断熱工事</div>
+              <div class="task-due">4/25</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== KANBAN ===================== -->
+  <div id="section-kanban" class="demo-section">
+    <div class="section-title">工程別カンバン <span style="font-size:10px;font-weight:400;color:var(--text3)">← スクロールで確認 →</span></div>
+    <div class="kanban-wrap">
+
+      <div class="kanban-col">
+        <div class="kanban-col-hdr">
+          <div style="width:8px;height:8px;border-radius:2px;background:var(--text3);flex-shrink:0"></div>
+          <div class="kanban-col-name">未着手</div>
+          <div class="kanban-col-cnt">4</div>
+        </div>
+        <div class="kanban-body">
+          <div class="kanban-card">
+            <div class="kanban-card-name">断熱材施工 確認</div>
+            <div class="kanban-card-prop">箕浦Y様邸</div>
+            <div class="kanban-card-due">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              4/25
+            </div>
+          </div>
+          <div class="kanban-card">
+            <div class="kanban-card-name">外壁サイディング選定</div>
+            <div class="kanban-card-prop">中村T様邸</div>
+            <div class="kanban-card-due">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              4/22
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="kanban-col">
+        <div class="kanban-col-hdr">
+          <div style="width:8px;height:8px;border-radius:2px;background:var(--accent);flex-shrink:0"></div>
+          <div class="kanban-col-name">進行中</div>
+          <div class="kanban-col-cnt">3</div>
+        </div>
+        <div class="kanban-body">
+          <div class="kanban-card" style="border-left:3px solid var(--accent)">
+            <div class="kanban-card-name">屋根防水シート施工</div>
+            <div class="kanban-card-prop">箕浦Y様邸</div>
+            <div class="kanban-card-due" style="color:var(--accent)">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              4/18
+            </div>
+          </div>
+          <div class="kanban-card" style="border-left:3px solid var(--red)">
+            <div class="kanban-card-name">基礎コンクリート打設</div>
+            <div class="kanban-card-prop">田中K様邸</div>
+            <div class="kanban-card-due" style="color:var(--red)">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              期限超過
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="kanban-col">
+        <div class="kanban-col-hdr">
+          <div style="width:8px;height:8px;border-radius:2px;background:var(--green);flex-shrink:0"></div>
+          <div class="kanban-col-name">完了</div>
+          <div class="kanban-col-cnt">8</div>
+        </div>
+        <div class="kanban-body">
+          <div class="kanban-card" style="opacity:.65">
+            <div class="kanban-card-name" style="text-decoration:line-through">建方工事 完了確認</div>
+            <div class="kanban-card-prop">箕浦Y様邸</div>
+            <div class="kanban-card-due" style="color:var(--green)">✓ 4/15</div>
+          </div>
+          <div class="kanban-card" style="opacity:.65">
+            <div class="kanban-card-name" style="text-decoration:line-through">地鎮祭 準備</div>
+            <div class="kanban-card-prop">中村T様邸</div>
+            <div class="kanban-card-due" style="color:var(--green)">✓ 4/10</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== BUDGET ===================== -->
+  <div id="section-budget" class="demo-section">
+    <div class="section-title">支払い・予算管理</div>
+    <div class="budget-section">
+      <div class="budget-card">
+        <div class="budget-title">
+          箕浦Y様邸 — 支払い状況
+          <span style="font-size:10px;color:var(--text3)">3件</span>
+        </div>
+
+        <!-- 順調 -->
+        <div class="budget-row">
+          <div class="budget-name">
+            <span>大工工事（田中工務店）</span>
+            <span class="budget-diff diff-ok">余裕 +¥50,000</span>
+          </div>
+          <div class="budget-gauge-bg">
+            <div class="budget-gauge-fill gauge-green" style="width:72%"></div>
+          </div>
+          <div class="budget-amount">
+            <div class="budget-spent" style="color:var(--green)">¥720,000</div>
+            <div class="budget-limit">/ ¥1,000,000</div>
+          </div>
+          <div class="budget-labels"><span>0</span><span>予算内</span><span>100%</span></div>
+        </div>
+
+        <div style="height:1px;background:var(--border);margin:12px 0"></div>
+
+        <!-- 警告 -->
+        <div class="budget-row">
+          <div class="budget-name">
+            <span>電気工事（山田電設）</span>
+            <span class="budget-diff diff-warn">注意 -¥30,000</span>
+          </div>
+          <div class="budget-gauge-bg">
+            <div class="budget-gauge-fill gauge-yellow" style="width:93%"></div>
+          </div>
+          <div class="budget-amount">
+            <div class="budget-spent" style="color:var(--yellow)">¥930,000</div>
+            <div class="budget-limit">/ ¥1,000,000</div>
+          </div>
+          <div class="budget-labels"><span>0</span><span style="color:var(--yellow)">▲ 93%</span><span>100%</span></div>
+        </div>
+
+        <div style="height:1px;background:var(--border);margin:12px 0"></div>
+
+        <!-- 超過 -->
+        <div class="budget-row">
+          <div class="budget-name">
+            <span>外壁工事（岐阜外装）</span>
+            <span class="budget-diff diff-over">超過 -¥120,000</span>
+          </div>
+          <div class="budget-gauge-bg" style="background:var(--red-bg)">
+            <div class="budget-gauge-fill gauge-red" style="width:100%;border-radius:5px"></div>
+          </div>
+          <!-- 超過分はバーの外に小さく表示 -->
+          <div style="margin-top:2px;height:4px;border-radius:2px;background:var(--red);opacity:.3;width:12%"></div>
+          <div class="budget-amount">
+            <div class="budget-spent" style="color:var(--red)">¥1,120,000</div>
+            <div class="budget-limit">/ ¥1,000,000</div>
+          </div>
+          <div class="budget-labels"><span>0</span><span style="color:var(--red)">⚠ 112%</span><span>限度</span></div>
+        </div>
+
+        <!-- 合計 -->
+        <div style="margin-top:16px;padding:12px;background:var(--surface2);border-radius:var(--radius-sm)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:12px;font-weight:700;color:var(--text2)">合計差額</div>
+            <div style="font-size:16px;font-weight:700;color:var(--red)">−¥100,000</div>
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;text-align:right">支払い合計 ¥2,770,000 / 見積 ¥3,000,000</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SWIPE ===================== -->
+  <div id="section-swipe" class="demo-section">
+    <div class="section-title">スワイプアクション体験</div>
+    <div class="swipe-hint">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      右スワイプ → 完了　　左スワイプ → 削除
+    </div>
+    <div class="swipe-demo">
+
+      <div class="swipe-item-wrap" id="sw1">
+        <div class="swipe-bg left">✓ 完了にする</div>
+        <div class="swipe-bg right">🗑 削除</div>
+        <div class="swipe-item" id="swi1"
+          ontouchstart="swipeStart(event,'sw1')"
+          ontouchmove="swipeMove(event,'sw1')"
+          ontouchend="swipeEnd(event,'sw1')"
+          onmousedown="swipeStart(event,'sw1')"
+          style="border-radius:var(--radius-sm)">
+          <div class="chk-box"></div>
+          <div style="flex:1">
+            <div class="task-name">基礎コンクリート打設 確認</div>
+            <div class="task-meta-row"><div class="task-phase">基礎工事</div><div class="task-due late">期限超過</div></div>
+          </div>
+          <div class="priority-dot"></div>
+        </div>
+      </div>
+
+      <div class="swipe-item-wrap" id="sw2">
+        <div class="swipe-bg left">✓ 完了にする</div>
+        <div class="swipe-bg right">🗑 削除</div>
+        <div class="swipe-item" id="swi2"
+          ontouchstart="swipeStart(event,'sw2')"
+          ontouchmove="swipeMove(event,'sw2')"
+          ontouchend="swipeEnd(event,'sw2')"
+          onmousedown="swipeStart(event,'sw2')"
+          style="border-radius:var(--radius-sm)">
+          <div class="chk-box"></div>
+          <div style="flex:1">
+            <div class="task-name">屋根防水シート施工 確認</div>
+            <div class="task-meta-row"><div class="task-phase">躯体工事</div><div class="task-due">4/18</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="swipe-item-wrap" id="sw3">
+        <div class="swipe-bg left">✓ 完了にする</div>
+        <div class="swipe-bg right">🗑 削除</div>
+        <div class="swipe-item" id="swi3"
+          ontouchstart="swipeStart(event,'sw3')"
+          ontouchmove="swipeMove(event,'sw3')"
+          ontouchend="swipeEnd(event,'sw3')"
+          onmousedown="swipeStart(event,'sw3')"
+          style="border-radius:var(--radius-sm)">
+          <div class="chk-box"></div>
+          <div style="flex:1">
+            <div class="task-name">電気配線検査立会い</div>
+            <div class="task-meta-row"><div class="task-phase">電気工事</div><div class="task-due">4/20</div></div>
+          </div>
+          <div class="priority-dot"></div>
+        </div>
+      </div>
+
+    </div>
+    <div style="padding:16px;font-size:11px;color:var(--text3);line-height:1.7;background:var(--surface);margin:0 16px;border-radius:var(--radius-sm);border:1px solid var(--border)">
+      💡 <b>スワイプアクションの利点</b><br>
+      現場でスマホを片手で持ちながら、素早くタスクを完了・削除できます。<br>iOSのメールアプリや各種ToDoアプリが採用している直感的なジェスチャーUXです。
+    </div>
+  </div>
+
+</div><!-- /app-shell -->
+
+<!-- BOTTOM TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-item active" onclick="showSection('dashboard',null);setTab(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+    </svg>
+    ホーム
+  </button>
+  <button class="tab-item" onclick="showSection('tasks',null);setTab(this)">
+    <div class="tab-icon-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+      </svg>
+      <div class="tab-dot"></div>
+    </div>
+    タスク
+  </button>
+  <button class="tab-item" onclick="showSection('kanban',null);setTab(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="11" rx="1"/><rect x="17" y="3" width="4" height="15" rx="1"/>
+    </svg>
+    工程
+  </button>
+  <button class="tab-item" onclick="showSection('budget',null);setTab(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+    </svg>
+    支払い
+  </button>
+  <button class="tab-item" onclick="showSection('swipe',null);setTab(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+    その他
+  </button>
+</div>
+
+<!-- FAB -->
+<div class="fab" id="fab" onclick="toggleFab()">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+  </svg>
+</div>
+<div class="fab-menu" id="fabMenu">
+  <div class="fab-sub" onclick="showToast('📷 写真撮影を起動');toggleFab()">
+    <div class="fab-sub-icon" style="background:var(--accent-light);color:var(--accent)">📷</div>
+    現場写真を撮影
+  </div>
+  <div class="fab-sub" onclick="showToast('📝 日報入力を起動');toggleFab()">
+    <div class="fab-sub-icon" style="background:var(--green-bg);color:var(--green)">📝</div>
+    日報を記入
+  </div>
+  <div class="fab-sub" onclick="showToast('✅ タスク追加を起動');toggleFab()">
+    <div class="fab-sub-icon" style="background:var(--yellow-bg);color:var(--yellow)">✅</div>
+    タスクを追加
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== DARK MODE =====
+let isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+function toggleDark() {
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-dark', isDark ? '' : 'false');
+  document.getElementById('dark-lbl').textContent = isDark ? 'ライト' : 'ダーク';
+}
+if (isDark) document.documentElement.setAttribute('data-dark','');
+
+// ===== SECTION SWITCH =====
+function showSection(name, btn) {
+  document.querySelectorAll('.demo-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  if (btn) {
+    document.querySelectorAll('.demo-nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  // sync bottom nav
+  document.querySelectorAll('.tab-item').forEach((t,i) => {
+    const names = ['dashboard','tasks','kanban','budget','swipe'];
+    t.classList.toggle('active', names[i] === name);
+  });
+}
+function setTab(el) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ===== TOAST =====
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ===== FAB =====
+let fabOpen = false;
+function toggleFab() {
+  fabOpen = !fabOpen;
+  document.getElementById('fabMenu').classList.toggle('open', fabOpen);
+  const fab = document.getElementById('fab');
+  fab.style.transform = fabOpen ? 'rotate(45deg)' : 'rotate(0)';
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#fab') && !e.target.closest('#fabMenu') && fabOpen) toggleFab();
+});
+
+// ===== TASK CHECK =====
+function toggleChk(el) {
+  const isDone = el.classList.toggle('done');
+  if (isDone) {
+    el.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5"><polyline points="20,6 9,17 4,12"/></svg>';
+    el.classList.add('chk-animate');
+    const row = el.closest('.task-row');
+    row.querySelector('.task-name').classList.add('done');
+    showToast('✓ 完了にしました');
+  } else {
+    el.innerHTML = '';
+    const row = el.closest('.task-row');
+    row.querySelector('.task-name').classList.remove('done');
+    showToast('未完了に戻しました');
+  }
+}
+function toggleTask(row) {
+  const chk = row.querySelector('.chk-box');
+  toggleChk(chk);
+}
+
+// ===== VIEW SWITCH =====
+function switchView(btn, mode) {
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  showToast(mode === 'group' ? '工程別グループ表示（デモ）' : 'リスト表示');
+}
+
+// ===== FILTER CHIP =====
+function filterChip(el, type) {
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    c.style.background = 'var(--surface)';
+    c.style.color = 'var(--text2)';
+    c.style.borderColor = 'var(--border)';
+  });
+  el.style.background = 'var(--accent-light)';
+  el.style.color = 'var(--accent)';
+  el.style.borderColor = 'var(--accent)';
+  const labels = {all:'すべて表示', mine:'今週期限のタスク', late:'遅延タスクのみ', prio:'優先タスクのみ'};
+  showToast(labels[type] + ' — フィルター適用');
+}
+
+// ===== SWIPE =====
+const swipeState = {};
+function swipeStart(e, id) {
+  const x = e.touches ? e.touches[0].clientX : e.clientX;
+  swipeState[id] = { startX: x, moved: false };
+  if (!e.touches) {
+    document.addEventListener('mousemove', (me) => swipeMove(me, id));
+    document.addEventListener('mouseup', (me) => swipeEnd(me, id), {once:true});
+  }
+}
+function swipeMove(e, id) {
+  const st = swipeState[id];
+  if (!st) return;
+  const x = e.touches ? e.touches[0].clientX : e.clientX;
+  const dx = x - st.startX;
+  const el = document.getElementById('swi' + id.replace('sw',''));
+  if (Math.abs(dx) > 8) {
+    el.style.transform = `translateX(${Math.max(-90, Math.min(90, dx))}px)`;
+    st.moved = true;
+    e.preventDefault && e.preventDefault();
+  }
+}
+function swipeEnd(e, id) {
+  const st = swipeState[id];
+  if (!st) return;
+  const x = e.touches ? (e.changedTouches ? e.changedTouches[0].clientX : st.startX) : e.clientX;
+  const dx = x - st.startX;
+  const el = document.getElementById('swi' + id.replace('sw',''));
+  if (dx > 60) {
+    el.style.transform = 'translateX(100%)';
+    el.style.opacity = '0';
+    el.style.transition = 'transform .3s ease, opacity .3s ease';
+    showToast('✓ 完了にしました');
+    setTimeout(() => {
+      const wrap = document.getElementById(id);
+      wrap.style.maxHeight = wrap.offsetHeight + 'px';
+      wrap.style.overflow = 'hidden';
+      wrap.style.transition = 'max-height .3s ease, margin .3s ease';
+      setTimeout(() => { wrap.style.maxHeight = '0'; wrap.style.marginBottom = '0'; }, 50);
+    }, 200);
+  } else if (dx < -60) {
+    el.style.transform = 'translateX(-100%)';
+    el.style.opacity = '0';
+    el.style.transition = 'transform .3s ease, opacity .3s ease';
+    showToast('🗑 削除しました');
+    setTimeout(() => {
+      const wrap = document.getElementById(id);
+      wrap.style.maxHeight = wrap.offsetHeight + 'px';
+      wrap.style.overflow = 'hidden';
+      wrap.style.transition = 'max-height .3s ease, margin .3s ease';
+      setTimeout(() => { wrap.style.maxHeight = '0'; wrap.style.marginBottom = '0'; }, 50);
+    }, 200);
+  } else {
+    el.style.transform = 'translateX(0)';
+    el.style.transition = 'transform .25s cubic-bezier(.4,0,.2,1)';
+  }
+  delete swipeState[id];
+}
+</script>
+</body>
+</html>

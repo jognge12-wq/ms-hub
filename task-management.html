@@ -2,7 +2,8 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <script src="config.js"></script>
   <title>施工管理 / タスク</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
@@ -599,7 +600,7 @@
 // ═══════════════════════════════════════════════════════
 //  Config
 // ═══════════════════════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwLo2VCUvfu0XVGzuni7A1AyqES9oAkC6Yap_LaKh_2ljOzAmzaFkVwNcYynz9G1zf-/exec';
+const GAS_URL = GAS_URLS.TASK;  // URLは config.js で一元管理
 
 const PHASE_ORDER = [
   '現場FB','図面FB','地鎮祭','地縄立会い','生産移管','施工計画説明',

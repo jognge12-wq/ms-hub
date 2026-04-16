@@ -5,7 +5,8 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    <script src="config.js"></script>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="施工管理">
@@ -3161,7 +3162,7 @@
         // 工程作成・物件登録GASを「新バージョン」でデプロイしたURLを貼る
         // 空のままでも動作します（バックアップデータを使用）
         // ============================================================
-        const GAS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycby2P2A0qi1J2As_to00a2ZE6YMg5kX-IPPJmBVGeZCh6bkSnYUP-4jvt5b2-4nrJrR6Qw/exec';
+        const GAS_WEBAPP_URL = GAS_URLS.PROPERTY;  // URLは config.js で一元管理
 
         // チェックリスト表示順・ラベル定義（Notionフィールド名をキーに）
         const CHECK_ORDER  = ['棟札', '鎮物', '先外', '改良', '外構', '手形', '支給品', '間接照明'];
@@ -5617,7 +5618,7 @@
         // ===== タスクタブ ver2: Google Tasks（左）＋ 現場タスク（右）=====
         const GAS_TASK_URL_KEY = 'gasTaskUrl_v2';
         // 施工管理_タスク管理 GAS（デプロイ済みURL・既定値）
-        const GAS_TASK_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwLo2VCUvfu0XVGzuni7A1AyqES9oAkC6Yap_LaKh_2ljOzAmzaFkVwNcYynz9G1zf-/exec';
+        const GAS_TASK_URL_DEFAULT = GAS_URLS.TASK;  // URLは config.js で一元管理
         let genbaTaskCache = {}; // { propName: tasks[] }
         let genbaProperties = []; // 現場タスク用物件リスト
         let genbaSortOrder = 'handover'; // 'handover' | 'start' | 'name'

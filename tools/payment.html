@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="manifest" href="../manifest.json">
@@ -734,11 +734,12 @@
   </div>
 </div>
 
+<script src="../config.js"></script>
 <script>
 // ================================================================
-// GAS 設定
+// GAS 設定（URLは config.js で一元管理）
 // ================================================================
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbw01hej9MyJcyZ8vuoWIZztCu0-kjPHYl45QyEwjIJYAe5DYxBgah427dMqz-NrCW8y/exec';
+const GAS_URL = GAS_URLS.PAYMENT;
 
 // ================================================================
 // データキャッシュ

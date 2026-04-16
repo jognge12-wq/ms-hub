@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="manifest" href="../manifest.json">
@@ -81,9 +81,10 @@
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen p-4 md:p-8 lg:p-12 font-sans text-slate-900">
+<script src="../config.js"></script>
 <script>
 const GAS_CONFIG = {
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbxZvu3-7dYrh3_f9lMS1etMp4_20F9D5Z6bgwgJPryOKdwtttyyDQz2oaSJIVmexXhA/exec',
+  GAS_URL: GAS_URLS.INSPECTION,  // URLは config.js で一元管理
   SENDER: {
     name: '城岸 政行',
     company: '住友林業株式会社 岐阜支店 生産G',

@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="manifest" href="../manifest.json">
@@ -313,12 +313,12 @@
 <!-- ===== トースト ===== -->
 <div class="toast" id="toast"></div>
 
+<script src="../config.js"></script>
 <script>
 // ================================================================
-// GAS API（gas-schedule-creation.js の doGet → mode=submitSchedule）
-// GAS 側の handlePortalSubmit がそのまま使える（改修不要）
+// GAS API（URLは config.js で一元管理）
 // ================================================================
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbwCVoCBuecRtBNdmY_HJ3-a8xjMxs2AjxGTgIKxMQo7AnuIqS8RNgWpLxVfSFZnVQAD5A/exec';
+const GAS_URL = GAS_URLS.SCHEDULE;
 
 // ---- 曜日表示 ----
 const DAY_NAMES = ['日','月','火','水','木','金','土'];

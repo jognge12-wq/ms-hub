@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="manifest" href="../manifest.json">
@@ -442,12 +442,12 @@
 <!-- ===== トースト ===== -->
 <div class="toast" id="toast"></div>
 
+<script src="../config.js"></script>
 <script>
 // ================================================================
-// GAS API（gas-dashboard-data.gs の doGet → mode=submit で呼ぶ）
-// GAS 側の改修は不要。既存の handlePortalSubmit がそのまま使える
+// GAS API（URLは config.js で一元管理）
 // ================================================================
-const GAS_URL = 'https://script.google.com/macros/s/AKfycby2P2A0qi1J2As_to00a2ZE6YMg5kX-IPPJmBVGeZCh6bkSnYUP-4jvt5b2-4nrJrR6Qw/exec';
+const GAS_URL = GAS_URLS.PROPERTY;
 
 // ---- 曜日表示 ----
 const DAY_NAMES = ['日','月','火','水','木','金','土'];
