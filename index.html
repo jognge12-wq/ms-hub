@@ -1391,6 +1391,28 @@
         @keyframes spin {
             100% { transform: rotate(360deg); }
         }
+        /* ===== スケルトンUI ===== */
+        @keyframes skel-wave {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .skel-line {
+            height: 13px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, var(--border) 25%, var(--surface2) 50%, var(--border) 75%);
+            background-size: 200% 100%;
+            animation: skel-wave 1.4s ease-in-out infinite;
+            margin-bottom: 8px;
+        }
+        .skel-line.short  { width: 45%; }
+        .skel-line.medium { width: 70%; }
+        .skel-line.long   { width: 90%; }
+        .skel-block {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+        }
         .data-alert {
             background: #fffbeb;
             border: 1px solid #f59e0b;
@@ -3342,11 +3364,21 @@
             return html;
         }
 
+        // スケルトン：Googleタスク読み込み中プレースホルダー
+        function _gtaskSkeletonHtml() {
+            const line = (cls) => `<div class="skel-line ${cls}"></div>`;
+            const block = () => `<div class="skel-block">${line('medium')}${line('long')}${line('short')}</div>`;
+            return block() + block() + block();
+        }
+
         function renderGoogleTasks() {
             const container = document.getElementById('gtaskList');
             if (!container) return; // ホームタブに当該要素がないバージョンでは何もしない
             if (!googleTasks || googleTasks.length === 0) {
-                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px;">タスクはありません</div>';
+                // fetchLiveData が未完了の場合はスケルトン、完了後は「タスクなし」
+                container.innerHTML = window._fetchLiveDataDone
+                    ? '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px;">タスクはありません</div>'
+                    : _gtaskSkeletonHtml();
                 return;
             }
 
@@ -3503,6 +3535,15 @@
             }
 
             if (tabToRestore) switchTab(tabToRestore);
+
+            // ローカルキャッシュがあれば即タスクタブをレンダリング（API完了前に表示）
+            if (tabToRestore === 'tasks' && googleTasks.length > 0) {
+                const _tEl = document.getElementById('tab-tasks');
+                if (_tEl && !_tEl.dataset.rendered) {
+                    renderTasksTab();
+                    _tEl.dataset.rendered = '1';
+                }
+            }
 
             // URLクエリパラメータをクリア（次回リロードで残らないよう）
             if (window.location.search) {
@@ -4081,6 +4122,14 @@
                 if (globalSyncErr) globalSyncErr.textContent = 'GASエラー: ' + err.message;
                 // エラー時もバックアップデータで再描画（初回表示が消えないように）
                 renderScheduleSection();
+            } finally {
+                // フェッチ完了フラグ（スケルトン→タスクなし切り替え用）
+                window._fetchLiveDataDone = true;
+                // スケルトン表示のままだったら「タスクなし」に差し替え
+                document.querySelectorAll('.skel-block').forEach(function(el) {
+                    el.closest('[id]') && (el.closest('[id]').innerHTML =
+                        '<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">タスクなし</div>');
+                });
             }
         }
 
@@ -5588,11 +5637,18 @@
             });
 
             let gtHtml = '';
-            gtHtml += _gtaskSimpleGroupHtml('期限切れ', overdue, 'overdue', '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>');
-            gtHtml += _gtaskSimpleGroupHtml('今日', todays, 'this-week', '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>');
-            gtHtml += _gtaskByDateGroupHtml(upcoming);
-            gtHtml += _gtaskSimpleGroupHtml('日程なし', noDate, 'no-date', '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>');
-            if(!gtHtml) gtHtml = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">タスクなし</div>';
+            if (googleTasks && googleTasks.length > 0) {
+                gtHtml += _gtaskSimpleGroupHtml('期限切れ', overdue, 'overdue', '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>');
+                gtHtml += _gtaskSimpleGroupHtml('今日', todays, 'this-week', '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>');
+                gtHtml += _gtaskByDateGroupHtml(upcoming);
+                gtHtml += _gtaskSimpleGroupHtml('日程なし', noDate, 'no-date', '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>');
+                if (!gtHtml) gtHtml = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">タスクなし</div>';
+            } else {
+                // データ未着：スケルトン or タスクなし
+                gtHtml = window._fetchLiveDataDone
+                    ? '<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">タスクなし</div>'
+                    : _gtaskSkeletonHtml();
+            }
 
             const gasUrl = getGasTaskUrl();
             const genbaHtml = gasUrl ? renderGenbaTaskPanel() : renderGasSetupPanel();
