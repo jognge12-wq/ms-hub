@@ -840,7 +840,10 @@ function buildFilterContactOptions() {
   });
 }
 
+let _activeFilterTab = 'property';
+
 function switchFilterTab(tab) {
+  _activeFilterTab = tab;
   ['property', 'vendor', 'contact'].forEach(t => {
     const btn   = document.getElementById('ftab-'   + t);
     const panel = document.getElementById('fpanel-' + t);
