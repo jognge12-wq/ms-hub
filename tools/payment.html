@@ -1022,6 +1022,34 @@ function renderResults(items) {
   const resultList = document.getElementById('resultList');
   const totalBar   = document.getElementById('totalBar');
 
+  // アイテムの表示名をマスタデータから補完
+  items.forEach(item => {
+    if (!item.propertyName && item.propertyId) {
+      const p = allProperties.find(p => p.id === item.propertyId);
+      if (p) item.propertyName = p.name;
+    }
+    if (!item.vendorName && item.vendorId) {
+      const v = allVendors.find(v => v.id === item.vendorId);
+      if (v) item.vendorName = v.name;
+    }
+    if (!item.contactLabel && item.contactId) {
+      const c = allContacts.find(c => c.id === item.contactId);
+      if (c) {
+        const v = c.vendorIds && c.vendorIds.length
+          ? allVendors.find(v => v.id === c.vendorIds[0]) : null;
+        item.contactLabel = c.name + (v ? `（${v.name}）` : '');
+      }
+    }
+  });
+
+  // タブに応じてカードのメインタイトルを決定
+  function cardTitle(item) {
+    if (_activeFilterTab === 'property') return item.propertyName || item.title || '（物件名なし）';
+    if (_activeFilterTab === 'vendor')   return item.vendorName   || item.title || '（業者名なし）';
+    if (_activeFilterTab === 'contact')  return item.contactLabel || item.title || '（担当者名なし）';
+    return item.title || '（タイトルなし）';
+  }
+
   // 合計バー
   if (totalBar) {
     if (!items.length) {
@@ -1061,12 +1089,15 @@ function renderResults(items) {
       return sign + '¥' + v.toLocaleString();
     };
 
-    // item を JSON 文字列にして onclick 属性へ埋め込む
-    const itemJson = escAttr(JSON.stringify(item));
+    // メモがあれば小さく表示
+    const memoHtml = item.memo
+      ? `<div style="font-size:11px;color:var(--text3);margin-bottom:6px;">${escHtml(item.memo)}</div>`
+      : '';
 
     return `
 <div class="payment-card">
-  <div class="payment-card-title">${escHtml(item.title || '（タイトルなし）')}</div>
+  <div class="payment-card-title">${escHtml(cardTitle(item))}</div>
+  ${memoHtml}
   <div class="payment-card-meta">
     <div class="payment-card-meta-item">
       <span class="payment-card-meta-label">見積</span>
