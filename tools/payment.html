@@ -549,17 +549,7 @@
     </div>
   </div>
 
-  <!-- ===== セットアップ画面（URL 未設定時） ===== -->
-  <div id="setupScreen" class="setup-body" style="display:none">
-    <h2>GAS WebApp URL を設定してください</h2>
-    <p>このツールを使用するには<br>Google Apps Script の WebApp URL が必要です。<br>一度設定すると次回から自動で開きます。</p>
-    <input type="text" id="gasUrlInput"
-           placeholder="https://script.google.com/macros/s/..."
-           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-    <button class="btn-submit" onclick="setupGasUrl()">このURLで開く</button>
-  </div>
-
-  <!-- ===== メイン画面（URL 設定済み） ===== -->
+  <!-- ===== メイン画面 ===== -->
   <div id="mainScreen" class="main-body" style="display:none">
 
     <!-- タブバー -->
@@ -719,8 +709,7 @@
 // ================================================================
 // GAS 設定
 // ================================================================
-const GAS_URL_KEY = 'payment_gas_url_v1';
-let GAS_URL = '';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbw01hej9MyJcyZ8vuoWIZztCu0-kjPHYl45QyEwjIJYAe5DYxBgah427dMqz-NrCW8y/exec';
 
 // ================================================================
 // データキャッシュ
@@ -733,33 +722,10 @@ let allContacts   = [];
 // 起動
 // ================================================================
 (function boot() {
-  const saved = localStorage.getItem(GAS_URL_KEY);
-  if (saved) {
-    GAS_URL = saved;
-    document.getElementById('setupScreen').style.display = 'none';
-    document.getElementById('mainScreen').style.display  = 'block';
-    init();
-  } else {
-    document.getElementById('setupScreen').style.display = 'block';
-    document.getElementById('mainScreen').style.display  = 'none';
-  }
-})();
-
-// ================================================================
-// セットアップ
-// ================================================================
-function setupGasUrl() {
-  const val = document.getElementById('gasUrlInput').value.trim();
-  if (!val.startsWith('https://script.google.com/macros/s/')) {
-    showToast('URL は https://script.google.com/macros/s/ で始まる必要があります', true);
-    return;
-  }
-  localStorage.setItem(GAS_URL_KEY, val);
-  GAS_URL = val;
   document.getElementById('setupScreen').style.display = 'none';
   document.getElementById('mainScreen').style.display  = 'block';
   init();
-}
+})();
 
 // ================================================================
 // GAS 共通呼び出し
