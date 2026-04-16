@@ -1100,8 +1100,8 @@ function renderResults(items) {
 
   resultList.innerHTML = groups.map(g => {
     const diff = g.payment - g.estimate;
-    // 支払い超過（diff>0）→赤、プール残（diff<0）→緑
-    const diffColor = diff > 0 ? 'var(--red)' : diff < 0 ? 'var(--check-on)' : 'var(--text1)';
+    // プラス（支払い > 見積）→緑、マイナス（支払い < 見積）→赤
+    const diffColor = diff > 0 ? 'var(--check-on)' : diff < 0 ? 'var(--red)' : 'var(--text1)';
     return `
 <div class="payment-card">
   <div class="payment-card-title">${escHtml(g.label)}</div>
