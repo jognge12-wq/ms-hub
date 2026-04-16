@@ -321,28 +321,29 @@
     /* ===== 一覧タブ：フィルター ===== */
     .filter-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 8px;
       margin-bottom: 12px;
     }
-    .btn-search {
-      display: block;
-      width: 100%;
-      padding: 11px;
-      background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
-      color: #fff;
-      font-size: 14px;
-      font-weight: 700;
-      font-family: 'Noto Sans JP', sans-serif;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: opacity 0.15s;
-      margin-bottom: 16px;
+    @media (max-width: 480px) {
+      .filter-row { grid-template-columns: 1fr 1fr; }
+      .filter-row select:last-child { grid-column: 1 / -1; }
     }
-    .btn-search:active   { opacity: 0.8; }
-    .btn-search:disabled { opacity: 0.5; cursor: not-allowed; }
+    /* ===== 合計バー ===== */
+    .total-bar {
+      display: flex;
+      gap: 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+    .total-bar-item { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .total-bar-label { color: var(--text3); font-size: 10px; font-weight: 600; }
+    .total-bar-value { color: var(--text1); font-weight: 700; font-family: 'DM Mono', monospace; font-size: 13px; }
+    .total-bar-value.diff-neg { color: var(--red); }
 
     /* ===== 検索結果リスト ===== */
     .result-list  { display: flex; flex-direction: column; gap: 10px; }
@@ -620,16 +621,19 @@
       <div class="section">
         <div class="section-title">フィルター</div>
         <div class="filter-row">
-          <select id="filterProperty">
+          <select id="filterProperty" onchange="searchPayments()">
             <option value="">すべての物件</option>
           </select>
-          <select id="filterVendor">
+          <select id="filterVendor" onchange="searchPayments()">
             <option value="">すべての業者</option>
           </select>
+          <select id="filterContact" onchange="searchPayments()">
+            <option value="">すべての担当者</option>
+          </select>
         </div>
-        <button class="btn-search" id="searchBtn" onclick="searchPayments()">検索</button>
+        <div id="totalBar" class="total-bar" style="display:none"></div>
         <div id="resultList" class="result-list">
-          <div class="result-empty">検索ボタンを押すと結果が表示されます</div>
+          <div class="result-empty">データを読み込み中...</div>
         </div>
       </div>
     </div><!-- /panelList -->
@@ -788,6 +792,23 @@ function populateAllSelects() {
   buildVendorOptions('regVendor',        '',   '（業者を選択）');
   buildVendorOptions('filterVendor',     '',   'すべての業者');
   buildContactOptions('regContact',      '',   null);
+  buildFilterContactOptions();
+  // 初期ロード時に全件表示
+  searchPayments();
+}
+
+function buildFilterContactOptions() {
+  const sel = document.getElementById('filterContact');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">すべての担当者</option>';
+  allContacts.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name;
+    if (c.id === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
 }
 
 function buildPropertyOptions(selId, selected, placeholder) {
@@ -919,13 +940,17 @@ async function submitPayment() {
 // ================================================================
 // 一覧検索
 // ================================================================
+let _searchTimer = null;
 async function searchPayments() {
+  // 連続変更時はデバウンス（300ms）
+  clearTimeout(_searchTimer);
+  _searchTimer = setTimeout(_doSearch, 300);
+}
+
+async function _doSearch() {
   const propertyId = document.getElementById('filterProperty').value;
   const vendorId   = document.getElementById('filterVendor').value;
-
-  const btn = document.getElementById('searchBtn');
-  btn.disabled = true;
-  btn.textContent = '検索中...';
+  const contactId  = document.getElementById('filterContact').value;
 
   const resultList = document.getElementById('resultList');
   resultList.innerHTML = '<div class="loading-wrap"><div class="spinner"></div>読み込み中...</div>';
@@ -934,20 +959,43 @@ async function searchPayments() {
     const r = await callGas('searchPayments', {
       propertyId: propertyId || undefined,
       vendorId:   vendorId   || undefined,
+      contactId:  contactId  || undefined,
     });
     if (!r.ok) throw new Error(r.error || '検索失敗');
-    renderResults(r.data || []);
+    let data = r.data || [];
+    // GASが担当者フィルターに対応していない場合はクライアント側でフィルタ
+    if (contactId) {
+      data = data.filter(item => item.contactId === contactId);
+    }
+    renderResults(data);
   } catch (e) {
     resultList.innerHTML = `<div class="result-empty">エラー: ${escHtml(e.message)}</div>`;
     showToast('検索エラー: ' + e.message, true);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '検索';
   }
 }
 
 function renderResults(items) {
   const resultList = document.getElementById('resultList');
+  const totalBar   = document.getElementById('totalBar');
+
+  // 合計バー
+  if (totalBar) {
+    if (!items.length) {
+      totalBar.style.display = 'none';
+    } else {
+      const totalEst  = items.reduce((s, i) => s + (i.estimate != null ? Number(i.estimate) : 0), 0);
+      const totalPay  = items.reduce((s, i) => s + (i.payment  != null ? Number(i.payment)  : 0), 0);
+      const totalDiff = totalEst - totalPay;
+      const fmtY = v => '¥' + v.toLocaleString();
+      totalBar.style.display = 'flex';
+      totalBar.innerHTML = `
+        <div class="total-bar-item"><span class="total-bar-label">件数</span><span class="total-bar-value">${items.length}件</span></div>
+        <div class="total-bar-item"><span class="total-bar-label">見積合計</span><span class="total-bar-value">${fmtY(totalEst)}</span></div>
+        <div class="total-bar-item"><span class="total-bar-label">支払合計</span><span class="total-bar-value">${fmtY(totalPay)}</span></div>
+        <div class="total-bar-item"><span class="total-bar-label">差額合計</span><span class="total-bar-value${totalDiff < 0 ? ' diff-neg' : ''}">${totalDiff >= 0 ? '+' : ''}${fmtY(totalDiff)}</span></div>`;
+    }
+  }
+
   if (!items.length) {
     resultList.innerHTML = '<div class="result-empty">該当する支払い記録がありません</div>';
     return;
@@ -1098,6 +1146,7 @@ async function addContact() {
     const nc = r.data;
     allContacts.push(nc);
     buildContactOptions('regContact', nc.id, vendorId || null);
+    buildFilterContactOptions();
     closeSheet('contactSheet');
     document.getElementById('newContactName').value = '';
     showToast(`「${nc.name}」を追加しました`);
