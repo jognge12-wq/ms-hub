@@ -1170,10 +1170,12 @@
 
         .filter-tabs {
             display: flex;
-            gap: 5px;
+            gap: 4px;
             overflow-x: auto;
             margin-bottom: 12px;
-            padding-bottom: 8px;
+            padding: 4px;
+            background: var(--surface2);
+            border-radius: 10px;
             scroll-behavior: smooth;
         }
 
@@ -1191,26 +1193,24 @@
         }
 
         .filter-tab {
-            padding: 6px 10px;
+            padding: 7px 12px;
             background-color: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 500;
+            border: none;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.12s ease;
             color: var(--text2);
         }
 
-        .filter-tab:hover {
-            background-color: #f3f4f6;
-        }
+        .filter-tab:hover { color: var(--text1); }
 
         .filter-tab.active {
-            background-color: var(--primary);
-            color: var(--surface);
-            border-color: var(--primary);
+            background-color: var(--surface);
+            color: var(--primary);
+            box-shadow: 0 1px 2px rgba(0,0,0,.06);
         }
         .tab-count {
             font-weight: 600;
@@ -2049,25 +2049,28 @@
 
         /* ===== ver2: ポータルカード（ホーム） ===== */
         .portal-status-bar {
-            display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+            display: flex; gap: 6px; margin-bottom: 10px;
         }
         .portal-stat {
-            flex: 1; min-width: 100px; background: var(--surface);
-            border: 1px solid var(--border); border-radius: 10px;
-            padding: 12px 14px; cursor: pointer;
-            display: flex; flex-direction: column; gap: 2px;
+            flex: 1; min-width: 0; background: var(--surface);
+            border: 1px solid var(--border); border-radius: 8px;
+            padding: 6px 10px; cursor: pointer;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 6px;
             transition: border-color 0.15s;
         }
         .portal-stat:active { border-color: var(--primary); }
+        .portal-stat-label {
+            font-size: 11px; color: var(--text2); font-weight: 500;
+            order: 1;
+        }
         .portal-stat-num {
-            font-family: 'Noto Sans JP', sans-serif; font-size: 22px;
+            font-family: 'Noto Sans JP', sans-serif; font-size: 15px;
             font-weight: 700; color: var(--primary); line-height: 1;
+            order: 2;
         }
         .portal-stat-unit {
-            font-size: 13px; font-weight: 700;
-        }
-        .portal-stat-label {
-            font-size: 11px; color: var(--text2); font-weight: 500; margin-top: 3px;
+            font-size: 10px; font-weight: 600; margin-left: 1px;
         }
         .portal-tools-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
@@ -2172,20 +2175,32 @@
             color: var(--text3); font-size: 11px;
         }
 
+        /* ===== 共通: セグメント型タブ（pill） ===== */
+        .seg-tabs {
+            display: flex; gap: 6px;
+            padding: 4px; background: var(--surface2);
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+        .seg-tab {
+            flex: 1; padding: 7px 10px; text-align: center;
+            font-size: 12px; font-weight: 600; color: var(--text2);
+            background: transparent; border: none; border-radius: 7px;
+            cursor: pointer; transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .seg-tab:hover { color: var(--text1); }
+        .seg-tab.active {
+            background: var(--surface); color: var(--primary);
+            box-shadow: 0 1px 2px rgba(0,0,0,.06);
+        }
+
         /* ===== ver2: タスクタブ 分割レイアウト ===== */
         .task-inner-tabs {
-            display: flex; border-bottom: 2px solid var(--border);
-            margin: 0 -16px 16px; padding: 0 16px;
-        }
-        .task-inner-tab {
-            flex: 1; padding: 11px 8px; text-align: center;
-            font-size: 13px; font-weight: 500; color: var(--text2);
-            cursor: pointer; border-bottom: 2px solid transparent;
-            margin-bottom: -2px; transition: all 0.15s;
-        }
-        .task-inner-tab.active {
-            color: var(--primary); font-weight: 700;
-            border-bottom-color: var(--primary);
+            position: sticky; top: 52px; z-index: 20;
+            background: var(--bg);
+            padding: 8px 0;
+            margin: -8px 0 8px;
         }
         .task-inner-pane { display: none; }
         .task-inner-pane.active { display: block; }
@@ -5110,8 +5125,12 @@
                 if (schedViewMode !== 'week' && schedViewMode !== 'month') return;
                 if (touchId !== null) return;
                 var t = e.changedTouches[0];
-                // 日付ストリップ/月セル内のタップは詳細パネルに任せる（移動開始でswipeに昇格）
-                if (e.target && e.target.closest && e.target.closest('.week-day-strip')) return;
+                // 日付ストリップ/月セル/詳細パネル内のタップはそれぞれのハンドラに任せる
+                if (e.target && e.target.closest && (
+                    e.target.closest('.week-day-strip') ||
+                    e.target.closest('.month-cal-cell') ||
+                    e.target.closest('#monthDayDetail')
+                )) return;
                 touchId = t.identifier;
                 startX = t.clientX; startY = t.clientY;
                 decided = false; isHoriz = false;
@@ -5303,6 +5322,11 @@
                 </div>` : '';
 
             el.innerHTML = `<div class="tab-pane">
+                <!-- ビュー切替タブ（週間/月間） -->
+                <div class="seg-tabs">
+                    <button class="seg-tab" onclick="schedViewMode='month';_renderSchedTab()">月間</button>
+                    <button class="seg-tab active" onclick="schedViewMode='week';_renderSchedTab()">週間</button>
+                </div>
                 <!-- ナビゲーションバー（←ラベル→の両端配置） -->
                 <div class="sched-nav-bar">
                     <button class="sched-nav-btn" onclick="changeSchedWeek(-1)">
@@ -5315,10 +5339,9 @@
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                     </button>
                 </div>
-                <!-- 切替・更新ボタン行（中央寄せ） -->
+                <!-- アクション行 -->
                 <div class="sched-nav-actions">
                     ${!isCurrentWeek ? `<button class="sched-today-btn" onclick="schedWeekOffset=0;_renderSchedTab()">今週</button>` : ''}
-                    <button class="sched-view-btn" onclick="schedViewMode='month';_renderSchedTab()">月間に切替</button>
                     ${GAS_WEBAPP_URL ? `<button class="sched-view-btn" onclick="schedRefresh()" title="GASから再取得"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> 更新</button>` : ''}
                 </div>
                 ${GAS_WEBAPP_URL ? `<div id="schedStatusBar" class="sched-status-bar ${schedLastUpdated?'ok':''}">${schedLastUpdated ? '最終更新: ' + schedLastUpdated : 'まだ更新されていません（更新ボタンで取得）'}</div>` : ''}
@@ -5498,6 +5521,11 @@
                 </div>` : '';
 
             el.innerHTML = `<div class="tab-pane">
+                <!-- ビュー切替タブ（週間/月間） -->
+                <div class="seg-tabs">
+                    <button class="seg-tab active" onclick="schedViewMode='month';_renderSchedTab()">月間</button>
+                    <button class="seg-tab" onclick="schedViewMode='week';schedWeekOffset=0;_renderSchedTab()">週間</button>
+                </div>
                 <!-- ナビゲーションバー（←ラベル→の両端配置） -->
                 <div class="sched-nav-bar">
                     <button class="sched-nav-btn" onclick="schedWeekOffset--;_renderSchedTab()">
@@ -5510,10 +5538,9 @@
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                     </button>
                 </div>
-                <!-- 切替・更新ボタン行 -->
+                <!-- アクション行 -->
                 <div class="sched-nav-actions">
                     ${!isCurrentMonth ? `<button class="sched-today-btn" onclick="schedWeekOffset=0;_renderSchedTab()">今月</button>` : ''}
-                    <button class="sched-view-btn" onclick="schedViewMode='week';schedWeekOffset=0;_renderSchedTab()">週間に切替</button>
                     ${GAS_WEBAPP_URL ? `<button class="sched-view-btn" onclick="schedRefresh()" title="GASから再取得"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> 更新</button>` : ''}
                 </div>
                 ${GAS_WEBAPP_URL ? `<div id="schedStatusBar" class="sched-status-bar ${schedLastUpdated?'ok':''}">${schedLastUpdated ? '最終更新: ' + schedLastUpdated : 'まだ更新されていません（更新ボタンで取得）'}</div>` : ''}
@@ -5531,56 +5558,62 @@
                 </div>
             </div>`;
 
-            // 日付セルのタップ → 詳細パネル
+            // 指定日の詳細を表示（tap時もinitial時も共通で使用）
+            function showMonthDay(day, opts) {
+                opts = opts || {};
+                const dMs = new Date(year, month, day).getTime();
+                const d = new Date(dMs);
+                const label = `${month+1}月${day}日（${weeks[d.getDay()]}）`;
+
+                el.querySelectorAll('.month-cal-cell').forEach(c => c.classList.remove('selected'));
+                const cell = el.querySelector(`.month-cal-cell[data-day="${day}"]`);
+                if (cell) cell.classList.add('selected');
+
+                const panel = document.getElementById('monthDayDetail');
+                const titleEl = document.getElementById('monthDayDetailTitle');
+                const contentEl = document.getElementById('monthDayDetailContent');
+                const gcalLink = document.getElementById('monthDayGcalLink');
+                if (!panel || !titleEl || !contentEl || !gcalLink) return;
+
+                titleEl.textContent = label;
+                gcalLink.href = `https://calendar.google.com/calendar/r/day/${year}/${month+1}/${day}`;
+
+                const calHtmlForDay = getCalendarEventsForDate(dMs);
+                const propToday = allMonthDates.filter(ev => {
+                    const dd = ev.date;
+                    return dd.getDate() === day && dd.getMonth() === month && dd.getFullYear() === year;
+                });
+                let propHtml = '';
+                if (propToday.length > 0) {
+                    propHtml = propToday.map(ev => `<div class="sched-item sched-all-day" style="border-left-color:${ev.color};margin-bottom:6px;">
+                        <div class="sched-content">
+                            <div class="sched-title">${ev.name} <span style="font-size:11px;color:${ev.color};font-weight:700;">${ev.type}</span></div>
+                            ${ev.location ? `<div class="sched-location">${ev.location}</div>` : ''}
+                        </div>
+                    </div>`).join('');
+                }
+
+                const hasSchedData = scheduleEvents && scheduleEvents.length > 0;
+                const noCalData = !hasSchedData ? `<div style="padding:6px 0 2px;color:var(--text3);font-size:11px;">Googleカレンダーの詳細は <a href="https://calendar.google.com/calendar/r/day/${year}/${month+1}/${day}" target="_blank" style="color:var(--primary);">こちら</a></div>` : '';
+
+                if (!calHtmlForDay && !propHtml) {
+                    contentEl.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text3);font-size:12px;">この日の予定はありません</div>${noCalData}`;
+                } else {
+                    contentEl.innerHTML = (propHtml || '') + (calHtmlForDay || '') + noCalData;
+                }
+                panel.style.display = 'block';
+            }
+
+            // 日付セルのタップ → 詳細パネル（scrollIntoViewはしない: 画面が勝手に動くのを防ぐ）
             el.querySelectorAll('.month-cal-cell[data-day]').forEach(cell => {
                 cell.addEventListener('click', () => {
-                    const day = parseInt(cell.dataset.day);
-                    const dMs = new Date(year, month, day).getTime();
-                    const d = new Date(dMs);
-                    const label = `${month+1}月${day}日（${weeks[d.getDay()]}）`;
-
-                    // アクティブ状態
-                    el.querySelectorAll('.month-cal-cell').forEach(c => c.classList.remove('selected'));
-                    cell.classList.add('selected');
-
-                    const panel = document.getElementById('monthDayDetail');
-                    const titleEl = document.getElementById('monthDayDetailTitle');
-                    const contentEl = document.getElementById('monthDayDetailContent');
-                    const gcalLink = document.getElementById('monthDayGcalLink');
-
-                    titleEl.textContent = label;
-                    gcalLink.href = `https://calendar.google.com/calendar/r/day/${year}/${month+1}/${day}`;
-
-                    // カレンダーイベント
-                    const calHtmlForDay = getCalendarEventsForDate(dMs);
-                    // その日の着工・引渡し
-                    const propToday = allMonthDates.filter(ev => {
-                        const dd = ev.date;
-                        return dd.getDate() === day && dd.getMonth() === month && dd.getFullYear() === year;
-                    });
-                    let propHtml = '';
-                    if (propToday.length > 0) {
-                        propHtml = propToday.map(ev => `<div class="sched-item sched-all-day" style="border-left-color:${ev.color};margin-bottom:6px;">
-                            <div class="sched-content">
-                                <div class="sched-title">${ev.name} <span style="font-size:11px;color:${ev.color};font-weight:700;">${ev.type}</span></div>
-                                ${ev.location ? `<div class="sched-location">${ev.location}</div>` : ''}
-                            </div>
-                        </div>`).join('');
-                    }
-
-                    // scheduleEventsにデータがない日はGCalリンクを案内
-                    const hasSchedData = scheduleEvents && scheduleEvents.length > 0;
-                    const noCalData = !hasSchedData ? `<div style="padding:6px 0 2px;color:var(--text3);font-size:11px;">Googleカレンダーの詳細は <a href="https://calendar.google.com/calendar/r/day/${year}/${month+1}/${day}" target="_blank" style="color:var(--primary);">こちら</a></div>` : '';
-
-                    if (!calHtmlForDay && !propHtml) {
-                        contentEl.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text3);font-size:12px;">この日の予定はありません</div>${noCalData}`;
-                    } else {
-                        contentEl.innerHTML = (propHtml || '') + (calHtmlForDay || '') + noCalData;
-                    }
-                    panel.style.display = 'block';
-                    panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+                    showMonthDay(parseInt(cell.dataset.day));
                 });
             });
+
+            // 初期表示: 今月なら今日、他月なら1日を自動で選択
+            const initDay = isCurrentMonth ? now.getDate() : 1;
+            showMonthDay(initDay);
 
             // 左右スワイプで月切替は #tab-week 全体に設定済みの指追従スワイプに統一
         }
@@ -5986,8 +6019,10 @@
             el.innerHTML = `<div class="tab-pane">
                 <!-- スマホ用内部タブ（前回のタブを維持） -->
                 <div class="task-inner-tabs">
-                    <div class="task-inner-tab${_activeTaskPane==='genba'?' active':''}" onclick="switchTaskInnerTab('genba',this)">現場タスク</div>
-                    <div class="task-inner-tab${_activeTaskPane==='gtask'?' active':''}" onclick="switchTaskInnerTab('gtask',this)">Googleタスク</div>
+                    <div class="seg-tabs">
+                        <button class="seg-tab${_activeTaskPane==='genba'?' active':''}" onclick="switchTaskInnerTab('genba',this)">現場タスク</button>
+                        <button class="seg-tab${_activeTaskPane==='gtask'?' active':''}" onclick="switchTaskInnerTab('gtask',this)">Googleタスク</button>
+                    </div>
                 </div>
                 <!-- PC分割 / スマホ縦積み（現場タスク左・Googleタスク右） -->
                 <div class="task-split-wrap">
@@ -6117,7 +6152,7 @@
 
         function switchTaskInnerTab(name, btn) {
             _activeTaskPane = name;
-            document.querySelectorAll('.task-inner-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.task-inner-tabs .seg-tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.task-inner-pane').forEach(p => p.classList.remove('active'));
             btn.classList.add('active');
             const pane = document.getElementById('taskPane-' + name);
