@@ -425,10 +425,21 @@
     /* ─ Priority panel ─────────────────────────────────────── */
     .prio-panel { background: #fff5f5; border: 1.5px solid #fecaca;
                   border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+    @supports (overflow: clip) {
+      .prio-panel { overflow: clip; }
+    }
     .prio-panel-hdr { display: flex; align-items: center; padding: 10px 14px;
                       cursor: pointer; gap: 8px; user-select: none;
+                      background: #fff5f5;
                       -webkit-tap-highlight-color: transparent; }
     .prio-panel-hdr:active { background: #fee2e2; }
+    /* 展開時: ヘッダーを画面上部に追従（外側ヘッダーの直下に固定） */
+    .prio-panel.open .prio-panel-hdr {
+      position: sticky;
+      top: 94px;
+      z-index: 9;
+      box-shadow: 0 1px 0 #fecaca;
+    }
     .prio-panel-title { flex: 1; font-size: 12px; font-weight: 700; color: #991b1b;
                         letter-spacing: .03em; display: flex; align-items: center; gap: 6px; }
     .prio-cnt-badge { background: #dc2626; color: white; font-size: 10px; font-weight: 700;
