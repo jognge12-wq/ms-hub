@@ -3013,10 +3013,6 @@
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
             <span>新規物件登録</span>
         </div>
-        <div class="drawer-item" onclick="closeDrawer(); navigateTo('tools/schedule.html')">
-            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            <span>工程作成</span>
-        </div>
 
         <div class="drawer-separator"></div>
 
@@ -6593,30 +6589,16 @@
             {
                 id: 'notion-reg',
                 name: '新規物件登録',
-                subtitle: '物件＋タスク一括登録',
+                subtitle: '物件＋工程を一括登録',
                 color: '#006837',
                 icon: `<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/>`,
-                desc: '物件情報を入力すると、DBに物件ページを新規作成し、共通タスク一覧を自動でセットするWebアプリ。登録漏れが防げる。',
+                desc: '物件情報と本体着工・建て方・引渡し日を入力すると、Notion担当物件一覧への登録から、六曜条件（大安・友引）を考慮した工程のGoogleカレンダー登録までを一括で行うWebアプリ。',
                 features: [
-                    '物件名・住所など一括入力',
-                    '共通タスクを自動登録',
-                    '担当物件一覧に即反映'
+                    '物件名・日程など一括入力',
+                    '全工程を自動計算して確認・編集',
+                    'Notion + Googleカレンダーへ一括登録'
                 ],
                 url: './tools/property.html'
-            },
-            {
-                id: 'koute',
-                name: '工程作成',
-                subtitle: 'Googleカレンダーへ自動登録',
-                color: '#006837',
-                icon: `<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="10" x2="12" y2="22"/>`,
-                desc: 'Googleフォームに物件情報と着工日を入力すると、六曜条件（大安・友引）を考慮して工程イベントをGoogleカレンダーへ一括登録するツール。',
-                features: [
-                    '着工日から全工程を自動計算',
-                    '六曜条件（大安・友引）対応',
-                    'Googleカレンダーへ一括登録'
-                ],
-                url: './tools/schedule.html'
             },
             {
                 id: 'inspection',

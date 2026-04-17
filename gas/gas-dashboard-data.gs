@@ -56,6 +56,11 @@ function doGet(e) {
     return handlePortalSubmit(e.parameter);
   }
 
+  // ★ v6追加: 物件ページロールバック（カレンダー登録失敗時用）
+  if (e && e.parameter && e.parameter.mode === 'rollbackProperty') {
+    return handleRollbackProperty(e.parameter);
+  }
+
   // ★ v4追加: ダッシュボードデータ一括取得（優先タスク + カレンダー）
   if (e && e.parameter && e.parameter.mode === 'getDashboardData') {
     return handleGetDashboardData();
@@ -207,11 +212,45 @@ function handlePortalSubmit(p) {
 
     Logger.log('✅ 完了: 「' + propertyName + '」');
     return ContentService.createTextOutput(JSON.stringify({
-      success: true, name: propertyName
+      success: true, name: propertyName, pageId: propertyPageId
     })).setMimeType(ContentService.MimeType.JSON);
 
   } catch(err) {
     Logger.log('❌ エラー: ' + err.message);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false, message: err.message
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+
+// ============================================================
+// ★ v6追加: 物件ページロールバック（Notionページをアーカイブ）
+// カレンダー登録失敗時にフロント側から呼ばれる
+// ============================================================
+function handleRollbackProperty(p) {
+  try {
+    var pageId = (p.pageId || '').trim();
+    if (!pageId) {
+      return ContentService.createTextOutput(JSON.stringify({
+        success: false, message: 'pageId が未指定です'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var token = getToken();
+    // Notion ページのアーカイブ（archived: true）
+    var result = notionPatch('/pages/' + pageId, { archived: true }, token);
+    if (result.object === 'error') {
+      throw new Error(result.message);
+    }
+
+    Logger.log('✓ 物件ページをアーカイブ: ' + pageId);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true, pageId: pageId
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch(err) {
+    Logger.log('❌ rollback エラー: ' + err.message);
     return ContentService.createTextOutput(JSON.stringify({
       success: false, message: err.message
     })).setMimeType(ContentService.MimeType.JSON);

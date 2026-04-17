@@ -19,7 +19,7 @@
    - コードを大きく変えたらここのバージョンを上げること
 ================================================================ */
 
-const CACHE_VERSION = 'v2-2026-04-16';
+const CACHE_VERSION = 'v2-2026-04-17';
 const CACHE_NAME    = `portal-${CACHE_VERSION}`;
 
 // 初回インストール時にプリキャッシュする最小セット
@@ -33,7 +33,6 @@ const PRECACHE_URLS = [
     './tools/inspection.html',
     './tools/payment.html',
     './tools/property.html',
-    './tools/schedule.html',
     './tools/_tool-common.css',
     './tools/_tool-common.js',
 ];

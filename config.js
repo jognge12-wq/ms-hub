@@ -10,7 +10,7 @@ const GAS_URLS = {
   // 物件管理 GAS（Notion連携メイン）
   PROPERTY: 'https://script.google.com/macros/s/AKfycby2P2A0qi1J2As_to00a2ZE6YMg5kX-IPPJmBVGeZCh6bkSnYUP-4jvt5b2-4nrJrR6Qw/exec',
   // 工程作成 GAS
-  SCHEDULE: 'https://script.google.com/macros/s/AKfycbwCVoCBuecRtBNdmY_HJ3-a8xjMxs2AjxGTgIKxMQo7AnuIqS8RNgWpLxVfSFZnVQAD5A/exec',
+  SCHEDULE: 'https://script.google.com/macros/s/AKfycbx5L_T7za4UuKU-dCLOZ96K2P1SBkRrJmTghZic81boufzs_xs9Ovg3qr63igSYKv7MSg/exec',
   // 検査依頼 GAS
   INSPECTION: 'https://script.google.com/macros/s/AKfycbxZvu3-7dYrh3_f9lMS1etMp4_20F9D5Z6bgwgJPryOKdwtttyyDQz2oaSJIVmexXhA/exec',
 };

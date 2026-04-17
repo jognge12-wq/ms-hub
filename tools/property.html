@@ -331,6 +331,307 @@
       transform: translateX(-50%) translateY(0);
     }
     .toast.error { background: #dc2626; }
+
+    /* ===== 工程確認・編集画面（フルスクリーン） ===== */
+    /* 開いているときはトップ/ボトムナビを隠す */
+    body.schedule-open .tool-top-bar,
+    body.schedule-open .tool-bottom-nav {
+      display: none !important;
+    }
+    body.schedule-open {
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+    .schedule-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 200;
+      overflow-y: auto;
+      padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+    }
+    .schedule-screen.show { display: block; }
+    .schedule-header {
+      background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
+      color: #fff;
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding-top: calc(16px + env(safe-area-inset-top, 0px));
+    }
+    .schedule-header-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      line-height: 1.35;
+    }
+    .schedule-header-sub {
+      font-size: 11px;
+      opacity: 0.85;
+      margin-top: 4px;
+    }
+    .schedule-list {
+      padding: 12px 14px 24px;
+      max-width: 620px;
+      margin: 0 auto;
+    }
+    .schedule-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .schedule-item-num {
+      flex-shrink: 0;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--sfc-light);
+      color: var(--sfc-dark);
+      font-size: 14px;
+      font-weight: 800;
+      font-family: 'DM Mono', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: -0.02em;
+    }
+    .schedule-item-num.todo {
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 10px;
+    }
+    .schedule-item-num.base {
+      background: var(--sfc-primary);
+      color: #fff;
+    }
+    @media (prefers-color-scheme: dark) {
+      .schedule-item-num.todo { background: #78350f; color: #fde68a; }
+    }
+    .schedule-item-body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .si-title {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Noto Sans JP', sans-serif;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--text1);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .si-title:focus {
+      outline: none;
+      border-color: var(--sfc-primary);
+      box-shadow: 0 0 0 3px rgba(45, 138, 78, 0.15);
+    }
+    .si-datetime {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .si-dt-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    /* 日付ピッカー：ミニマル・フルワイドボタン */
+    .si-datepick {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Noto Sans JP', sans-serif;
+      color: var(--text1);
+      width: 100%;
+      transition: background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .si-datepick::before {
+      content: '';
+      width: 16px; height: 16px;
+      flex-shrink: 0;
+      background: no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3Cline x1='9' y1='2' x2='9' y2='6'/%3E%3Cline x1='15' y1='2' x2='15' y2='6'/%3E%3C/svg%3E");
+      opacity: 0.7;
+    }
+    @media (prefers-color-scheme: dark) {
+      .si-datepick::before {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23d1d5db' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3Cline x1='9' y1='2' x2='9' y2='6'/%3E%3Cline x1='15' y1='2' x2='15' y2='6'/%3E%3C/svg%3E");
+      }
+    }
+    .si-datepick:active { background: var(--sfc-light); }
+    @media (prefers-color-scheme: dark) {
+      .si-datepick:active { background: var(--sfc-border); }
+    }
+    .si-dp-label {
+      pointer-events: none;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .si-dp-label .dow {
+      font-size: 12px;
+      color: var(--text3);
+      margin-left: 4px;
+      font-weight: 600;
+    }
+    .si-dp-label .dow.sat { color: #3b82f6; }
+    .si-dp-label .dow.sun { color: var(--red); }
+    /* 実input は完全透明でオーバーレイ */
+    .si-date {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      -webkit-appearance: none;
+      appearance: none;
+      padding: 0;
+      margin: 0;
+      color: transparent;
+    }
+    .si-date::-webkit-calendar-picker-indicator {
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    /* 時刻入力：ミニマル・ピル型 */
+    .si-time {
+      flex: 1;
+      min-width: 0;
+      padding: 10px 12px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Noto Sans JP', sans-serif;
+      border: none;
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text1);
+      text-align: center;
+      text-align-last: center;
+      -webkit-appearance: none;
+      appearance: none;
+      transition: background 0.15s;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      background-image: none;
+    }
+    .si-time:active { background: var(--sfc-light); }
+    .si-time:focus {
+      outline: none;
+      background: var(--sfc-light);
+    }
+    @media (prefers-color-scheme: dark) {
+      .si-time:active, .si-time:focus { background: var(--sfc-border); }
+    }
+    .si-sep {
+      font-size: 13px;
+      color: var(--text3);
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .si-allday {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--sfc-primary);
+      background: var(--sfc-light);
+      padding: 10px 14px;
+      border-radius: 8px;
+      flex: 1;
+      text-align: center;
+    }
+    @media (prefers-color-scheme: dark) {
+      .si-allday { background: var(--sfc-border); color: #86efac; }
+    }
+    .si-dow {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text2);
+      white-space: nowrap;
+    }
+    .si-dow.sat { color: #3b82f6; }
+    .si-dow.sun { color: var(--red); }
+    .si-warn {
+      font-size: 11px;
+      color: var(--red);
+      margin-top: 2px;
+      background: #fef2f2;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border-left: 3px solid var(--red);
+    }
+    @media (prefers-color-scheme: dark) {
+      .si-warn { background: #3f1414; }
+    }
+
+    /* ===== 確認画面の下部アクションバー ===== */
+    .schedule-actions {
+      position: fixed;
+      left: 0; right: 0;
+      bottom: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      gap: 10px;
+      z-index: 201;
+      box-shadow: 0 -4px 14px rgba(0,0,0,0.06);
+    }
+    .btn-secondary {
+      flex: 1;
+      padding: 13px;
+      background: var(--surface2);
+      color: var(--text2);
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Noto Sans JP', sans-serif;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-primary {
+      flex: 1.6;
+      padding: 13px;
+      background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Noto Sans JP', sans-serif;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(29, 107, 64, 0.3);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -384,23 +685,23 @@
         <div class="section-title">工程</div>
         <div class="date-fields">
           <div class="field">
-            <label class="field-label">本体着工</label>
+            <label class="field-label">本体着工 <span class="req">*</span></label>
             <div class="date-field-wrap">
-              <input type="date" name="本体着工" id="d_chakou" oninput="updateDayLabel('d_chakou','dw_chakou')">
+              <input type="date" name="本体着工" id="d_chakou" oninput="updateDayLabel('d_chakou','dw_chakou')" required>
               <div id="dw_chakou" class="date-info"></div>
             </div>
           </div>
           <div class="field">
-            <label class="field-label">建て方</label>
+            <label class="field-label">建て方 <span class="req">*</span></label>
             <div class="date-field-wrap">
-              <input type="date" name="建て方" id="d_tatemae" oninput="updateDayLabel('d_tatemae','dw_tatemae')">
+              <input type="date" name="建て方" id="d_tatemae" oninput="updateDayLabel('d_tatemae','dw_tatemae')" required>
               <div id="dw_tatemae" class="date-info"></div>
             </div>
           </div>
           <div class="field">
-            <label class="field-label">引渡し</label>
+            <label class="field-label">引渡し <span class="req">*</span></label>
             <div class="date-field-wrap">
-              <input type="date" name="引渡し" id="d_hiki" oninput="updateDayLabel('d_hiki','dw_hiki')">
+              <input type="date" name="引渡し" id="d_hiki" oninput="updateDayLabel('d_hiki','dw_hiki')" required>
               <div id="dw_hiki" class="date-info"></div>
             </div>
           </div>
@@ -422,8 +723,21 @@
         </div>
       </div>
 
-      <button type="submit" class="btn-submit" id="submitBtn">Notion に登録する</button>
+      <button type="submit" class="btn-submit" id="submitBtn">工程を確認する</button>
     </form>
+  </div>
+
+  <!-- ===== 工程確認・編集画面 ===== -->
+  <div class="schedule-screen" id="scheduleScreen">
+    <div class="schedule-header">
+      <div class="schedule-header-title" id="schedHeaderTitle">工程確認・編集</div>
+      <div class="schedule-header-sub" id="schedHeaderSub">内容を確認し、必要なら編集してください</div>
+    </div>
+    <div class="schedule-list" id="scheduleList"></div>
+    <div class="schedule-actions">
+      <button type="button" class="btn-secondary" id="btnBack">戻る</button>
+      <button type="button" class="btn-primary" id="btnConfirm">カレンダーに登録</button>
+    </div>
   </div>
 
   <!-- ===== 完了画面 ===== -->
@@ -447,7 +761,13 @@
 // ================================================================
 // GAS API（URLは config.js で一元管理）
 // ================================================================
-const GAS_URL = GAS_URLS.PROPERTY;
+const GAS_URL_PROP  = GAS_URLS.PROPERTY;
+const GAS_URL_SCHED = GAS_URLS.SCHEDULE;
+
+// ---- 状態管理 ----
+let registeredPageId  = null;   // ロールバック用 Notion pageId
+let currentSchedules  = [];     // 編集中の工程配列
+let currentBukkenName = '';
 
 // ---- 曜日表示 ----
 const DAY_NAMES = ['日','月','火','水','木','金','土'];
@@ -464,39 +784,295 @@ function updateDayLabel(inputId, infoId) {
         `<span style="color:${dayColor};font-weight:700">(${DAY_NAMES[dow]})</span>`;
 }
 
-// ---- フォーム送信 ----
+// ---- ユーティリティ ----
+function pad(n) { return String(n).padStart(2, '0'); }
+function toDateVal(d) { return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
+function toTimeVal(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+        return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+    });
+}
+function dayLabelHtml(d) {
+    const dow = d.getDay();
+    const cls = dow === 0 ? 'sun' : (dow === 6 ? 'sat' : '');
+    return `<span class="si-dow ${cls}">(${DAY_NAMES[dow]})</span>`;
+}
+
+// 「5月28日 (木)」形式
+function formatDateButtonLabel(d) {
+    const dow = d.getDay();
+    const cls = dow === 0 ? 'sun' : (dow === 6 ? 'sat' : '');
+    return `${d.getMonth() + 1}月${d.getDate()}日<span class="dow ${cls}">(${DAY_NAMES[dow]})</span>`;
+}
+
+// 15分刻み時刻オプション（00:00〜23:45）
+function buildTimeOptions(selected) {
+    const opts = [];
+    const onBoundary = /^\d\d:\d\d$/.test(selected) && (parseInt(selected.slice(3), 10) % 15 === 0);
+    if (selected && !onBoundary) {
+        opts.push(`<option value="${selected}" selected>${selected}</option>`);
+    }
+    for (let h = 0; h < 24; h++) {
+        for (let m = 0; m < 60; m += 15) {
+            const v = pad(h) + ':' + pad(m);
+            const sel = v === selected ? ' selected' : '';
+            opts.push(`<option value="${v}"${sel}>${v}</option>`);
+        }
+    }
+    return opts.join('');
+}
+
+// ---- Notion ロールバック ----
+async function rollbackNotion(pageId) {
+    if (!pageId) return;
+    try {
+        const p = new URLSearchParams({ mode: 'rollbackProperty', pageId: pageId });
+        await fetch(GAS_URL_PROP + '?' + p.toString());
+    } catch (e) { /* ignore */ }
+}
+
+// ---- フォーム送信: Notion登録 → 工程計算 → 確認画面 ----
 document.getElementById('regForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
-    const nameVal = document.getElementById('propName').value.trim();
+    const nameVal  = document.getElementById('propName').value.trim();
+    const chakou   = document.getElementById('d_chakou').value;
+    const tatemae  = document.getElementById('d_tatemae').value;
+    const hiki     = document.getElementById('d_hiki').value;
+
     if (!nameVal) { showToast('物件名を入力してください', true); return; }
+    if (!chakou)  { showToast('本体着工日を入力してください', true); return; }
+    if (!tatemae) { showToast('建て方の日付を入力してください', true); return; }
+    if (!hiki)    { showToast('引渡し日を入力してください', true); return; }
 
     btn.disabled = true;
-    btn.textContent = '登録中...';
 
+    // --- Step 1: Notion 登録 ---
+    btn.textContent = 'Notion 登録中...';
     const formData = new FormData(this);
     const params = new URLSearchParams();
     params.set('mode', 'submit');
     formData.forEach(function(val, key) { params.set(key, val); });
 
     try {
-        const res = await fetch(GAS_URL + '?' + params.toString());
+        const res = await fetch(GAS_URL_PROP + '?' + params.toString());
         if (!res.ok) throw new Error('通信エラー (HTTP ' + res.status + ')');
         const data = await res.json();
-
-        if (data.success) {
-            // 完了画面を表示
-            document.getElementById('formBody').style.display = 'none';
-            document.getElementById('resultName').textContent = '「' + data.name + '」';
-            document.getElementById('resultScreen').classList.add('show');
-            showToast(data.name + ' を登録しました');
-        } else {
-            throw new Error(data.message || '登録に失敗しました');
-        }
+        if (!data.success) throw new Error(data.message || 'Notion登録に失敗しました');
+        registeredPageId  = data.pageId || null;
+        currentBukkenName = data.name || nameVal;
     } catch (err) {
         showToast('エラー: ' + err.message, true);
         btn.disabled = false;
-        btn.textContent = 'Notion に登録する';
+        btn.textContent = '工程を確認する';
+        return;
+    }
+
+    // --- Step 2: 工程計算（calcOnly） ---
+    btn.textContent = '工程計算中...';
+    const cityEl = document.querySelector('[name="市町村"]');
+    const city   = cityEl ? cityEl.value : '';
+    const p2 = new URLSearchParams({
+        mode: 'calcOnly',
+        bukkenName: nameVal,
+        location: city,
+        chakouDate: chakou,
+        tatemaeDate: tatemae,
+        hikiwatashiDate: hiki,
+    });
+
+    try {
+        const res = await fetch(GAS_URL_SCHED + '?' + p2.toString());
+        if (!res.ok) throw new Error('通信エラー (HTTP ' + res.status + ')');
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || '工程計算に失敗しました');
+        currentSchedules = data.schedules;
+    } catch (err) {
+        await rollbackNotion(registeredPageId);
+        registeredPageId = null;
+        showToast('エラー: ' + err.message, true);
+        btn.disabled = false;
+        btn.textContent = '工程を確認する';
+        return;
+    }
+
+    // --- Step 3: 確認画面を表示 ---
+    renderScheduleScreen();
+    btn.disabled = false;
+    btn.textContent = '工程を確認する';
+});
+
+// ---- 確認画面レンダリング ----
+function renderScheduleScreen() {
+    document.getElementById('schedHeaderTitle').textContent =
+        '工程確認 — ' + currentBukkenName;
+    document.getElementById('schedHeaderSub').textContent =
+        '全 ' + currentSchedules.length + ' 項目・内容を確認し、必要なら編集してください';
+
+    const list = document.getElementById('scheduleList');
+    list.innerHTML = currentSchedules.map(function(s, i) { return buildItemHtml(s, i); }).join('');
+
+    attachItemEvents();
+
+    document.getElementById('formBody').style.display = 'none';
+    document.getElementById('scheduleScreen').classList.add('show');
+    document.body.classList.add('schedule-open');
+    window.scrollTo(0, 0);
+}
+
+function buildItemHtml(s, idx) {
+    const startD = new Date(s.startMs);
+    const endD   = new Date(s.endMs);
+    const dateStr = toDateVal(startD);
+    const startTimeStr = toTimeVal(startD);
+    const endTimeStr   = toTimeVal(endD);
+
+    let numLabel = '';
+    let numCls   = '';
+    if (s.isTodo) {
+        numLabel = 'ToDo';
+        numCls   = 'todo';
+    } else if (s.step === 3 || s.step === 8 || s.step === 16) {
+        numLabel = String(s.step).padStart(2, '0');
+        numCls   = 'base';
+    } else {
+        numLabel = String(s.step).padStart(2, '0');
+    }
+
+    const timePart = s.allDay
+        ? `<span class="si-allday">終日</span>`
+        : `<select class="si-time si-start">${buildTimeOptions(startTimeStr)}</select>
+           <span class="si-sep">〜</span>
+           <select class="si-time si-end">${buildTimeOptions(endTimeStr)}</select>`;
+
+    const warnPart = s.description && s.description.indexOf('⚠️') === 0
+        ? `<div class="si-warn">${escapeHtml(s.description)}</div>`
+        : '';
+
+    return `
+        <div class="schedule-item" data-idx="${idx}">
+            <div class="schedule-item-num ${numCls}">${numLabel}</div>
+            <div class="schedule-item-body">
+                <input type="text" class="si-title" value="${escapeHtml(s.title)}" />
+                <div class="si-datetime">
+                    <label class="si-datepick">
+                        <span class="si-dp-label">${formatDateButtonLabel(startD)}</span>
+                        <input type="date" class="si-date" value="${dateStr}" />
+                    </label>
+                    <div class="si-dt-row">
+                        ${timePart}
+                    </div>
+                </div>
+                ${warnPart}
+            </div>
+        </div>
+    `;
+}
+
+function attachItemEvents() {
+    document.querySelectorAll('.schedule-item').forEach(function(item) {
+        const idx = parseInt(item.dataset.idx, 10);
+        const titleEl = item.querySelector('.si-title');
+        const dateEl  = item.querySelector('.si-date');
+        const startEl = item.querySelector('.si-start');
+        const endEl   = item.querySelector('.si-end');
+        const labelEl = item.querySelector('.si-dp-label');
+
+        titleEl.addEventListener('input', function(e) {
+            currentSchedules[idx].title = e.target.value;
+        });
+
+        function sync() {
+            const s = currentSchedules[idx];
+            const d = dateEl.value;
+            if (!d) return;
+            const parts = d.split('-').map(Number);
+            const y = parts[0], mo = parts[1], da = parts[2];
+            if (s.allDay) {
+                const start = new Date(y, mo - 1, da, 0, 0, 0);
+                s.startMs = start.getTime();
+                s.endMs   = start.getTime();
+            } else {
+                const sp = (startEl.value || '00:00').split(':').map(Number);
+                const ep = (endEl.value   || '00:00').split(':').map(Number);
+                s.startMs = new Date(y, mo - 1, da, sp[0], sp[1], 0).getTime();
+                s.endMs   = new Date(y, mo - 1, da, ep[0], ep[1], 0).getTime();
+            }
+            // ボタンラベル更新
+            if (labelEl) {
+                labelEl.innerHTML = formatDateButtonLabel(new Date(s.startMs));
+            }
+        }
+        dateEl.addEventListener('change', sync);
+        if (startEl) startEl.addEventListener('change', sync);
+        if (endEl)   endEl.addEventListener('change', sync);
+    });
+}
+
+// ---- 戻るボタン: ロールバック + 入力画面へ ----
+document.getElementById('btnBack').addEventListener('click', async function() {
+    if (!confirm('工程登録を取り消して入力画面に戻ります。\nNotion に登録した物件もキャンセルされます。よろしいですか？')) return;
+    const btn = document.getElementById('btnBack');
+    btn.disabled = true;
+    btn.textContent = '取消中...';
+    await rollbackNotion(registeredPageId);
+    registeredPageId = null;
+    currentSchedules = [];
+    currentBukkenName = '';
+    document.getElementById('scheduleScreen').classList.remove('show');
+    document.body.classList.remove('schedule-open');
+    document.getElementById('formBody').style.display = '';
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('submitBtn').textContent = '工程を確認する';
+    btn.disabled = false;
+    btn.textContent = '戻る';
+    window.scrollTo(0, 0);
+});
+
+// ---- 登録ボタン: registerDirect でカレンダー登録 ----
+document.getElementById('btnConfirm').addEventListener('click', async function() {
+    const btn = document.getElementById('btnConfirm');
+    btn.disabled = true;
+    btn.textContent = 'カレンダー登録中...';
+    document.getElementById('btnBack').disabled = true;
+
+    const body = new URLSearchParams({
+        mode: 'registerDirect',
+        bukkenName: currentBukkenName,
+        schedules: JSON.stringify(currentSchedules),
+    });
+
+    try {
+        const res = await fetch(GAS_URL_SCHED, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString(),
+        });
+        if (!res.ok) throw new Error('通信エラー (HTTP ' + res.status + ')');
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'カレンダー登録に失敗しました');
+
+        // 成功 → 完了画面
+        registeredPageId = null;
+        document.getElementById('scheduleScreen').classList.remove('show');
+        document.body.classList.remove('schedule-open');
+        document.getElementById('resultName').textContent = '「' + currentBukkenName + '」';
+        document.getElementById('resultScreen').classList.add('show');
+    } catch (err) {
+        // 失敗 → ロールバック + 入力画面へ
+        await rollbackNotion(registeredPageId);
+        registeredPageId = null;
+        document.getElementById('scheduleScreen').classList.remove('show');
+        document.body.classList.remove('schedule-open');
+        document.getElementById('formBody').style.display = '';
+        document.getElementById('submitBtn').disabled = false;
+        document.getElementById('submitBtn').textContent = '工程を確認する';
+        showToast('エラー: ' + err.message + '（Notion登録も取り消しました）', true);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'カレンダーに登録';
+        document.getElementById('btnBack').disabled = false;
     }
 });
 
@@ -506,15 +1082,19 @@ function resetForm() {
     document.getElementById('formBody').style.display = '';
     document.getElementById('regForm').reset();
     document.getElementById('submitBtn').disabled = false;
-    document.getElementById('submitBtn').textContent = 'Notion に登録する';
+    document.getElementById('submitBtn').textContent = '工程を確認する';
     // 曜日表示クリア
-    ['dw_chakou','dw_tatemae','dw_hiki'].forEach(id => {
+    ['dw_chakou','dw_tatemae','dw_hiki'].forEach(function(id) {
         document.getElementById(id).textContent = '';
     });
+    // 状態リセット
+    registeredPageId = null;
+    currentSchedules = [];
+    currentBukkenName = '';
     // 先頭にスクロール
     window.scrollTo(0, 0);
     // 物件名にフォーカス
-    setTimeout(() => document.getElementById('propName').focus(), 200);
+    setTimeout(function() { document.getElementById('propName').focus(); }, 200);
 }
 
 // ---- トースト ----
@@ -547,7 +1127,6 @@ window.addEventListener('popstate', function() {
   <a class="tdrawer-item" href="./inspection.html"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>検査依頼</a>
   <a class="tdrawer-item" href="./payment.html"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>支払い管理</a>
   <a class="tdrawer-item active" href="./property.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>新規物件登録</a>
-  <a class="tdrawer-item" href="./schedule.html"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>工程作成</a>
   <div class="tdrawer-sep"></div>
   <div class="tdrawer-sec">外部サービス</div>
   <a class="tdrawer-item" href="https://calendar.google.com" target="_blank"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="2" x2="9" y2="6"/><line x1="15" y1="2" x2="15" y2="6"/></svg>Google カレンダー<svg class="tdrawer-ext" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>
