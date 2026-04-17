@@ -1031,6 +1031,10 @@ function handleGetDashboardData() {
       var calListResult = Calendar.CalendarList.list();
       var calendars = calListResult.items || [];
 
+      // 同一イベントの二重表示を防ぐため (iCalUID, 日付) で重複除去
+      // （招待や共有で同じイベントが複数カレンダーに現れる場合に備える）
+      var seenEventKeys = {};
+
       calendars.forEach(function(cal) {
         var calId    = cal.id;
         var calName  = cal.summary || '';
@@ -1065,6 +1069,15 @@ function handleGetDashboardData() {
 
             // 対象期間の全イベントを収集（祝日カレンダーも含む）
             if (schedMap[evDateStr] !== undefined) {
+              // 重複キー: iCalUID（共有/招待で同一）+ 日付 + 開始時刻
+              // iCalUID が無ければタイトル+開始時刻にフォールバック
+              var dedupKey = (ev.iCalUID || evTitle) + '|' + evDateStr + '|' + (isAllDay ? 'allday' : (evStartRaw || ''));
+              if (seenEventKeys[dedupKey]) {
+                // 同一イベントを別カレンダーから再取得 → スキップ
+                return;
+              }
+              seenEventKeys[dedupKey] = true;
+
               var startTime = null, endTime = null;
               if (!isAllDay) {
                 startTime = Utilities.formatDate(evStart, 'Asia/Tokyo', 'HH:mm');
