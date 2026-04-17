@@ -2093,6 +2093,76 @@
         .portal-tool-name { font-size: 13px; font-weight: 600; color: var(--text1); }
         .portal-tool-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
 
+        /* ===== ホーム: 月別工程ダイジェスト ===== */
+        #homeMonthDigestCard { padding: 0; overflow: hidden; touch-action: pan-y; }
+        .home-month-nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 12px; border-bottom: 1px solid var(--border);
+        }
+        .home-month-btn {
+            width: 30px; height: 30px; border-radius: 8px; border: none;
+            background: var(--surface2); color: var(--text2);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: background .15s, color .15s;
+        }
+        .home-month-btn:active, .home-month-btn:hover {
+            background: var(--primary-l); color: var(--primary);
+        }
+        .home-month-label {
+            font-size: 14px; font-weight: 700; color: var(--text1);
+        }
+        .home-month-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+        }
+        .home-month-cell {
+            padding: 10px 12px;
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            min-width: 0;
+        }
+        .home-month-cell:nth-child(2n)     { border-right: none; }
+        .home-month-cell:nth-child(n+3)    { border-bottom: none; }
+        .home-month-cell-head {
+            display: flex; align-items: center; gap: 4px;
+            font-size: 11px; font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .home-month-cell-head > span:first-of-type { letter-spacing: .02em; }
+        .home-month-count {
+            margin-left: auto;
+            font-family: 'DM Mono', monospace; font-size: 10px;
+            color: var(--text3); font-weight: 600;
+            padding: 1px 6px; background: var(--surface2); border-radius: 10px;
+        }
+        .home-month-cell-body {
+            max-height: 180px; overflow-y: auto;
+        }
+        .home-month-item {
+            padding: 6px 8px;
+            border-left: 3px solid #ccc;
+            background: var(--surface2);
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        .home-month-item:last-child { margin-bottom: 0; }
+        .home-month-item-date {
+            font-size: 10px; font-family: 'DM Mono', monospace;
+            color: var(--text3); letter-spacing: -0.01em;
+        }
+        .home-month-item-name {
+            font-size: 13px; font-weight: 600; color: var(--text1);
+            margin-top: 1px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .home-month-item-loc {
+            font-size: 10px; color: var(--text3); margin-top: 1px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .home-month-empty {
+            text-align: center; padding: 14px 6px;
+            color: var(--text3); font-size: 11px;
+        }
+
         /* ===== ver2: タスクタブ 分割レイアウト ===== */
         .task-inner-tabs {
             display: flex; border-bottom: 2px solid var(--border);
@@ -2623,7 +2693,8 @@
             font-size: 15px; font-weight: 700; color: var(--text1); min-width: 56px; text-align: center;
         }
         /* 週間予定スライドアニメーション */
-        #tab-week { overflow: hidden; position: relative; }
+        /* overflow:clip は scroll container を作らないので子要素の sticky が効く */
+        #tab-week { overflow: clip; position: relative; }
         .week-slide-pane { will-change: transform; }
         @keyframes weekSlideInRight {
             from { transform: translateX(100%); }
@@ -2697,6 +2768,10 @@
         .month-cal-grid {
             display: grid; grid-template-columns: repeat(7, 1fr);
             gap: 2px; padding: 8px;
+            /* カレンダーを固定し、下の詳細パネルだけスクロールできるように */
+            position: sticky; top: 52px; z-index: 5;
+            background: var(--surface);
+            border-radius: 10px 10px 0 0;
         }
         .month-cal-head {
             text-align: center; font-size: 11px; font-weight: 600;
@@ -2788,6 +2863,10 @@
         .week-day-strip {
             display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
             margin-bottom: 16px;
+            /* カレンダーを固定し、下のイベント一覧だけスクロールできるように */
+            position: sticky; top: 52px; z-index: 5;
+            background: var(--bg);
+            padding: 8px 0;
         }
         .week-day-cell {
             text-align: center; padding: 8px 2px; border-radius: 8px;
@@ -3092,13 +3171,9 @@
             </div>
         </div>
 
-        <!-- 近日の着工・引渡しダイジェスト（今後14日） -->
+        <!-- 今月の工程ダイジェスト（着工・建て方・竣工・引渡し） -->
         <div class="grid-full">
-            <div class="card">
-                <div class="card-head">
-                    <div class="card-title">近日の着工・引渡し</div>
-                    <span class="card-sub" onclick="switchTab('week')" style="font-size:11px;color:var(--primary);cursor:pointer;">予定を見る →</span>
-                </div>
+            <div class="card" id="homeMonthDigestCard">
                 <div id="homeUpcomingProps"></div>
             </div>
         </div>
@@ -4256,71 +4331,111 @@
             document.getElementById('handoverTitle').textContent = `${year}年 着工・引渡しスケジュール`;
         }
 
-        // ホーム: 近日の着工・引渡しダイジェスト（今日〜14日後）
+        // ホーム: 月別 工程ダイジェスト（着工・建て方・竣工・引渡し）
+        let homeMonthOffset = 0;
+        function changeHomeMonth(delta) {
+            homeMonthOffset += delta;
+            renderHomeUpcoming();
+        }
         function renderHomeUpcoming() {
             const el = document.getElementById('homeUpcomingProps');
             if (!el) return;
             const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const horizon = new Date(today); horizon.setDate(today.getDate() + 14);
+            const target = new Date(now.getFullYear(), now.getMonth() + homeMonthOffset, 1);
+            const year = target.getFullYear();
+            const month = target.getMonth();
+            const monthLabel = `${year}年${month+1}月`;
 
-            const koujiList = [], hiwatashiList = [];
+            const types = [
+                { key: '着工', label: '着工',   color: '#2563eb',
+                  icon: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#2563eb" stroke-width="2.5"><rect x="2" y="6" width="20" height="15" rx="2"/><path d="M2 10h20M12 6V2M6 6V2M18 6V2"/></svg>' },
+                { key: '建方', label: '建て方', color: '#3b82f6',
+                  icon: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#3b82f6" stroke-width="2.5"><path d="M3 21V10l9-7 9 7v11"/><path d="M9 21v-6h6v6"/></svg>' },
+                { key: '竣工', label: '竣工',   color: '#059669',
+                  icon: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' },
+                { key: '引渡', label: '引渡し', color: 'var(--primary)',
+                  icon: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--primary)" stroke-width="2.5"><path d="M21 10H3M21 14H3M12 3v18"/></svg>' }
+            ];
+            const bucket = {};
+            types.forEach(t => bucket[t.key] = []);
             [...(properties || []), ...(preconProperties || [])].forEach(p => {
                 if (!p.dates) return;
-                if (p.dates.着工) {
-                    const d = new Date(p.dates.着工); d.setHours(0,0,0,0);
-                    if (d >= today && d <= horizon) {
-                        koujiList.push({name: p.name, location: p.location || '', date: d});
+                types.forEach(t => {
+                    const v = p.dates[t.key];
+                    if (!v) return;
+                    const d = new Date(v);
+                    if (d.getFullYear() === year && d.getMonth() === month) {
+                        bucket[t.key].push({ name: p.name, location: p.location || '', date: d });
                     }
-                }
-                if (p.dates.引渡) {
-                    const d = new Date(p.dates.引渡); d.setHours(0,0,0,0);
-                    if (d >= today && d <= horizon) {
-                        hiwatashiList.push({name: p.name, location: p.location || '', date: d});
-                    }
-                }
+                });
             });
-            koujiList.sort((a,b) => a.date - b.date);
-            hiwatashiList.sort((a,b) => a.date - b.date);
+            Object.values(bucket).forEach(list => list.sort((a,b) => a.date - b.date));
 
-            function fmt(d) {
-                const days = (d - today) / 86400000;
-                const dayLbl = (d.getMonth()+1) + '/' + d.getDate() + '(' + WEEKDAYS_JP[d.getDay()] + ')';
-                if (days === 0) return `<span style="color:var(--primary);font-weight:700;">本日</span> · ${dayLbl}`;
-                if (days === 1) return `<span style="color:#d97706;font-weight:700;">明日</span> · ${dayLbl}`;
-                return `${dayLbl} <span style="color:var(--text3);font-size:10px;">(${Math.round(days)}日後)</span>`;
-            }
             function buildItem(ev, color) {
-                return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-left:3px solid ${color};background:var(--surface2);border-radius:6px;margin-bottom:5px;">
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-size:13px;font-weight:600;color:var(--text1);">${ev.name}</div>
-                        ${ev.location ? `<div style="font-size:10px;color:var(--text3);margin-top:1px;">${ev.location}</div>` : ''}
-                    </div>
-                    <div style="font-size:11px;color:var(--text2);text-align:right;white-space:nowrap;">${fmt(ev.date)}</div>
+                const d = ev.date;
+                const dayLbl = `${d.getMonth()+1}/${d.getDate()}(${WEEKDAYS_JP[d.getDay()]})`;
+                return `<div class="home-month-item" style="border-left-color:${color};">
+                    <div class="home-month-item-date">${dayLbl}</div>
+                    <div class="home-month-item-name">${ev.name}</div>
+                    ${ev.location ? `<div class="home-month-item-loc">${ev.location}</div>` : ''}
                 </div>`;
             }
-            const empty = `<div style="text-align:center;padding:10px 6px;color:var(--text3);font-size:11px;">なし</div>`;
-            const koujiHtml    = koujiList.length    ? koujiList.map(ev    => buildItem(ev, '#2563eb')).join('')    : empty;
-            const hiwatashiHtml = hiwatashiList.length ? hiwatashiList.map(ev => buildItem(ev, 'var(--primary)')).join('') : empty;
+            const empty = `<div class="home-month-empty">なし</div>`;
 
             el.innerHTML = `
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                    <div>
-                        <div style="font-size:11px;font-weight:700;color:#2563eb;margin-bottom:6px;display:flex;align-items:center;gap:4px;">
-                            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#2563eb" stroke-width="2.5"><rect x="2" y="6" width="20" height="15" rx="2"/><path d="M2 10h20M12 6V2M6 6V2M18 6V2"/></svg>
-                            着工
+                <div class="home-month-nav">
+                    <button class="home-month-btn" onclick="changeHomeMonth(-1)" aria-label="前月">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <div class="home-month-label">${monthLabel}の工程</div>
+                    <button class="home-month-btn" onclick="changeHomeMonth(1)" aria-label="翌月">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                </div>
+                <div class="home-month-grid">
+                    ${types.map(t => `
+                        <div class="home-month-cell">
+                            <div class="home-month-cell-head" style="color:${t.color};">
+                                ${t.icon}<span>${t.label}</span>
+                                <span class="home-month-count">${bucket[t.key].length}</span>
+                            </div>
+                            <div class="home-month-cell-body">
+                                ${bucket[t.key].length ? bucket[t.key].map(ev => buildItem(ev, t.color)).join('') : empty}
+                            </div>
                         </div>
-                        ${koujiHtml}
-                    </div>
-                    <div>
-                        <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:6px;display:flex;align-items:center;gap:4px;">
-                            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--primary)" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                            引渡し
-                        </div>
-                        ${hiwatashiHtml}
-                    </div>
+                    `).join('')}
                 </div>
             `;
+
+            // 左右スワイプで月切替
+            initHomeMonthSwipe(el);
+        }
+
+        // ホーム月ダイジェスト: 左右スワイプ（軽量）
+        let _homeMonthSwipeTX = null, _homeMonthSwipeTY = null, _homeMonthSwipeBound = null;
+        function initHomeMonthSwipe(el) {
+            if (_homeMonthSwipeBound === el) return; // 同一要素なら再バインドしない
+            if (_homeMonthSwipeBound && _homeMonthSwipeBound._hmsStart) {
+                _homeMonthSwipeBound.removeEventListener('touchstart', _homeMonthSwipeBound._hmsStart);
+                _homeMonthSwipeBound.removeEventListener('touchend',   _homeMonthSwipeBound._hmsEnd);
+            }
+            const onStart = (e) => {
+                _homeMonthSwipeTX = e.touches[0].clientX;
+                _homeMonthSwipeTY = e.touches[0].clientY;
+            };
+            const onEnd = (e) => {
+                if (_homeMonthSwipeTX === null) return;
+                const dx = e.changedTouches[0].clientX - _homeMonthSwipeTX;
+                const dy = e.changedTouches[0].clientY - _homeMonthSwipeTY;
+                _homeMonthSwipeTX = null; _homeMonthSwipeTY = null;
+                if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+                changeHomeMonth(dx < 0 ? 1 : -1);
+            };
+            el._hmsStart = onStart;
+            el._hmsEnd   = onEnd;
+            el.addEventListener('touchstart', onStart, { passive: true });
+            el.addEventListener('touchend',   onEnd,   { passive: true });
+            _homeMonthSwipeBound = el;
         }
 
         function renderStatusCards() {
@@ -4637,7 +4752,7 @@
 
         // スケジュールタブ: 週オフセット（0=今週, -1=先週, 1=翌週...）
         let schedWeekOffset = 0;
-        let schedViewMode = 'week'; // 'week' | 'month'
+        let schedViewMode = 'month'; // 'week' | 'month'（デフォルトは月間）
         let schedSliding = false;
 
         // アニメーション付きで週を変更（← → ボタン用）
@@ -4722,12 +4837,16 @@
                 // 現パネルを絶対配置に変換
                 curPane.style.cssText = 'position:absolute;top:0;left:0;width:100%;will-change:transform;transform:translateX(0px)';
 
-                // 次/前の週をレンダリング（el.innerHTMLが書き換わりcurPaneはデタッチ）
+                // 次/前の週（月）をレンダリング（el.innerHTMLが書き換わりcurPaneはデタッチ）
                 var saved = schedWeekOffset;
                 schedWeekOffset += (swDir === 'next' ? 1 : -1);
                 var now = new Date();
                 var todayMs = +new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                _renderWeekView(el, now, todayMs);
+                if (schedViewMode === 'month') {
+                    _renderMonthView(el, now, todayMs);
+                } else {
+                    _renderWeekView(el, now, todayMs);
+                }
                 schedWeekOffset = saved; // 完了時に再度更新する
 
                 // 先読みパネルを取得して絶対配置
@@ -4788,10 +4907,11 @@
             }
 
             function onStart(e) {
-                if (snapping || schedSliding || schedViewMode !== 'week') return;
+                if (snapping || schedSliding) return;
+                if (schedViewMode !== 'week' && schedViewMode !== 'month') return;
                 if (touchId !== null) return;
                 var t = e.changedTouches[0];
-                // 日付ストリップへのタッチは既存の日ナビゲーションに任せる
+                // 日付ストリップ/月セル内のタップは詳細パネルに任せる（移動開始でswipeに昇格）
                 if (e.target && e.target.closest && e.target.closest('.week-day-strip')) return;
                 touchId = t.identifier;
                 startX = t.clientX; startY = t.clientY;
@@ -4892,7 +5012,7 @@
 
         function renderWeekTab() {
             schedWeekOffset = 0;
-            schedViewMode = 'week';
+            // schedViewMode は既定 'month'（ユーザーがタブ再訪時に切替を維持したい場合はそのまま保持）
             _renderSchedTab();
             // 初回タブ表示時: GAS接続済みかつまだ更新していない場合は自動取得
             if (GAS_WEBAPP_URL && !schedLastUpdated) {
@@ -5012,12 +5132,6 @@
                     </div>
                     <div id="weekTodayEvents"></div>
                 </div>
-                <div class="card">
-                    <div class="card-head">
-                        <div class="card-title">${weekLabel}の着工・引渡し</div>
-                    </div>
-                    <div id="weekPropertyEvents"></div>
-                </div>
             </div>`;
 
             // 指定日の予定を表示する関数
@@ -5081,54 +5195,6 @@
 
             // 左右スワイプで「日付」切り替え（週変更は矢印ボタン）
             initWeekSwipe(el, weekDayMsList, initMs);
-
-            // この週の着工・引渡し物件（着工左/引渡し右に分割）
-            const propEvEl = document.getElementById('weekPropertyEvents');
-            const koujiList = [], hiwatashiList = [];
-            [...properties, ...preconProperties].forEach(p => {
-                if (p.dates.着工) {
-                    const d = new Date(p.dates.着工);
-                    if (d >= startOfWeek && d <= endOfWeek)
-                        koujiList.push({name: p.name, location: p.location || '', date: d});
-                }
-                if (p.dates.引渡) {
-                    const d = new Date(p.dates.引渡);
-                    if (d >= startOfWeek && d <= endOfWeek)
-                        hiwatashiList.push({name: p.name, location: p.location || '', date: d});
-                }
-            });
-            koujiList.sort((a,b) => a.date - b.date);
-            hiwatashiList.sort((a,b) => a.date - b.date);
-
-            function buildPropEvItem(ev, color) {
-                const d = ev.date;
-                return `<div class="sched-all-day" style="border-left-color:${color};margin-bottom:6px;">
-                    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);">${(d.getMonth()+1)}/${d.getDate()}(${weeks[d.getDay()]})</div>
-                    <div style="font-size:13px;font-weight:600;color:var(--text1);">${ev.name}</div>
-                    ${ev.location ? `<div style="font-size:11px;color:var(--text3);margin-top:1px;">${ev.location}</div>` : ''}
-                </div>`;
-            }
-
-            const empty = `<div style="text-align:center;padding:12px 8px;color:var(--text3);font-size:11px;">なし</div>`;
-            const koujiHtml = koujiList.length > 0 ? koujiList.map(ev => buildPropEvItem(ev, '#2563eb')).join('') : empty;
-            const hiwatashiHtml = hiwatashiList.length > 0 ? hiwatashiList.map(ev => buildPropEvItem(ev, 'var(--primary)')).join('') : empty;
-
-            propEvEl.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border);">
-                <div style="padding:10px 12px;border-right:1px solid var(--border);">
-                    <div style="font-size:11px;font-weight:700;color:#2563eb;margin-bottom:8px;display:flex;align-items:center;gap:4px;">
-                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#2563eb" stroke-width="2.5"><rect x="2" y="6" width="20" height="15" rx="2"/><path d="M2 10h20M12 6V2M6 6V2M18 6V2"/></svg>
-                        着工
-                    </div>
-                    ${koujiHtml}
-                </div>
-                <div style="padding:10px 12px;">
-                    <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:8px;display:flex;align-items:center;gap:4px;">
-                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--primary)" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                        引渡し
-                    </div>
-                    ${hiwatashiHtml}
-                </div>
-            </div>`;
         }
 
         function _renderMonthView(el, now, todayMs) {
@@ -5264,42 +5330,7 @@
                         <div id="monthDayDetailContent"></div>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="card-head">
-                        <div class="card-title">${monthLabel}の着工・引渡し</div>
-                        <a href="${gcalMonthUrl}" target="_blank" style="font-size:11px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:3px;">GCal <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
-                    </div>
-                    <div id="monthPropertyEvents"></div>
-                </div>
             </div>`;
-
-            // 月間の着工・引渡し一覧を左右分割で表示
-            const koujiMonth = allMonthDates.filter(e => e.type === '着工').sort((a,b) => a.date - b.date);
-            const hiwatashiMonth = allMonthDates.filter(e => e.type === '引渡し').sort((a,b) => a.date - b.date);
-            function buildMonthEvItem(ev, color) {
-                const d = ev.date;
-                return `<div class="sched-all-day" style="border-left-color:${color};margin-bottom:6px;">
-                    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);">${(d.getMonth()+1)}/${d.getDate()}(${weeks[d.getDay()]})</div>
-                    <div style="font-size:13px;font-weight:600;color:var(--text1);">${ev.name}</div>
-                    ${ev.location ? `<div style="font-size:11px;color:var(--text3);margin-top:1px;">${ev.location}</div>` : ''}
-                </div>`;
-            }
-            const empty = `<div style="text-align:center;padding:12px 8px;color:var(--text3);font-size:11px;">なし</div>`;
-            document.getElementById('monthPropertyEvents').innerHTML = `
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border);">
-                    <div style="padding:10px 12px;border-right:1px solid var(--border);">
-                        <div style="font-size:11px;font-weight:700;color:#2563eb;margin-bottom:8px;display:flex;align-items:center;gap:4px;">
-                            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#2563eb" stroke-width="2.5"><rect x="2" y="6" width="20" height="15" rx="2"/><path d="M2 10h20M12 6V2M6 6V2M18 6V2"/></svg>着工
-                        </div>
-                        ${koujiMonth.length > 0 ? koujiMonth.map(ev => buildMonthEvItem(ev, '#2563eb')).join('') : empty}
-                    </div>
-                    <div style="padding:10px 12px;">
-                        <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:8px;display:flex;align-items:center;gap:4px;">
-                            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--primary)" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>引渡し
-                        </div>
-                        ${hiwatashiMonth.length > 0 ? hiwatashiMonth.map(ev => buildMonthEvItem(ev, 'var(--primary)')).join('') : empty}
-                    </div>
-                </div>`;
 
             // 日付セルのタップ → 詳細パネル
             el.querySelectorAll('.month-cal-cell[data-day]').forEach(cell => {
@@ -5352,9 +5383,7 @@
                 });
             });
 
-            // 左右スワイプで月切替
-            const gridEl = el.querySelector('.month-cal-grid');
-            if (gridEl) initMonthSwipe(gridEl);
+            // 左右スワイプで月切替は #tab-week 全体に設定済みの指追従スワイプに統一
         }
 
         // ===== 物件タブ =====
@@ -5885,48 +5914,6 @@
                     ? '2px solid var(--primary)' : 'none';
                 c.style.borderRadius = '6px';
             });
-        }
-
-        /* ===================================================================
-           月間ビュー スワイプ切り替え（左スワイプ→翌月、右スワイプ→前月）
-        =================================================================== */
-        let _monthSwipeTouchX = null;
-        let _monthSwipeTouchY = null;
-        let _monthSwipeEl = null;
-
-        function initMonthSwipe(el) {
-            if (_monthSwipeEl && _monthSwipeEl._mSwipeTouchStart) {
-                _monthSwipeEl.removeEventListener('touchstart', _monthSwipeEl._mSwipeTouchStart);
-                _monthSwipeEl.removeEventListener('touchend',   _monthSwipeEl._mSwipeTouchEnd);
-            }
-            _monthSwipeEl = el;
-
-            const onStart = (e) => {
-                _monthSwipeTouchX = e.touches[0].clientX;
-                _monthSwipeTouchY = e.touches[0].clientY;
-            };
-            const onEnd = (e) => {
-                if (_monthSwipeTouchX === null) return;
-                const dx = e.changedTouches[0].clientX - _monthSwipeTouchX;
-                const dy = e.changedTouches[0].clientY - _monthSwipeTouchY;
-                _monthSwipeTouchX = null;
-                _monthSwipeTouchY = null;
-                if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-                const startX = e.changedTouches[0].clientX - dx;
-                if (startX < 20 || startX > window.innerWidth - 20) return;
-
-                if (dx < 0) {
-                    schedWeekOffset++;
-                } else {
-                    schedWeekOffset--;
-                }
-                _renderSchedTab();
-            };
-
-            el._mSwipeTouchStart = onStart;
-            el._mSwipeTouchEnd   = onEnd;
-            el.addEventListener('touchstart', onStart, { passive: true });
-            el.addEventListener('touchend',   onEnd,   { passive: true });
         }
 
         function switchTaskInnerTab(name, btn) {
