@@ -882,6 +882,7 @@ function handleGetDashboardData() {
 
       var chakou = (pr['本体着工'] && pr['本体着工'].date) ? pr['本体着工'].date.start : null;
       var tate   = (pr['建て方']   && pr['建て方'].date)   ? pr['建て方'].date.start   : null;
+      var shunko = (pr['竣工']     && pr['竣工'].date)     ? pr['竣工'].date.start     : null;
       var hiki   = (pr['引渡し']   && pr['引渡し'].date)   ? pr['引渡し'].date.start   : null;
 
       // propertyMap（互換性用）
@@ -913,7 +914,7 @@ function handleGetDashboardData() {
         location: city,
         shinchoku: shinchoku,
         notionId: page.id.replace(/-/g, ''),
-        dates: { '着工': toSlash(chakou), '建方': toSlash(tate), '引渡': toSlash(hiki) },
+        dates: { '着工': toSlash(chakou), '建方': toSlash(tate), '竣工': toSlash(shunko), '引渡': toSlash(hiki) },
         checks: checks
       });
 

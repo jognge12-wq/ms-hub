@@ -94,7 +94,10 @@
             font-family: 'Noto Sans JP', sans-serif;
             background-color: var(--bg);
             color: var(--text1);
+            /* clip は scroll container を生成しないので配下の position:sticky を壊さない */
+            /* 未対応ブラウザ(古い iOS Safari 等)は hidden にフォールバック */
             overflow-x: hidden;
+            overflow-x: clip;
         }
 
         .top-bar {
@@ -855,19 +858,23 @@
             gap: 4px 10px;
             font-size: 10px;
             color: var(--text2);
+            line-height: 1.4;
         }
         .pcf-dates-inline .pcf-date-item {
-            display: flex;
-            align-items: center;
+            display: inline-flex;
+            align-items: baseline;
             gap: 3px;
             white-space: nowrap;
+            line-height: 1.4;
         }
         .pcf-dates-inline .pcf-date-label {
             font-weight: 600;
             color: var(--text3);
+            line-height: 1.4;
         }
         .pcf-dates-inline .pcf-date-val {
             font-family: 'DM Mono', monospace;
+            line-height: 1.4;
         }
         .pcf-footer {
             margin-top: 6px;
@@ -2141,7 +2148,17 @@
         }
         /* ===== 物件タブ: PC左右分割 ===== */
         .prop-split-wrap { display: none; }
-        .prop-mobile-tabs { display: flex; }
+        .prop-mobile-tabs {
+            display: flex;
+            /* スクロール時も上部に固定（top-bar 52px の直下） */
+            position: sticky;
+            top: 52px;
+            z-index: 50;
+            background: var(--bg);
+            padding-top: 8px;
+            margin-top: -8px;
+            margin-bottom: 8px;
+        }
         .prop-mobile-list { display: block; }
         @media (min-width: 900px) {
             .prop-mobile-tabs { display: none !important; }
