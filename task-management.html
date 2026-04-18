@@ -548,11 +548,17 @@
 <!-- ─── Header ──────────────────────────────────────────────── -->
 <header class="hdr">
   <div class="hdr-top">
-
     <div class="hdr-info">
       <div class="hdr-title">タスク管理</div>
       <div class="hdr-sub">全現場タスク一元管理</div>
     </div>
+    <!-- 優先タスク / 物件一覧 の更新ボタン（他タブでは非表示） -->
+    <button class="btn-refresh" id="btn-sync-prio" onclick="_doRefresh()" title="更新">
+      <svg id="sync-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+    </button>
   </div>
   <nav class="tabs">
     <button class="tab on" id="tab-btn-prio"  onclick="switchTab('prio',this)">優先タスク<span id="prio-tab-badge" class="tab-prio-badge"></span></button>
@@ -576,15 +582,7 @@
 
 <!-- ─── 優先タスク ───────────────────────────────────────────── -->
 <section id="pane-prio" class="pane on">
-  <div class="toolbar">
-    <span class="tbar-meta" id="lbl-upd-prio">同期前</span>
-    <button class="btn-refresh" id="btn-sync-prio" onclick="refreshAllTasks()" title="同期">
-      <svg id="sync-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>
-    </button>
-  </div>
+  <div class="tbar-meta" id="lbl-upd-prio" style="margin-bottom:10px">同期前</div>
   <!-- prio-body / prio-cnt は JS から直接参照 -->
   <div id="prio-body">
     <div class="prio-empty-state">同期ボタンで優先タスクを取得します</div>
@@ -594,15 +592,7 @@
 
 <!-- ─── 物件一覧 ─────────────────────────────────────────────── -->
 <section id="pane-props" class="pane">
-  <div class="toolbar">
-    <span class="tbar-meta" id="lbl-upd">読み込み中…</span>
-    <button class="btn-refresh" onclick="loadProperties()" title="物件更新">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>
-    </button>
-  </div>
+  <div class="tbar-meta" id="lbl-upd" style="margin-bottom:10px">読み込み中…</div>
   <div class="sort-bar">
     <span class="sort-lbl">並び順：</span>
     <div class="sort-btns">
@@ -825,7 +815,20 @@ async function api(params, timeoutMs = 20000) {
 // ═══════════════════════════════════════════════════════
 //  Tab switch
 // ═══════════════════════════════════════════════════════
+let _curTab = 'prio'; // 現在アクティブなタブ
+
+// ヘッダー更新ボタンのディスパッチ
+function _doRefresh() {
+  if (_curTab === 'prio')  refreshAllTasks();
+  else if (_curTab === 'props') loadProperties();
+}
+
 function switchTab(name, btn) {
+  _curTab = name;
+  // ヘッダー更新ボタン: 優先タスク・物件一覧のみ表示
+  const refreshBtn = document.getElementById('btn-sync-prio');
+  if (refreshBtn) refreshBtn.style.display =
+    (name === 'prio' || name === 'props') ? '' : 'none';
   // 通常タブ（···以外）のon状態をリセット
   document.querySelectorAll('.tab:not(.tab-more)').forEach(b => b.classList.remove('on'));
   document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
@@ -916,6 +919,10 @@ let _loadingProperties = false; // 二重呼び出し防止フラグ
 async function loadProperties() {
   if (_loadingProperties) return; // 既にロード中なら無視
   _loadingProperties = true;
+  const btn  = document.getElementById('btn-sync-prio');
+  const icon = document.getElementById('sync-icon');
+  if (btn)  btn.disabled = true;
+  if (icon) icon.classList.add('icon-spin');
   const el = document.getElementById('props-list');
   el.innerHTML = '<div class="center"><div class="spin"></div></div>';
   document.getElementById('lbl-upd').textContent = '読み込み中…';
@@ -937,7 +944,9 @@ async function loadProperties() {
       </span>
     </div>`;
   } finally {
-    _loadingProperties = false; // ロード完了（成功・失敗どちらでも解放）
+    _loadingProperties = false;
+    if (btn)  btn.disabled = false;
+    if (icon) icon.classList.remove('icon-spin');
   }
 }
 
