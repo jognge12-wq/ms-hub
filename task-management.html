@@ -183,7 +183,7 @@
     .prop-mini-fill { height: 100%; background: var(--green); border-radius: 2px;
                       transition: width .35s ease; }
     .prop-mini-lbl { font-family: var(--fm); font-size: 10px; color: var(--t3); }
-    .prop-dates { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+    .prop-dates { display: flex; gap: 6px; margin-top: 4px; flex-wrap: nowrap; overflow: hidden; }
     .prop-date { font-size: 10px; color: var(--t2); display: flex; align-items: center; gap: 3px; }
     .prop-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
     .prop-progress-badge { font-size: 11px; padding: 2px 9px; border-radius: 10px;
@@ -2291,9 +2291,7 @@ function fmtDate(s) {
   if (!s) return '';
   try {
     const d = new Date(s);
-    return d.getFullYear() + '.' +
-           String(d.getMonth()+1).padStart(2,'0') + '.' +
-           String(d.getDate()).padStart(2,'0');
+    return (d.getMonth()+1) + '/' + d.getDate();
   } catch(e) { return s; }
 }
 function fmtTime(ts) {
