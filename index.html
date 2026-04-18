@@ -1400,6 +1400,13 @@
         @keyframes spin {
             100% { transform: rotate(360deg); }
         }
+        /* ===== データ取得中グレーアウト ===== */
+        #loadingOverlay {
+            display: none; position: fixed; inset: 0; z-index: 500;
+            background: rgba(0,0,0,0.25);
+            transition: opacity 0.12s;
+            pointer-events: none; /* タップ通過（ブロックしない） */
+        }
         /* ===== スケルトンUI ===== */
         @keyframes skel-wave {
             0%   { background-position: 200% 0; }
@@ -3087,12 +3094,14 @@
             <span></span>
         </button>
         <span class="top-bar-title" id="topBarTitle" aria-hidden="true" style="position:absolute;left:50%;transform:translateX(-50%);font-size:14px;font-weight:600;color:var(--text1);">m's hub</span>
-        <!-- データ取得中バッジ -->
-        <div id="homeFetchBadge" style="display:none;align-items:center;gap:4px;margin-left:auto;font-size:11px;color:var(--text3);background:var(--surface2);border-radius:100px;padding:2px 8px 2px 4px;pointer-events:none;">
+        <!-- データ取得中バッジ（グレーアウト上に表示） -->
+        <div id="homeFetchBadge" style="display:none;align-items:center;gap:4px;margin-left:auto;font-size:11px;color:var(--text3);background:rgba(255,255,255,0.9);border-radius:100px;padding:2px 8px 2px 4px;pointer-events:none;position:relative;z-index:501;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 0.8s linear infinite;flex-shrink:0;"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
             更新中
         </div>
     </div>
+    <!-- データ取得中グレーアウトオーバーレイ -->
+    <div id="loadingOverlay"></div>
 
     <div class="drawer-overlay" id="drawerOverlay"></div>
     <nav class="drawer" id="drawer">
@@ -4084,6 +4093,7 @@
             const btns = document.querySelectorAll('[onclick="schedRefresh()"]');
             btns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
             try {
+                _fetchLiveDataLastAt = 0; // 手動更新はTTLをリセットして必ず再取得
                 await fetchLiveData(schedWeekOffset);
                 const d = new Date();
                 schedLastUpdated = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
@@ -4129,9 +4139,11 @@
             const isWeekNav = weekOffset !== undefined && weekOffset !== 0;
             if (!isWeekNav && Date.now() - _fetchLiveDataLastAt < _FETCH_TTL) return;
             if (!isWeekNav) _fetchLiveDataLastAt = Date.now();
-            // 取得中バッジを表示
+            // 取得中: グレーアウト + バッジ表示
             const _fetchBadge = document.getElementById('homeFetchBadge');
+            const _fetchOverlay = document.getElementById('loadingOverlay');
             if (_fetchBadge) _fetchBadge.style.display = 'flex';
+            if (_fetchOverlay) _fetchOverlay.style.display = 'block';
             try {
                 var params = '?mode=getDashboardData';
                 if (isWeekNav) {
@@ -4274,8 +4286,9 @@
                 // エラー時もバックアップデータで再描画（初回表示が消えないように）
                 renderScheduleSection();
             } finally {
-                // 取得中バッジを非表示
+                // 取得中: バッジ + グレーアウトを非表示
                 if (_fetchBadge) _fetchBadge.style.display = 'none';
+                if (_fetchOverlay) _fetchOverlay.style.display = 'none';
                 // フェッチ完了フラグ（スケルトン→タスクなし切り替え用）
                 window._fetchLiveDataDone = true;
                 // スケルトン表示のままだったら「タスクなし」に差し替え
@@ -5449,22 +5462,7 @@
             const firstDay = new Date(year, month, 1).getDay();
             const lastDate = new Date(year, month+1, 0).getDate();
 
-            // この月の着工・引渡しイベントをマッピング
-            const monthEvents = {};
-            [...properties, ...preconProperties].forEach(p => {
-                ['着工', '引渡'].forEach(type => {
-                    const dateStr = p.dates[type === '着工' ? '着工' : '引渡'];
-                    if (!dateStr) return;
-                    const d = new Date(dateStr);
-                    if (d.getFullYear() === year && d.getMonth() === month) {
-                        const key = d.getDate();
-                        if (!monthEvents[key]) monthEvents[key] = [];
-                        monthEvents[key].push({name: p.name, location: p.location || '', type, color: type === '着工' ? '#2563eb' : 'var(--primary)'});
-                    }
-                });
-            });
-
-            // GCalイベントを日別にマッピング（イベント名表示用）
+            // GCalイベントを日別にマッピング（ドット表示・詳細表示はGCalのみ）
             const gcalEventsMap = {};
             if (scheduleEvents) {
                 scheduleEvents.forEach(s => {
@@ -5491,17 +5489,13 @@
                 const dMs = new Date(year, month, d).getTime();
                 const isToday = dMs === todayMs;
                 const isSun = dow === 0, isSat = dow === 6;
-                const propEvs = monthEvents[d] || [];
                 const gcalEvs = gcalEventsMap[d] || [];
                 const cls = [isToday?'today':'', isSun?'sun':'', isSat?'sat':''].filter(Boolean).join(' ');
 
-                // ドット表示
+                // ドット表示（GCalイベントのみ）
                 let dotsHtml = '';
-                propEvs.forEach(ev => {
-                    dotsHtml += `<span class="month-dot" style="background:${ev.color};"></span>`;
-                });
                 gcalEvs.forEach(ev => {
-                    dotsHtml += `<span class="month-dot gcal-dot" style="background:${ev.color || '#4285f4'};"></span>`;
+                    dotsHtml += `<span class="month-dot" style="background:${ev.color || '#4285f4'};"></span>`;
                 });
 
                 calHtml += `<div class="month-cal-cell ${cls}" data-day="${d}">
@@ -5511,20 +5505,6 @@
             }
             calHtml += `</div>`;
 
-            // イベント一覧（その月の全着工・引渡し）
-            const allMonthDates = [];
-            [...properties, ...preconProperties].forEach(p => {
-                if (p.dates.着工) {
-                    const d = new Date(p.dates.着工);
-                    if (d.getFullYear() === year && d.getMonth() === month)
-                        allMonthDates.push({name: p.name, location: p.location || '', date: d, type: '着工', color: '#2563eb'});
-                }
-                if (p.dates.引渡) {
-                    const d = new Date(p.dates.引渡);
-                    if (d.getFullYear() === year && d.getMonth() === month)
-                        allMonthDates.push({name: p.name, location: p.location || '', date: d, type: '引渡し', color: 'var(--primary)'});
-                }
-            });
             // この月のGCalデータがあるか
             const gcalMonthUrl = `https://calendar.google.com/calendar/r/month/${year}/${month+1}`;
             const monthHasGcalData = scheduleEvents && scheduleEvents.some(s => {
@@ -5533,7 +5513,7 @@
             });
             const monthNoDataNote = !monthHasGcalData ? `
                 <div style="font-size:11px;color:var(--text3);padding:6px 2px 2px;display:flex;align-items:center;justify-content:space-between;">
-                    <span>GCalデータ未取得（物件イベントのみ表示）</span>
+                    <span>GCalデータ未取得（「更新」ボタンで読み込み）</span>
                     <a href="${gcalMonthUrl}" target="_blank" style="color:var(--primary);text-decoration:none;font-size:11px;">GCalで確認 ↗</a>
                 </div>` : '';
 
@@ -5598,27 +5578,14 @@
                 gcalLink.href = `https://calendar.google.com/calendar/r/day/${year}/${month+1}/${day}`;
 
                 const calHtmlForDay = getCalendarEventsForDate(dMs);
-                const propToday = allMonthDates.filter(ev => {
-                    const dd = ev.date;
-                    return dd.getDate() === day && dd.getMonth() === month && dd.getFullYear() === year;
-                });
-                let propHtml = '';
-                if (propToday.length > 0) {
-                    propHtml = propToday.map(ev => `<div class="sched-item sched-all-day" style="border-left-color:${ev.color};margin-bottom:6px;">
-                        <div class="sched-content">
-                            <div class="sched-title">${ev.name} <span style="font-size:11px;color:${ev.color};font-weight:700;">${ev.type}</span></div>
-                            ${ev.location ? `<div class="sched-location">${ev.location}</div>` : ''}
-                        </div>
-                    </div>`).join('');
-                }
 
                 const hasSchedData = scheduleEvents && scheduleEvents.length > 0;
                 const noCalData = !hasSchedData ? `<div style="padding:6px 0 2px;color:var(--text3);font-size:11px;">Googleカレンダーの詳細は <a href="https://calendar.google.com/calendar/r/day/${year}/${month+1}/${day}" target="_blank" style="color:var(--primary);">こちら</a></div>` : '';
 
-                if (!calHtmlForDay && !propHtml) {
+                if (!calHtmlForDay) {
                     contentEl.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text3);font-size:12px;">この日の予定はありません</div>${noCalData}`;
                 } else {
-                    contentEl.innerHTML = (propHtml || '') + (calHtmlForDay || '') + noCalData;
+                    contentEl.innerHTML = calHtmlForDay + noCalData;
                 }
                 panel.style.display = 'block';
             }
