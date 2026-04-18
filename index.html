@@ -2158,6 +2158,11 @@
             margin-bottom: 4px;
         }
         .home-month-item:last-child { margin-bottom: 0; }
+        .home-month-item.past {
+            opacity: 0.4;
+            border-left-color: #bbb !important;
+        }
+        .home-month-item.past .home-month-item-name { color: var(--text3); }
         .home-month-item-row {
             display: flex; align-items: baseline; gap: 6px;
             min-width: 0; overflow: hidden;
@@ -4408,6 +4413,7 @@
 
         function _buildHomeMonthGridHtml(offset) {
             const now = new Date();
+            const todayMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
             const target = new Date(now.getFullYear(), now.getMonth() + offset, 1);
             const year = target.getFullYear();
             const month = target.getMonth();
@@ -4429,9 +4435,10 @@
 
             function buildItem(ev, color) {
                 const d = ev.date;
+                const isPast = d.getTime() < todayMs;
                 const dayLbl = `${d.getMonth()+1}/${d.getDate()}(${WEEKDAYS_JP[d.getDay()]})`;
                 const locHtml = ev.location ? `<span class="home-month-item-loc">${ev.location}</span>` : '';
-                return `<div class="home-month-item" style="border-left-color:${color};">
+                return `<div class="home-month-item${isPast ? ' past' : ''}" style="border-left-color:${isPast ? '#bbb' : color};">
                     <div class="home-month-item-row">
                         <span class="home-month-item-name">${ev.name}</span>
                         ${locHtml}
