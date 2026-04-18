@@ -2211,9 +2211,12 @@
         .task-inner-tabs {
             position: sticky; top: 52px; z-index: 20;
             background: var(--bg);
-            padding: 8px 0;
-            margin: -8px 0 8px;
+            padding: 4px 0;
+            margin: -4px 0 4px;
         }
+        /* タスクタブ内の seg-tab はコンパクト */
+        .task-inner-tabs .seg-tab { padding: 5px 10px; font-size: 11px; }
+        .task-inner-tabs .seg-tabs { margin-bottom: 0; }
         .task-inner-pane { display: none; }
         .task-inner-pane.active { display: block; }
         @media (min-width: 900px) {
@@ -2225,6 +2228,11 @@
                 gap: 16px;
                 align-items: start;
             }
+        }
+        /* Googleタスクペイン内の card-head はコンパクト */
+        #taskPane-gtask .card-head {
+            padding: 7px 0 7px 10px;
+            margin-bottom: 6px;
         }
         /* ===== 引渡し済みセクション ===== */
         .prop-delivered-hdr {

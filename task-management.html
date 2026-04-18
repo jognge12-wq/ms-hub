@@ -56,11 +56,10 @@
     .hdr { background: var(--card); position: sticky; top: 0; z-index: 200;
            box-shadow: 0 1px 0 var(--border), 0 2px 8px rgba(0,0,0,.06);
            border-radius: 0 0 14px 14px; }
-    .hdr-top { display: flex; align-items: center; height: 56px; padding: 0 14px; gap: 10px; }
+    .hdr-top { display: flex; align-items: center; height: 40px; padding: 0 14px; gap: 10px; }
 
-    .hdr-info { flex: 1; display: flex; flex-direction: column; justify-content: center; }
-    .hdr-title { font-size: 15px; font-weight: 700; letter-spacing: .04em; color: var(--t1); }
-    .hdr-sub { font-size: 10px; color: var(--t3); margin-top: 1px; font-weight: 500; }
+    .hdr-info { flex: 1; display: flex; align-items: center; }
+    .hdr-title { font-size: 14px; font-weight: 700; letter-spacing: .04em; color: var(--t1); }
     .tabs { display: flex; border-top: 1px solid var(--border); }
     .tab { flex: 1; padding: 10px 4px 11px; background: none; border: none;
            color: var(--t3); font-family: var(--fp); font-size: 12px;
@@ -157,7 +156,7 @@
     /* カード展開時：物件名ヘッダーを画面上部に追従（外側ヘッダー + ジャンプバーの直下に固定） */
     .prop-card.open .prop-hdr {
       position: sticky;
-      top: 134px; /* hdr-top(56) + tabs(~38) + jump-bar(~40) */
+      top: 118px; /* hdr-top(40) + tabs(~38) + jump-bar(~40) */
       z-index: 10;
       box-shadow: 0 2px 8px rgba(0,0,0,.04);
     }
@@ -550,7 +549,6 @@
   <div class="hdr-top">
     <div class="hdr-info">
       <div class="hdr-title">タスク管理</div>
-      <div class="hdr-sub">全現場タスク一元管理</div>
     </div>
     <!-- 優先タスク / 物件一覧 の更新ボタン（他タブでは非表示） -->
     <button class="btn-refresh" id="btn-sync-prio" onclick="_doRefresh()" title="更新">
