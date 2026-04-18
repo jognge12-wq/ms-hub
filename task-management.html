@@ -97,6 +97,27 @@
     .sort-btn:active { background: var(--bg); }
     .sort-btn.on { background: var(--green); color: white; border-color: var(--green); font-weight: 600; }
 
+    /* ─ 物件ジャンプバー ─────────────────────────────────────── */
+    .prop-jump-bar {
+      display: none;
+      overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+      white-space: nowrap; padding: 6px 12px;
+      background: var(--card); border-top: 1px solid var(--border);
+      border-radius: 0 0 14px 14px; gap: 5px;
+    }
+    .prop-jump-bar.visible { display: flex; }
+    .prop-jump-bar::-webkit-scrollbar { display: none; }
+    .jump-pill {
+      display: inline-flex; align-items: center;
+      padding: 4px 11px; border-radius: 20px; flex-shrink: 0;
+      background: var(--bg); border: 1px solid var(--border);
+      font-size: 11px; font-weight: 600; color: var(--t2);
+      cursor: pointer; white-space: nowrap;
+      -webkit-tap-highlight-color: transparent; transition: all .15s;
+    }
+    .jump-pill:active { background: var(--green-light); color: var(--green); }
+    .jump-pill.active { background: var(--green); color: white; border-color: var(--green); }
+
     /* ─ Property card ───────────────────────────────────────── */
     /* overflow: clip で sticky を許可。未対応ブラウザは hidden にフォールバック */
     .prop-card { background: var(--card); border-radius: var(--radius-card); margin-bottom: 10px;
@@ -112,10 +133,10 @@
                 -webkit-tap-highlight-color: transparent;
                 background: var(--card); }
     .prop-hdr:active { background: #fafafa; }
-    /* カード展開時：物件名ヘッダーを画面上部に追従（外側ヘッダーの直下に固定） */
+    /* カード展開時：物件名ヘッダーを画面上部に追従（外側ヘッダー + ジャンプバーの直下に固定） */
     .prop-card.open .prop-hdr {
       position: sticky;
-      top: 94px;
+      top: 134px; /* hdr-top(56) + tabs(~38) + jump-bar(~40) */
       z-index: 10;
       box-shadow: 0 2px 8px rgba(0,0,0,.04);
     }
@@ -506,6 +527,8 @@
     <button class="tab"     onclick="switchTab('master',this)">マスタータスク</button>
     <button class="tab"     onclick="switchTab('history',this)">変更履歴</button>
   </nav>
+  <!-- 物件クイックジャンプバー（物件一覧タブのみ表示） -->
+  <div id="prop-jump-bar" class="prop-jump-bar visible"></div>
 </header>
 
 <!-- ─── 物件一覧 ─────────────────────────────────────────────── -->
@@ -770,6 +793,9 @@ function switchTab(name, btn) {
   document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
   btn.classList.add('on');
   document.getElementById('pane-' + name).classList.add('on');
+  // ジャンプバーは物件一覧タブのみ表示
+  const jumpBar = document.getElementById('prop-jump-bar');
+  if (jumpBar) jumpBar.classList.toggle('visible', name === 'props');
   if (name === 'master'  && !masterInit)  loadMaster();
   if (name === 'history' && !historyInit) loadHistory();
 }
@@ -899,6 +925,40 @@ function renderProps(props) {
     note.style.display = hiddenCnt > 0 ? 'block' : 'none';
     note.textContent   = `完了・引渡し済み ${hiddenCnt}件を非表示中`;
   }
+  // ジャンプバー更新
+  _buildJumpBar(sorted);
+}
+
+// 物件クイックジャンプバーを生成
+function _buildJumpBar(props) {
+  const bar = document.getElementById('prop-jump-bar');
+  if (!bar) return;
+  if (!props || props.length === 0) { bar.innerHTML = ''; return; }
+
+  bar.innerHTML = props.map(p => {
+    const cid   = 'prop-' + p.name.replace(/[^a-zA-Z0-9\u3000-\u9fff\uff00-\uffef]/g, '-');
+    // "様邸" を省いた短縮ラベル（最大6文字）
+    const label = (p.name || '').replace(/様邸$/, '').slice(0, 6);
+    return `<button class="jump-pill" onclick="_jumpToProp('${esc(cid)}')" data-jump="${esc(cid)}">${label}</button>`;
+  }).join('');
+}
+
+// 指定 prop-card にスクロールして開く
+function _jumpToProp(cid) {
+  const card = document.getElementById(cid);
+  if (!card) return;
+  // 未展開なら展開
+  if (!card.classList.contains('open')) {
+    const hdr = card.querySelector('.prop-hdr');
+    if (hdr) hdr.click();
+  }
+  // sticky ヘッダー + ジャンプバー分のオフセットを考慮してスクロール
+  const barH = (document.getElementById('prop-jump-bar') || {}).offsetHeight || 40;
+  const hdrH = (document.querySelector('.hdr') || {}).offsetHeight || 134;
+  const top   = card.getBoundingClientRect().top + window.scrollY - hdrH - 4;
+  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  // アクティブピルをハイライト
+  document.querySelectorAll('.jump-pill').forEach(p => p.classList.toggle('active', p.dataset.jump === cid));
 }
 
 function propCardHTML(p) {
