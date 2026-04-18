@@ -111,6 +111,16 @@
     #props-list.single-view .prop-card { display: none; }
     #props-list.single-view .prop-card.focused { display: block; }
     #props-list.single-view ~ #hidden-props-note { display: none !important; }
+    /* single-view バナー */
+    .sv-banner {
+      display: none; align-items: center; justify-content: space-between;
+      padding: 5px 12px; background: var(--green); color: white;
+      font-size: 11px; font-weight: 600; border-radius: 8px; margin: 4px 12px 0;
+    }
+    .sv-banner.on { display: flex; }
+    .sv-banner-close { font-size: 13px; line-height: 1; cursor: pointer;
+                       padding: 2px 4px; border-radius: 4px;
+                       -webkit-tap-highlight-color: transparent; }
     .jump-pill {
       display: inline-flex; align-items: center;
       padding: 4px 11px; border-radius: 20px; flex-shrink: 0;
@@ -552,6 +562,11 @@
   </nav>
   <!-- 物件クイックジャンプバー（物件一覧タブのみ表示） -->
   <div id="prop-jump-bar" class="prop-jump-bar"></div>
+  <!-- single-view バナー -->
+  <div id="sv-banner" class="sv-banner">
+    <span id="sv-banner-label">物件名を表示中</span>
+    <span class="sv-banner-close" onclick="_jumpToProp(_focusedPropCid)">✕ 全表示</span>
+  </div>
 </header>
 
 <!-- ─── 優先タスク ───────────────────────────────────────────── -->
@@ -969,6 +984,8 @@ function renderProps(props) {
   // フォーカス状態をリセット（再レンダリング時）
   _focusedPropCid = null;
   el.classList.remove('single-view');
+  const svBanner = document.getElementById('sv-banner');
+  if (svBanner) svBanner.classList.remove('on');
   // 非表示件数の表示（進捗「引渡し」+ 引渡し日超過の合計）
   const note = document.getElementById('hidden-props-note');
   if (note) {
@@ -997,8 +1014,10 @@ let _focusedPropCid = null;
 
 // ピルタップ: 1件フォーカス / 再タップで全件に戻る
 function _jumpToProp(cid) {
-  const list = document.getElementById('props-list');
-  const card = document.getElementById(cid);
+  const list   = document.getElementById('props-list');
+  const card   = document.getElementById(cid);
+  const banner = document.getElementById('sv-banner');
+  const lbl    = document.getElementById('sv-banner-label');
   if (!card || !list) return;
 
   // 同じピルを再タップ → 全件表示に戻る
@@ -1007,6 +1026,7 @@ function _jumpToProp(cid) {
     list.classList.remove('single-view');
     document.querySelectorAll('#props-list .prop-card').forEach(c => c.classList.remove('focused'));
     document.querySelectorAll('.jump-pill').forEach(p => p.classList.remove('active'));
+    if (banner) banner.classList.remove('on');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
@@ -1016,6 +1036,13 @@ function _jumpToProp(cid) {
   document.querySelectorAll('#props-list .prop-card').forEach(c => c.classList.remove('focused'));
   card.classList.add('focused');
   list.classList.add('single-view');
+
+  // バナーに物件名を表示
+  if (banner && lbl) {
+    const propName = card.dataset.prop || '';
+    lbl.textContent = propName + ' のみ表示中';
+    banner.classList.add('on');
+  }
 
   // 未展開なら展開
   if (!card.classList.contains('open')) {

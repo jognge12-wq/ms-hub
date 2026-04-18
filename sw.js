@@ -19,7 +19,7 @@
    - コードを大きく変えたらここのバージョンを上げること
 ================================================================ */
 
-const CACHE_VERSION = 'v2-2026-04-19c';
+const CACHE_VERSION = 'v2-2026-04-19d';
 const CACHE_NAME    = `portal-${CACHE_VERSION}`;
 
 // 初回インストール時にプリキャッシュする最小セット
@@ -106,8 +106,12 @@ self.addEventListener('fetch', event => {
     }
 
     // --- それ以外 (HTML/CSS/JS など): Network First ---
+    // navigate (HTML) は HTTP キャッシュをバイパスして常に最新を取得
+    const fetchReq = req.mode === 'navigate'
+        ? new Request(req, { cache: 'no-cache' })
+        : req;
     event.respondWith(
-        fetch(req).then(res => {
+        fetch(fetchReq).then(res => {
             if (res && res.status === 200 && url.origin === self.location.origin) {
                 const copy = res.clone();
                 caches.open(CACHE_NAME).then(c => c.put(req, copy));
