@@ -1,6 +1,10 @@
 // ============================================================
-// 施工管理スケジュール自動登録 - Google Apps Script v2.0
+// 施工管理スケジュール自動登録 - Google Apps Script v2.1
 // ============================================================
+// 【v2.1 修正内容】
+// - 新規登録の竣工(allDay)の色を セージ(2) → グレープ(3) に変更
+// - 新規登録の竣工検査タイトルに ✅ プリフィックスを追加
+// - マイグレーション関数: 竣工検査にも ✅ を追記(色はそのまま)
 // 【v2.0 修正内容】
 // - 竣工日を入力項目に追加。工程14=✅竣工(allDay) を新設
 // - 旧 14/15/16 を 15/16/17 に繰り上げ
@@ -34,10 +38,10 @@ const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbx5L_T7za4UuKU-dCLOZ
 
 // カレンダーイベントの色設定
 // ※GASの正式定数名はUI表示名（ミカン/ピーコック/グレープ）と異なる
-const COLOR_CHAKOU  = CalendarApp.EventColor.ORANGE;     // 本体着工 → ミカン(Tangerine=colorId:6)
-const COLOR_TATEMAE = CalendarApp.EventColor.CYAN;       // 建て方   → ピーコック(Peacock=colorId:7)
-const COLOR_SHUNKO  = CalendarApp.EventColor.PALE_GREEN; // 竣工     → セージ(Sage=colorId:2)
-const COLOR_DEFAULT = CalendarApp.EventColor.MAUVE;      // それ以外 → グレープ(Grape=colorId:3)
+const COLOR_CHAKOU  = CalendarApp.EventColor.ORANGE; // 本体着工 → ミカン(Tangerine=colorId:6)
+const COLOR_TATEMAE = CalendarApp.EventColor.CYAN;   // 建て方   → ピーコック(Peacock=colorId:7)
+const COLOR_SHUNKO  = CalendarApp.EventColor.MAUVE;  // 竣工     → グレープ(Grape=colorId:3)
+const COLOR_DEFAULT = CalendarApp.EventColor.MAUVE;  // それ以外 → グレープ(Grape=colorId:3)
 
 // CalendarApp.EventColor 定数 → Calendar Advanced API の colorId 文字列 変換表
 // iCalUID指定のイベント作成には Advanced API が必要だが、colorId は文字列で渡す
@@ -875,7 +879,7 @@ function calcSchedules(bukkenName, location, chakou, tatemae, shunko, hikiwatash
   // --- 工程15: 竣工検査（竣工日基準、水・日・祝なら前倒し）---
   // ★ v2.0: 基準を「引渡し-14」から「竣工日」に変更
   var step15Date = skipWedSunHolidayBackward(shunko);
-  schedules.push({ step: 15, title: n + '竣工検査', start: setTime(step15Date, 8, 30), end: setTime(step15Date, 14, 0), location: loc, description: '所要5.5h', notification: false, allDay: false, color: COLOR_DEFAULT });
+  schedules.push({ step: 15, title: '✅' + n + '竣工検査', start: setTime(step15Date, 8, 30), end: setTime(step15Date, 14, 0), location: loc, description: '所要5.5h', notification: false, allDay: false, color: COLOR_DEFAULT });
 
   // --- 工程12: 木完検査（竣工検査14日前・同曜日、水・日・祝除く）---
   // 14日＝2週間のため同曜日が保たれる
@@ -1061,16 +1065,18 @@ function calcNotifyMinutes(eventStart) {
 }
 
 // ============================================================
-// ★ v2.0: 既存イベントの絵文字統一マイグレーション
+// ★ v2.0/v2.1: 既存イベントのタイトル統一マイグレーション
 // ------------------------------------------------------------
 // カレンダー上の既存イベントを走査し、タイトル先頭の絵文字を
-// コード上の最新定義に差し替える（イベントID等は維持）。
+// コード上の最新定義に揃える（色・日時・詳細はそのまま維持）。
 //
-// 対象パターン（絵文字の揺れを吸収）:
-//   本体着工  : 🚜/🏗/🔨/⚡ 等 + "本体着工"  → 🚜
-//   建て方    : ⚒/🔨/🏗/🪚 等 + "建て方"   → ⚒️
-//   竣工      : ✅/🏠/🎉/🌱 等 + "竣工"(除く"竣工検査"/"竣工立会い") → ✅
-//   引渡し    : 🔑/🏠/🎉 等 + "引渡し"    → 🔑
+// 対象パターン:
+//   本体着工  : *本体着工    → 🚜
+//   建て方    : *建て方      → ⚒️
+//   竣工      : *竣工        → ✅
+//   竣工検査  : *竣工検査    → ✅ (v2.1 追加)
+//   引渡し    : *引渡し      → 🔑
+//   ※「竣工立会い」は対象外
 //
 // 使い方:
 //   1) GAS エディタから `migrateEmojisAll()` を直接実行
@@ -1083,13 +1089,17 @@ function calcNotifyMinutes(eventStart) {
 var EMOJI_PREFIX_RE = /^[\u2600-\u27BF\u1F000-\u1FFFF\uD83C-\uDBFF\uDC00-\uDFFF\uFE0F\u200D\u2B50\u2B06-\u2B55]+/;
 
 // 工程タイプ判定: タイトル(先頭絵文字除去後)から工程種別と正しい絵文字を返す
+// ※ 既存イベントの色には手を付けない(ユーザー指示によりタイトルのみ更新)
 function _detectProcessFromTitle(rawTitle) {
   if (!rawTitle) return null;
   // 先頭絵文字を除去したベース
   var stripped = String(rawTitle).replace(EMOJI_PREFIX_RE, '').trim();
 
-  // 「竣工検査」「竣工立会い」は竣工 allDay とは別物 → 除外
-  if (/竣工検査$/.test(stripped) || /竣工立会い?$/.test(stripped)) return null;
+  // 「竣工立会い」は別物 → 除外
+  if (/竣工立会い?$/.test(stripped)) return null;
+
+  // 竣工検査: ✅ プリフィックス
+  if (/竣工検査$/.test(stripped)) return { emoji: '✅', key: 'shunko_kensa' };
 
   if (/本体着工$/.test(stripped)) return { emoji: '🚜', key: 'chakou' };
   if (/建て方$/.test(stripped))   return { emoji: '⚒️', key: 'tatemae' };
@@ -1100,6 +1110,7 @@ function _detectProcessFromTitle(rawTitle) {
 
 // 実行本体
 // dryRun=true の場合は書き換え件数の試算のみ
+// ※ タイトル(先頭絵文字)のみを統一。色・日時・詳細はそのまま
 function migrateEmojisAll(dryRun) {
   var calendar = CalendarApp.getCalendarById(CALENDAR_ID);
   if (!calendar) throw new Error('カレンダーが見つかりません: ' + CALENDAR_ID);
@@ -1141,7 +1152,7 @@ function migrateEmojisAll(dryRun) {
     changed: changed,
     skipped: skipped,
     dryRun: !!dryRun,
-    samples: samples.slice(0, 20) // 最初の20件だけ返す
+    samples: samples.slice(0, 30)
   };
   Logger.log(JSON.stringify(result, null, 2));
   return result;

@@ -53,7 +53,7 @@ const MSHUB_UID_DOMAIN = '@mshub.jp';
 const MSHUB_PROC = {
   '着工': { key: 'chakou',      label: '着工',   color: '6', notionProp: '本体着工' }, // ORANGE
   '建方': { key: 'tatemae',     label: '建て方', color: '7', notionProp: '建て方'   }, // CYAN
-  '竣工': { key: 'shunko',      label: '竣工',   color: '2', notionProp: '竣工'     }, // SAGE
+  '竣工': { key: 'shunko',      label: '竣工',   color: '3', notionProp: '竣工'     }, // GRAPE
   '引渡': { key: 'hikiwatashi', label: '引渡し', color: '3', notionProp: '引渡し'   }  // GRAPE
 };
 const MSHUB_KEY_LIST = ['chakou', 'tatemae', 'shunko', 'hikiwatashi'];
