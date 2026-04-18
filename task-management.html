@@ -86,6 +86,13 @@
     .btn-xs:active { background: var(--bg); }
     .btn-xs.primary { background: var(--green); color: white; border-color: var(--green); }
     .btn-xs.primary:active { background: var(--green-dark); }
+    /* ─ 統一アイコン更新ボタン ──────────────────────────────── */
+    .btn-refresh { display: flex; align-items: center; justify-content: center;
+                   width: 30px; height: 30px; border-radius: 50%;
+                   background: none; border: none; padding: 0;
+                   color: var(--t3); cursor: pointer;
+                   -webkit-tap-highlight-color: transparent; transition: color .15s; }
+    .btn-refresh:active { color: var(--green); }
 
     /* ─ Sort toggle ─────────────────────────────────────────── */
     .sort-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
@@ -489,8 +496,6 @@
     .tab-prio-badge.show { display: inline-block; }
 
     /* ─ 優先タスク ペイン ───────────────────────────────────── */
-    .prio-pane-toolbar { display: flex; align-items: center; justify-content: space-between;
-                         margin-bottom: 14px; }
     .prio-empty-state { text-align: center; padding: 40px 20px;
                         color: var(--t3); font-size: 13px; line-height: 1.8; }
     /* 旧 prio-panel のコンテナは廃止 — グループスタイルは継承 */
@@ -565,19 +570,19 @@
   <!-- single-view バナー -->
   <div id="sv-banner" class="sv-banner">
     <span id="sv-banner-label">物件名を表示中</span>
-    <span class="sv-banner-close" onclick="_jumpToProp(_focusedPropCid)">✕ 全表示</span>
+    <span class="sv-banner-close" onclick="_jumpToProp(_focusedPropCid)">✕</span>
   </div>
 </header>
 
 <!-- ─── 優先タスク ───────────────────────────────────────────── -->
 <section id="pane-prio" class="pane on">
-  <div class="prio-pane-toolbar">
+  <div class="toolbar">
     <span class="tbar-meta" id="lbl-upd-prio">同期前</span>
-    <button class="btn-xs primary" id="btn-sync-prio" onclick="refreshAllTasks()">
-      <svg id="sync-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <button class="btn-refresh" id="btn-sync-prio" onclick="refreshAllTasks()" title="同期">
+      <svg id="sync-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
         <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>同期
+      </svg>
     </button>
   </div>
   <!-- prio-body / prio-cnt は JS から直接参照 -->
@@ -591,11 +596,11 @@
 <section id="pane-props" class="pane">
   <div class="toolbar">
     <span class="tbar-meta" id="lbl-upd">読み込み中…</span>
-    <button class="btn-xs" onclick="loadProperties()">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <button class="btn-refresh" onclick="loadProperties()" title="物件更新">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
         <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>物件更新
+      </svg>
     </button>
   </div>
   <div class="sort-bar">
