@@ -107,6 +107,10 @@
     }
     .prop-jump-bar.visible { display: flex; }
     .prop-jump-bar::-webkit-scrollbar { display: none; }
+    /* single-view: 選択した1件だけ表示 */
+    #props-list.single-view .prop-card { display: none; }
+    #props-list.single-view .prop-card.focused { display: block; }
+    #props-list.single-view ~ #hidden-props-note { display: none !important; }
     .jump-pill {
       display: inline-flex; align-items: center;
       padding: 4px 11px; border-radius: 20px; flex-shrink: 0;
@@ -962,6 +966,9 @@ function renderProps(props) {
     }
   });
   el.innerHTML = sorted.map(p => propCardHTML(p)).join('');
+  // フォーカス状態をリセット（再レンダリング時）
+  _focusedPropCid = null;
+  el.classList.remove('single-view');
   // 非表示件数の表示（進捗「引渡し」+ 引渡し日超過の合計）
   const note = document.getElementById('hidden-props-note');
   if (note) {
@@ -985,21 +992,43 @@ function _buildJumpBar(props) {
   }).join('');
 }
 
-// 指定 prop-card にスクロールして開く
+// フォーカス中の物件 cid
+let _focusedPropCid = null;
+
+// ピルタップ: 1件フォーカス / 再タップで全件に戻る
 function _jumpToProp(cid) {
+  const list = document.getElementById('props-list');
   const card = document.getElementById(cid);
-  if (!card) return;
+  if (!card || !list) return;
+
+  // 同じピルを再タップ → 全件表示に戻る
+  if (_focusedPropCid === cid) {
+    _focusedPropCid = null;
+    list.classList.remove('single-view');
+    document.querySelectorAll('#props-list .prop-card').forEach(c => c.classList.remove('focused'));
+    document.querySelectorAll('.jump-pill').forEach(p => p.classList.remove('active'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  // 別の物件をフォーカス
+  _focusedPropCid = cid;
+  document.querySelectorAll('#props-list .prop-card').forEach(c => c.classList.remove('focused'));
+  card.classList.add('focused');
+  list.classList.add('single-view');
+
   // 未展開なら展開
   if (!card.classList.contains('open')) {
     const hdr = card.querySelector('.prop-hdr');
     if (hdr) hdr.click();
   }
-  // sticky ヘッダー + ジャンプバー分のオフセットを考慮してスクロール
-  const hdrH = (document.querySelector('.hdr') || {}).offsetHeight || 134;
-  const top  = card.getBoundingClientRect().top + window.scrollY - hdrH - 4;
-  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+
+  // ページトップへ（カードが最上部に来る）
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
   // アクティブピルをハイライト
-  document.querySelectorAll('.jump-pill').forEach(pill => pill.classList.toggle('active', pill.dataset.jump === cid));
+  document.querySelectorAll('.jump-pill').forEach(pill =>
+    pill.classList.toggle('active', pill.dataset.jump === cid));
 }
 
 function propCardHTML(p) {
