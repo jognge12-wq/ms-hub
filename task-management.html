@@ -936,8 +936,7 @@ function _buildJumpBar(props) {
   if (!props || props.length === 0) { bar.innerHTML = ''; return; }
 
   bar.innerHTML = props.map(p => {
-    const cid   = 'prop-' + p.name.replace(/[^a-zA-Z0-9\u3000-\u9fff\uff00-\uffef]/g, '-');
-    // "様邸" を省いた短縮ラベル（最大6文字）
+    const cid   = 'pc-' + slug(p.name); // propCardHTML と同じ ID 生成ロジック
     const label = (p.name || '').replace(/様邸$/, '').slice(0, 6);
     return `<button class="jump-pill" onclick="_jumpToProp('${esc(cid)}')" data-jump="${esc(cid)}">${label}</button>`;
   }).join('');
@@ -953,12 +952,11 @@ function _jumpToProp(cid) {
     if (hdr) hdr.click();
   }
   // sticky ヘッダー + ジャンプバー分のオフセットを考慮してスクロール
-  const barH = (document.getElementById('prop-jump-bar') || {}).offsetHeight || 40;
   const hdrH = (document.querySelector('.hdr') || {}).offsetHeight || 134;
-  const top   = card.getBoundingClientRect().top + window.scrollY - hdrH - 4;
+  const top  = card.getBoundingClientRect().top + window.scrollY - hdrH - 4;
   window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
   // アクティブピルをハイライト
-  document.querySelectorAll('.jump-pill').forEach(p => p.classList.toggle('active', p.dataset.jump === cid));
+  document.querySelectorAll('.jump-pill').forEach(pill => pill.classList.toggle('active', pill.dataset.jump === cid));
 }
 
 function propCardHTML(p) {
