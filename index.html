@@ -2695,10 +2695,24 @@
             background: var(--border); color: var(--text3); cursor: not-allowed;
         }
 
+        /* ===== スケジュールタブ スティッキーヘッダー ===== */
+        .sched-sticky-hdr {
+            position: sticky; top: 52px; z-index: 10;
+            background: var(--bg);
+            padding: 6px 0 0;
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sched-sticky-top {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 6px;
+        }
+        .sched-sticky-top .seg-tabs { flex: 1; margin-bottom: 0; }
+
         /* ===== スケジュールタブ ナビゲーション ===== */
         .sched-nav-bar {
             display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 10px; padding: 0;
+            padding-bottom: 8px;
         }
         .sched-nav-left, .sched-nav-right-arrow {
             flex-shrink: 0;
@@ -2706,11 +2720,6 @@
         .sched-nav-center {
             display: flex; align-items: center; gap: 8px;
             flex: 1; justify-content: center;
-        }
-        .sched-nav-actions {
-            display: flex; align-items: center; gap: 6px;
-            justify-content: center;
-            margin-bottom: 8px;
         }
         .sched-nav-btn {
             width: 34px; height: 34px; border: 1px solid var(--border);
@@ -2720,7 +2729,7 @@
         }
         .sched-nav-btn:hover { background: var(--surface2); }
         .sched-nav-label {
-            font-size: 15px; font-weight: 700; color: var(--text1); min-width: 56px; text-align: center;
+            font-size: 15px; font-weight: 700; color: var(--text1); min-width: 90px; text-align: center;
         }
         /* 週間予定スライドアニメーション */
         /* overflow:clip は scroll container を作らないので子要素の sticky が効く */
@@ -2798,8 +2807,6 @@
         .month-cal-grid {
             display: grid; grid-template-columns: repeat(7, 1fr);
             gap: 2px; padding: 8px;
-            /* カレンダーを固定し、下の詳細パネルだけスクロールできるように */
-            position: sticky; top: 52px; z-index: 5;
             background: var(--surface);
             border-radius: 10px 10px 0 0;
         }
@@ -3031,7 +3038,7 @@
         // 行うなどサーバーサイドでの認証に切り替える必要がある。
         const _PW_CORRECT = '4022';  // 4桁 PIN（パスワードではなく起動ロック扱い）
         const _AUTH_KEY   = 'portal_auth_ts';
-        const _AUTH_TTL   = 60 * 60 * 1000; // 1時間（ms）
+        const _AUTH_TTL   = 24 * 60 * 60 * 1000; // 24時間（ms）
 
         function _isAuthed() {
             const ts = parseInt(localStorage.getItem(_AUTH_KEY) || '0', 10);
@@ -3080,6 +3087,11 @@
             <span></span>
         </button>
         <span class="top-bar-title" id="topBarTitle" aria-hidden="true" style="position:absolute;left:50%;transform:translateX(-50%);font-size:14px;font-weight:600;color:var(--text1);">m's hub</span>
+        <!-- データ取得中バッジ -->
+        <div id="homeFetchBadge" style="display:none;align-items:center;gap:4px;margin-left:auto;font-size:11px;color:var(--text3);background:var(--surface2);border-radius:100px;padding:2px 8px 2px 4px;pointer-events:none;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 0.8s linear infinite;flex-shrink:0;"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            更新中
+        </div>
     </div>
 
     <div class="drawer-overlay" id="drawerOverlay"></div>
@@ -4117,6 +4129,9 @@
             const isWeekNav = weekOffset !== undefined && weekOffset !== 0;
             if (!isWeekNav && Date.now() - _fetchLiveDataLastAt < _FETCH_TTL) return;
             if (!isWeekNav) _fetchLiveDataLastAt = Date.now();
+            // 取得中バッジを表示
+            const _fetchBadge = document.getElementById('homeFetchBadge');
+            if (_fetchBadge) _fetchBadge.style.display = 'flex';
             try {
                 var params = '?mode=getDashboardData';
                 if (isWeekNav) {
@@ -4259,6 +4274,8 @@
                 // エラー時もバックアップデータで再描画（初回表示が消えないように）
                 renderScheduleSection();
             } finally {
+                // 取得中バッジを非表示
+                if (_fetchBadge) _fetchBadge.style.display = 'none';
                 // フェッチ完了フラグ（スケルトン→タスクなし切り替え用）
                 window._fetchLiveDataDone = true;
                 // スケルトン表示のままだったら「タスクなし」に差し替え
@@ -4776,8 +4793,6 @@
                 }).join('');
 
 
-            const notionLink = p.notionId ? `<a href="https://www.notion.so/${p.notionId}" target="_blank" rel="noopener" class="notion-link">Notionへ移動 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>` : '';
-
             document.getElementById('modalContent').innerHTML = `
                 <div class="modal-title">${p.name}</div>
                 <div class="modal-subtitle">${p.location}</div>
@@ -4802,7 +4817,6 @@
                     <div class="modal-section-title">チェックリスト</div>
                     <div class="check-list">${checksHtml}</div>
                 </div>
-                <div class="modal-notion-link">${notionLink}</div>
             `;
 
             document.getElementById('modalOverlay').classList.add('open');
@@ -5057,7 +5071,7 @@
                 var now = new Date();
                 var todayMs = +new Date(now.getFullYear(), now.getMonth(), now.getDate());
                 if (schedViewMode === 'month') {
-                    _renderMonthView(el, now, todayMs);
+                    _renderMonthView(el, now, todayMs, { skipInitDay: true }); // 先読み中はdetail閉じたまま
                 } else {
                     _renderWeekView(el, now, todayMs);
                 }
@@ -5322,27 +5336,29 @@
                 </div>` : '';
 
             el.innerHTML = `<div class="tab-pane">
-                <!-- ビュー切替タブ（週間/月間） -->
-                <div class="seg-tabs">
-                    <button class="seg-tab" onclick="schedViewMode='month';_renderSchedTab()">月間</button>
-                    <button class="seg-tab active" onclick="schedViewMode='week';_renderSchedTab()">週間</button>
-                </div>
-                <!-- ナビゲーションバー（←ラベル→の両端配置） -->
-                <div class="sched-nav-bar">
-                    <button class="sched-nav-btn" onclick="changeSchedWeek(-1)">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-                    </button>
-                    <div class="sched-nav-center">
-                        <span class="sched-nav-label">${weekLabel}</span>
+                <!-- スティッキーヘッダー: タブ + 年月ナビ -->
+                <div class="sched-sticky-hdr">
+                    <div class="sched-sticky-top">
+                        <div class="seg-tabs">
+                            <button class="seg-tab" onclick="schedViewMode='month';_renderSchedTab()">月間</button>
+                            <button class="seg-tab active" onclick="schedViewMode='week';_renderSchedTab()">週間</button>
+                        </div>
+                        ${GAS_WEBAPP_URL ? `<button class="sched-view-btn" onclick="schedRefresh()" title="GASから再取得"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> 更新</button>` : ''}
                     </div>
-                    <button class="sched-nav-btn" onclick="changeSchedWeek(1)">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                    </button>
-                </div>
-                <!-- アクション行 -->
-                <div class="sched-nav-actions">
-                    ${!isCurrentWeek ? `<button class="sched-today-btn" onclick="schedWeekOffset=0;_renderSchedTab()">今週</button>` : ''}
-                    ${GAS_WEBAPP_URL ? `<button class="sched-view-btn" onclick="schedRefresh()" title="GASから再取得"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> 更新</button>` : ''}
+                    <div class="sched-nav-bar">
+                        <button class="sched-nav-btn" onclick="changeSchedWeek(-1)">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                        </button>
+                        <div class="sched-nav-center">
+                            <span class="sched-nav-label">${weekLabel}</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            ${!isCurrentWeek ? `<button class="sched-today-btn" onclick="schedWeekOffset=0;_renderSchedTab()">今週</button>` : ''}
+                            <button class="sched-nav-btn" onclick="changeSchedWeek(1)">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 ${GAS_WEBAPP_URL ? `<div id="schedStatusBar" class="sched-status-bar ${schedLastUpdated?'ok':''}">${schedLastUpdated ? '最終更新: ' + schedLastUpdated : 'まだ更新されていません（更新ボタンで取得）'}</div>` : ''}
                 ${stripHtml}
@@ -5419,7 +5435,8 @@
             initWeekSwipe(el, weekDayMsList, initMs);
         }
 
-        function _renderMonthView(el, now, todayMs) {
+        function _renderMonthView(el, now, todayMs, opts) {
+            opts = opts || {};
             const weeks = WEEKDAYS_JP;
             // schedWeekOffsetを月オフセットとして流用
             const targetDate = new Date(now.getFullYear(), now.getMonth() + schedWeekOffset, 1);
@@ -5521,27 +5538,29 @@
                 </div>` : '';
 
             el.innerHTML = `<div class="tab-pane">
-                <!-- ビュー切替タブ（週間/月間） -->
-                <div class="seg-tabs">
-                    <button class="seg-tab active" onclick="schedViewMode='month';_renderSchedTab()">月間</button>
-                    <button class="seg-tab" onclick="schedViewMode='week';schedWeekOffset=0;_renderSchedTab()">週間</button>
-                </div>
-                <!-- ナビゲーションバー（←ラベル→の両端配置） -->
-                <div class="sched-nav-bar">
-                    <button class="sched-nav-btn" onclick="schedWeekOffset--;_renderSchedTab()">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-                    </button>
-                    <div class="sched-nav-center">
-                        <span class="sched-nav-label">${monthLabel}</span>
+                <!-- スティッキーヘッダー: タブ + 年月ナビ -->
+                <div class="sched-sticky-hdr">
+                    <div class="sched-sticky-top">
+                        <div class="seg-tabs">
+                            <button class="seg-tab active" onclick="schedViewMode='month';_renderSchedTab()">月間</button>
+                            <button class="seg-tab" onclick="schedViewMode='week';schedWeekOffset=0;_renderSchedTab()">週間</button>
+                        </div>
+                        ${GAS_WEBAPP_URL ? `<button class="sched-view-btn" onclick="schedRefresh()" title="GASから再取得"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> 更新</button>` : ''}
                     </div>
-                    <button class="sched-nav-btn" onclick="schedWeekOffset++;_renderSchedTab()">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                    </button>
-                </div>
-                <!-- アクション行 -->
-                <div class="sched-nav-actions">
-                    ${!isCurrentMonth ? `<button class="sched-today-btn" onclick="schedWeekOffset=0;_renderSchedTab()">今月</button>` : ''}
-                    ${GAS_WEBAPP_URL ? `<button class="sched-view-btn" onclick="schedRefresh()" title="GASから再取得"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> 更新</button>` : ''}
+                    <div class="sched-nav-bar">
+                        <button class="sched-nav-btn" onclick="schedWeekOffset--;_renderSchedTab()">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                        </button>
+                        <div class="sched-nav-center">
+                            <span class="sched-nav-label">${monthLabel}</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            ${!isCurrentMonth ? `<button class="sched-today-btn" onclick="schedWeekOffset=0;_renderSchedTab()">今月</button>` : ''}
+                            <button class="sched-nav-btn" onclick="schedWeekOffset++;_renderSchedTab()">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 ${GAS_WEBAPP_URL ? `<div id="schedStatusBar" class="sched-status-bar ${schedLastUpdated?'ok':''}">${schedLastUpdated ? '最終更新: ' + schedLastUpdated : 'まだ更新されていません（更新ボタンで取得）'}</div>` : ''}
                 <div class="card" style="margin-bottom:16px;">
@@ -5611,9 +5630,11 @@
                 });
             });
 
-            // 初期表示: 今月なら今日、他月なら1日を自動で選択
-            const initDay = isCurrentMonth ? now.getDate() : 1;
-            showMonthDay(initDay);
+            // 初期表示: 今月なら今日、他月なら1日を自動で選択（スワイプ先読み中はスキップ）
+            if (!opts.skipInitDay) {
+                const initDay = isCurrentMonth ? now.getDate() : 1;
+                showMonthDay(initDay);
+            }
 
             // 左右スワイプで月切替は #tab-week 全体に設定済みの指追従スワイプに統一
         }
@@ -5770,9 +5791,6 @@
                             </div>`;
                         }).join('');
 
-                    // Notionリンク
-                    const notionLink = p.notionId ? `<a href="https://www.notion.so/${p.notionId}" target="_blank" rel="noopener" class="notion-link" onclick="event.stopPropagation();">Notionへ移動 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>` : '';
-
                     // 進捗バー / カウントダウン（コンパクト）
                     const progressBlock = isPrecon
                         ? `<div class="progress-days" style="margin-top:4px;font-size:11px;">
@@ -5799,7 +5817,6 @@
                         ${progressBlock}
                         ${datesHtml ? `<div class="pcf-section"><div class="pcf-dates-inline">${datesHtml}</div></div>` : ''}
                         ${checksHtml ? `<div class="pcf-section"><div class="pcf-section-title">チェックリスト</div><div class="pcf-checks-inline">${checksHtml}</div></div>` : ''}
-                        ${notionLink ? `<div class="pcf-footer"><a href="https://www.notion.so/${p.notionId}" target="_blank" rel="noopener" class="pcf-notion-link" onclick="event.stopPropagation();">Notion で開く ↗</a></div>` : ''}
                     </div>`;
                 }).join('') || '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px;">物件なし</div>';
             }
@@ -5951,12 +5968,10 @@
             const props = groups[yr] || [];
             if (props.length === 0) { listEl.innerHTML = '<div style="padding:12px;color:var(--text3);font-size:12px;">' + ymLabel(yr) + 'の引渡しはありません</div>'; return; }
             listEl.innerHTML = props.map(p => {
-                const notionId = p.notionPageId || '';
                 const dateStr = p.handover ? p.handover.replace(/-/g, '/') : '';
                 return `<div class="prop-delivered-card">
                     <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
                         <div class="prop-delivered-card-name">${p.name}</div>
-                        ${notionId ? `<a href="https://www.notion.so/${notionId}" target="_blank" rel="noopener" style="font-size:9px;color:var(--primary);text-decoration:none;flex-shrink:0;" onclick="event.stopPropagation();">Notion↗</a>` : ''}
                     </div>
                     <div class="prop-delivered-card-meta">${[p.city, dateStr ? '引渡し: ' + dateStr : ''].filter(Boolean).join('　')}</div>
                 </div>`;
