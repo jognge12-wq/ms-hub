@@ -1,6 +1,13 @@
 // ============================================================
-// 施工管理スケジュール自動登録 - Google Apps Script v1.5
+// 施工管理スケジュール自動登録 - Google Apps Script v2.0
 // ============================================================
+// 【v2.0 修正内容】
+// - 竣工日を入力項目に追加。工程14=✅竣工(allDay) を新設
+// - 旧 14/15/16 を 15/16/17 に繰り上げ
+// - 竣工検査の基準日を「引渡し-14」→「竣工日」に変更
+// - 基準4工程(3/8/14/17)を Calendar Advanced API + iCalUID で登録
+//   (mshub-{notionId}-{key}@mshub.jp)
+// - 既存イベントの絵文字を統一するマイグレーション関数 migrateEmojisAll() を追加
 // 【v1.5 修正内容】
 // - カレンダー色定数名を正しいGAS APIの定数名に再修正
 //   TANGERINE → ORANGE（ミカン）、PEACOCK → CYAN（ピーコック）、GRAPE → MAUVE（グレープ）
@@ -27,9 +34,32 @@ const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbx5L_T7za4UuKU-dCLOZ
 
 // カレンダーイベントの色設定
 // ※GASの正式定数名はUI表示名（ミカン/ピーコック/グレープ）と異なる
-const COLOR_CHAKOU  = CalendarApp.EventColor.ORANGE; // 本体着工 → ミカン(Tangerine=colorId:6)
-const COLOR_TATEMAE = CalendarApp.EventColor.CYAN;   // 建て方   → ピーコック(Peacock=colorId:7)
-const COLOR_DEFAULT = CalendarApp.EventColor.MAUVE;  // それ以外 → グレープ(Grape=colorId:3)
+const COLOR_CHAKOU  = CalendarApp.EventColor.ORANGE;     // 本体着工 → ミカン(Tangerine=colorId:6)
+const COLOR_TATEMAE = CalendarApp.EventColor.CYAN;       // 建て方   → ピーコック(Peacock=colorId:7)
+const COLOR_SHUNKO  = CalendarApp.EventColor.PALE_GREEN; // 竣工     → セージ(Sage=colorId:2)
+const COLOR_DEFAULT = CalendarApp.EventColor.MAUVE;      // それ以外 → グレープ(Grape=colorId:3)
+
+// CalendarApp.EventColor 定数 → Calendar Advanced API の colorId 文字列 変換表
+// iCalUID指定のイベント作成には Advanced API が必要だが、colorId は文字列で渡す
+const COLORID_MAP = {
+  PALE_BLUE: '1', PALE_GREEN: '2', MAUVE: '3', PALE_RED: '4',
+  YELLOW: '5', ORANGE: '6', CYAN: '7', GRAY: '8',
+  BLUE: '9', GREEN: '10', RED: '11'
+};
+function toColorId(colorConst) {
+  if (!colorConst) return '';
+  if (/^\d+$/.test(String(colorConst))) return String(colorConst); // 既に colorId 文字列
+  return COLORID_MAP[String(colorConst)] || '';
+}
+
+// 基準4工程のキー（iCalUID 生成用）
+// 各工程の step 番号とキーの対応
+// ※ gas-dashboard-data.gs 側の MSHUB_PROC / makeMshubUid と整合を保つこと
+const MSHUB_STEP_KEYS = { 3: 'chakou', 8: 'tatemae', 14: 'shunko', 17: 'hikiwatashi' };
+function makeMshubUid(notionPageId, key) {
+  // ※ ダッシュボード側 (gas-dashboard-data.gs) と同じロジック
+  return 'mshub-' + String(notionPageId).replace(/-/g, '') + '-' + key + '@mshub.jp';
+}
 
 // ============================================================
 // 祝日リスト 2025〜2027年
@@ -88,17 +118,19 @@ function onFormSubmit(e) {
     const location       = (data['場所（市町村）'] || '').trim();
     const chakouDateStr  = (data['本体着工日'] || '').trim();
     const tatemaeStr     = (data['建て方'] || '').trim();
+    const shunkoStr      = (data['竣工日'] || '').trim();
     const hikiwatashiStr = (data['引渡し日'] || '').trim();
 
-    if (!bukkenName || !chakouDateStr || !tatemaeStr || !hikiwatashiStr) {
+    if (!bukkenName || !chakouDateStr || !tatemaeStr || !shunkoStr || !hikiwatashiStr) {
       throw new Error('必須項目が入力されていません');
     }
 
     const chakouDate      = parseDate(chakouDateStr);
     const tatemaeDate     = parseDate(tatemaeStr);
+    const shunkoDate      = parseDate(shunkoStr);
     const hikiwatashiDate = parseDate(hikiwatashiStr);
 
-    const schedules = calcSchedules(bukkenName, location, chakouDate, tatemaeDate, hikiwatashiDate);
+    const schedules = calcSchedules(bukkenName, location, chakouDate, tatemaeDate, shunkoDate, hikiwatashiDate);
     const token = saveToSheet(bukkenName, location, schedules);
     sendConfirmEmail(bukkenName, schedules, token);
 
@@ -124,13 +156,15 @@ function testManual() {
   const location       = '浜松市';
   const chakouDateStr  = '2026-05-11'; // 本体着工日
   const tatemaeStr     = '2026-06-08'; // 建て方
+  const shunkoStr      = '2026-09-11'; // 竣工日
   const hikiwatashiStr = '2026-09-25'; // 引渡し日
 
   const chakou      = parseDate(chakouDateStr);
   const tatemae     = parseDate(tatemaeStr);
+  const shunko      = parseDate(shunkoStr);
   const hikiwatashi = parseDate(hikiwatashiStr);
 
-  const schedules = calcSchedules(bukkenName, location, chakou, tatemae, hikiwatashi);
+  const schedules = calcSchedules(bukkenName, location, chakou, tatemae, shunko, hikiwatashi);
 
   Logger.log('===== スケジュール計算結果 =====');
   schedules.forEach(function(s) {
@@ -163,6 +197,11 @@ function doGet(e) {
   // ★ v1.6: 画面内確認フロー用 — 編集済み工程配列を直接カレンダー登録
   if (e.parameter.mode === 'registerDirect') {
     return handleRegisterDirect(e.parameter);
+  }
+
+  // ★ v2.0: 既存イベントの絵文字統一マイグレーション
+  if (e.parameter.mode === 'migrateEmojis') {
+    return handleMigrateEmojis(e.parameter);
   }
 
   if (action === 'cancel') {
@@ -344,6 +383,16 @@ function getFormHtml() {
       </div>
     </div>
     <div class="field">
+      <label>\u7ae3\u5de5\u65e5 <span class="required">*</span></label>
+      <div class="date-row">
+        <div class="date-display" id="dd_shunko">
+          <span id="dw_shunko" class="date-placeholder">\u65e5\u4ed8\u3092\u9078\u629e</span>
+          <svg class="cal-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <input type="date" id="shunkoDate" class="date-hidden" oninput="updateDay('shunkoDate','dw_shunko','dd_shunko')" required>
+      </div>
+    </div>
+    <div class="field">
       <label>\u5f15\u6e21\u3057\u65e5 <span class="required">*</span></label>
       <div class="date-row">
         <div class="date-display" id="dd_hikiwatashi">
@@ -394,6 +443,7 @@ function handleSubmit(e) {
     location:       document.getElementById('location').value,
     chakouDate:     document.getElementById('chakouDate').value,
     tatemaeDate:    document.getElementById('tatemaeDate').value,
+    shunkoDate:     document.getElementById('shunkoDate').value,
     hikiwatashiDate: document.getElementById('hikiwatashiDate').value,
   });
 
@@ -436,18 +486,20 @@ function handlePortalSubmit(params) {
     var location        = (params.location || '').trim();
     var chakouDateStr   = (params.chakouDate || '').trim();
     var tatemaeDateStr  = (params.tatemaeDate || '').trim();
+    var shunkoDateStr   = (params.shunkoDate || '').trim();
     var hikiwatashiStr  = (params.hikiwatashiDate || '').trim();
 
-    if (!bukkenName || !chakouDateStr || !tatemaeDateStr || !hikiwatashiStr) {
+    if (!bukkenName || !chakouDateStr || !tatemaeDateStr || !shunkoDateStr || !hikiwatashiStr) {
       return ContentService.createTextOutput(JSON.stringify({ success: false, error: '必須項目が未入力です' }))
         .setMimeType(ContentService.MimeType.JSON);
     }
 
     var chakou      = parseDate(chakouDateStr);
     var tatemae     = parseDate(tatemaeDateStr);
+    var shunko      = parseDate(shunkoDateStr);
     var hikiwatashi = parseDate(hikiwatashiStr);
 
-    var schedules = calcSchedules(bukkenName, location, chakou, tatemae, hikiwatashi);
+    var schedules = calcSchedules(bukkenName, location, chakou, tatemae, shunko, hikiwatashi);
     var token     = saveToSheet(bukkenName, location, schedules);
     sendConfirmEmail(bukkenName, schedules, token);
 
@@ -469,17 +521,19 @@ function handleCalcOnly(p) {
     var location       = (p.location || '').trim();
     var chakouStr      = (p.chakouDate || '').trim();
     var tatemaeStr     = (p.tatemaeDate || '').trim();
+    var shunkoStr      = (p.shunkoDate || '').trim();
     var hikiwatashiStr = (p.hikiwatashiDate || '').trim();
 
-    if (!bukkenName || !chakouStr || !tatemaeStr || !hikiwatashiStr) {
+    if (!bukkenName || !chakouStr || !tatemaeStr || !shunkoStr || !hikiwatashiStr) {
       return _jsonOut({ success: false, error: '必須項目が未入力です' });
     }
 
     var chakou      = parseDate(chakouStr);
     var tatemae     = parseDate(tatemaeStr);
+    var shunko      = parseDate(shunkoStr);
     var hikiwatashi = parseDate(hikiwatashiStr);
 
-    var schedules = calcSchedules(bukkenName, location, chakou, tatemae, hikiwatashi);
+    var schedules = calcSchedules(bukkenName, location, chakou, tatemae, shunko, hikiwatashi);
 
     // ToDo（質疑まとめ）を step=0 として先頭に追加 — 工程1の前日
     var step1 = null;
@@ -532,6 +586,7 @@ function handleCalcOnly(p) {
 function handleRegisterDirect(p) {
   try {
     var bukkenName    = (p.bukkenName || '').trim();
+    var notionPageId  = (p.notionPageId || '').trim(); // ★ v2.0: SSOT 紐付け用
     var schedulesJson = p.schedules || '';
     if (!bukkenName)    return _jsonOut({ success: false, error: '物件名が未入力です' });
     if (!schedulesJson) return _jsonOut({ success: false, error: '工程データがありません' });
@@ -547,30 +602,63 @@ function handleRegisterDirect(p) {
     var calendar = CalendarApp.getCalendarById(CALENDAR_ID);
     if (!calendar) return _jsonOut({ success: false, error: 'カレンダーが見つかりません: ' + CALENDAR_ID });
 
-    var createdIds = []; // rollback用
+    var createdIds = []; // rollback用 (CalendarApp id)
+    var createdAdvIds = []; // Advanced API で作ったもの（ロールバック別ルート）
     try {
       for (var i = 0; i < schedules.length; i++) {
         var s = schedules[i];
         var startDate = new Date(s.startMs);
         var endDate   = new Date(s.endMs);
-        var event;
-        if (s.allDay) {
-          event = calendar.createAllDayEvent(s.title, startDate, {
-            location: s.location || '',
-            description: s.description || ''
-          });
+
+        // --- 基準4工程(3/8/14/17) + notionPageId あり → Advanced API で iCalUID 付与 ---
+        var mshubKey = notionPageId ? MSHUB_STEP_KEYS[s.step] : null;
+        if (mshubKey) {
+          var uid = makeMshubUid(notionPageId, mshubKey);
+          var colorId = toColorId(s.color);
+          var resource = {
+            iCalUID: uid,
+            summary: s.title,
+            description: s.description || '',
+            location: s.location || ''
+          };
+          if (s.allDay) {
+            resource.start = { date: _toYmd(startDate) };
+            // allDay は end.date は翌日を指定
+            resource.end   = { date: _toYmd(addDays(startDate, 1)) };
+          } else {
+            resource.start = { dateTime: startDate.toISOString(), timeZone: 'Asia/Tokyo' };
+            resource.end   = { dateTime: endDate.toISOString(),   timeZone: 'Asia/Tokyo' };
+          }
+          if (colorId) resource.colorId = colorId;
+          if (s.notification && !s.allDay) {
+            resource.reminders = {
+              useDefault: false,
+              overrides: [{ method: 'popup', minutes: calcNotifyMinutes(startDate) }]
+            };
+          }
+          var created = Calendar.Events.insert(resource, CALENDAR_ID);
+          createdAdvIds.push(created.id);
         } else {
-          event = calendar.createEvent(s.title, startDate, endDate, {
-            location: s.location || '',
-            description: s.description || ''
-          });
+          // --- その他工程: 従来どおり CalendarApp ---
+          var event;
+          if (s.allDay) {
+            event = calendar.createAllDayEvent(s.title, startDate, {
+              location: s.location || '',
+              description: s.description || ''
+            });
+          } else {
+            event = calendar.createEvent(s.title, startDate, endDate, {
+              location: s.location || '',
+              description: s.description || ''
+            });
+          }
+          if (s.color) event.setColor(String(s.color));
+          if (s.notification && !s.allDay) {
+            event.removeAllReminders();
+            event.addPopupReminder(calcNotifyMinutes(startDate));
+          }
+          createdIds.push(event.getId());
         }
-        if (s.color) event.setColor(String(s.color));
-        if (s.notification && !s.allDay) {
-          event.removeAllReminders();
-          event.addPopupReminder(calcNotifyMinutes(startDate));
-        }
-        createdIds.push(event.getId());
       }
     } catch (regErr) {
       // 失敗 → 既登録分をロールバック
@@ -580,14 +668,28 @@ function handleRegisterDirect(p) {
           if (ev) ev.deleteEvent();
         } catch (e) { /* ignore */ }
       }
+      for (var k = 0; k < createdAdvIds.length; k++) {
+        try { Calendar.Events.remove(CALENDAR_ID, createdAdvIds[k]); } catch (e) { /* ignore */ }
+      }
       throw regErr;
     }
 
-    return _jsonOut({ success: true, bukkenName: bukkenName, count: createdIds.length });
+    return _jsonOut({
+      success: true,
+      bukkenName: bukkenName,
+      count: createdIds.length + createdAdvIds.length,
+      mshubCount: createdAdvIds.length
+    });
 
   } catch (err) {
     return _jsonOut({ success: false, error: err.toString() });
   }
+}
+
+// yyyy-MM-dd (ローカル)
+function _toYmd(date) {
+  var d = new Date(date);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 
 function _jsonOut(obj) {
@@ -711,9 +813,9 @@ function sendConfirmEmail(bukkenName, schedules, token) {
 function pad(n) { return String(n).padStart(2, '0'); }
 
 // ============================================================
-// 16工程スケジュール算出
+// 17工程スケジュール算出 (v2.0: 竣工工程を追加)
 // ============================================================
-function calcSchedules(bukkenName, location, chakou, tatemae, hikiwatashi) {
+function calcSchedules(bukkenName, location, chakou, tatemae, shunko, hikiwatashi) {
   const n   = bukkenName;
   const loc = location;
   const schedules = [];
@@ -767,26 +869,29 @@ function calcSchedules(bukkenName, location, chakou, tatemae, hikiwatashi) {
   var step11Date = skipWedSunHoliday(addDays(tatemae, 16));
   schedules.push({ step: 11, title: n + '雨仕舞い検査', start: setTime(step11Date, 8, 30), end: setTime(step11Date, 10, 0), location: loc, description: '所要1.5h', notification: false, allDay: false, color: COLOR_DEFAULT });
 
-  // --- 工程14: 竣工検査（引渡し14日前、水・日・祝除く）---
-  // ★ 修正: 「〇日前」は前倒し方向（より前の日付）にスキップ
-  var step14Date = skipWedSunHolidayBackward(addDays(hikiwatashi, -14));
-  schedules.push({ step: 14, title: n + '竣工検査', start: setTime(step14Date, 8, 30), end: setTime(step14Date, 14, 0), location: loc, description: '所要5.5h', notification: false, allDay: false, color: COLOR_DEFAULT });
+  // --- 工程14: 竣工（基準日③）※v2.0 追加 ---
+  schedules.push({ step: 14, title: '✅' + n + '竣工', start: shunko, end: shunko, location: loc, description: '', notification: false, allDay: true, color: COLOR_SHUNKO });
+
+  // --- 工程15: 竣工検査（竣工日基準、水・日・祝なら前倒し）---
+  // ★ v2.0: 基準を「引渡し-14」から「竣工日」に変更
+  var step15Date = skipWedSunHolidayBackward(shunko);
+  schedules.push({ step: 15, title: n + '竣工検査', start: setTime(step15Date, 8, 30), end: setTime(step15Date, 14, 0), location: loc, description: '所要5.5h', notification: false, allDay: false, color: COLOR_DEFAULT });
 
   // --- 工程12: 木完検査（竣工検査14日前・同曜日、水・日・祝除く）---
   // 14日＝2週間のため同曜日が保たれる
-  var step12Date = skipWedSunHolidayBackward(addDays(step14Date, -14));
+  var step12Date = skipWedSunHolidayBackward(addDays(step15Date, -14));
   schedules.push({ step: 12, title: n + '木完検査', start: setTime(step12Date, 8, 30), end: setTime(step12Date, 10, 0), location: loc, description: '所要1.5h（竣工検査14日前）', notification: false, allDay: false, color: COLOR_DEFAULT });
 
   // --- 工程13: 木完立会い（木完検査前後の直近土日）---
   var step13Date = nearestSaturdaySunday(step12Date);
   schedules.push({ step: 13, title: n + '木完立会い', start: setTime(step13Date, 9, 0), end: setTime(step13Date, 10, 30), location: loc, description: '所要1.5h', notification: true, allDay: false, color: COLOR_DEFAULT });
 
-  // --- 工程15: 竣工立会い（引渡し7日前の直近土曜、不可なら日曜）---
-  var step15Date = prevSaturdayOrSunday(addDays(hikiwatashi, -7));
-  schedules.push({ step: 15, title: n + '竣工立会い', start: setTime(step15Date, 9, 0), end: setTime(step15Date, 11, 0), location: loc, description: '所要2.0h', notification: true, allDay: false, color: COLOR_DEFAULT });
+  // --- 工程16: 竣工立会い（引渡し7日前の直近土曜、不可なら日曜）---
+  var step16Date = prevSaturdayOrSunday(addDays(hikiwatashi, -7));
+  schedules.push({ step: 16, title: n + '竣工立会い', start: setTime(step16Date, 9, 0), end: setTime(step16Date, 11, 0), location: loc, description: '所要2.0h', notification: true, allDay: false, color: COLOR_DEFAULT });
 
-  // --- 工程16: 引渡し（基準日③）---
-  schedules.push({ step: 16, title: '🔑' + n + '引渡し', start: setTime(hikiwatashi, 10, 0), end: setTime(hikiwatashi, 12, 0), location: loc, description: '所要2.0h', notification: false, allDay: false, color: COLOR_DEFAULT });
+  // --- 工程17: 引渡し（基準日④）---
+  schedules.push({ step: 17, title: '🔑' + n + '引渡し', start: setTime(hikiwatashi, 10, 0), end: setTime(hikiwatashi, 12, 0), location: loc, description: '所要2.0h', notification: false, allDay: false, color: COLOR_DEFAULT });
 
   // 工程番号順に並び替えて返す
   schedules.sort(function(a, b) { return a.step - b.step; });
@@ -953,4 +1058,102 @@ function calcNotifyMinutes(eventStart) {
   var d = new Date(eventStart);
   var p = new Date(d); p.setDate(p.getDate() - 1); p.setHours(16, 0, 0, 0);
   return Math.round((d - p) / 60000);
+}
+
+// ============================================================
+// ★ v2.0: 既存イベントの絵文字統一マイグレーション
+// ------------------------------------------------------------
+// カレンダー上の既存イベントを走査し、タイトル先頭の絵文字を
+// コード上の最新定義に差し替える（イベントID等は維持）。
+//
+// 対象パターン（絵文字の揺れを吸収）:
+//   本体着工  : 🚜/🏗/🔨/⚡ 等 + "本体着工"  → 🚜
+//   建て方    : ⚒/🔨/🏗/🪚 等 + "建て方"   → ⚒️
+//   竣工      : ✅/🏠/🎉/🌱 等 + "竣工"(除く"竣工検査"/"竣工立会い") → ✅
+//   引渡し    : 🔑/🏠/🎉 等 + "引渡し"    → 🔑
+//
+// 使い方:
+//   1) GAS エディタから `migrateEmojisAll()` を直接実行
+//   2) または WEBAPP_URL + '?mode=migrateEmojis' にアクセス
+//      (オプション: &dryRun=1 で実際には書き換えず結果のみ確認)
+// ============================================================
+
+// 先頭の絵文字領域を抽出 → 置換するための正規表現
+// Unicode 絵文字/記号の簡易パターン (サロゲートペア + variant selectors)
+var EMOJI_PREFIX_RE = /^[\u2600-\u27BF\u1F000-\u1FFFF\uD83C-\uDBFF\uDC00-\uDFFF\uFE0F\u200D\u2B50\u2B06-\u2B55]+/;
+
+// 工程タイプ判定: タイトル(先頭絵文字除去後)から工程種別と正しい絵文字を返す
+function _detectProcessFromTitle(rawTitle) {
+  if (!rawTitle) return null;
+  // 先頭絵文字を除去したベース
+  var stripped = String(rawTitle).replace(EMOJI_PREFIX_RE, '').trim();
+
+  // 「竣工検査」「竣工立会い」は竣工 allDay とは別物 → 除外
+  if (/竣工検査$/.test(stripped) || /竣工立会い?$/.test(stripped)) return null;
+
+  if (/本体着工$/.test(stripped)) return { emoji: '🚜', key: 'chakou' };
+  if (/建て方$/.test(stripped))   return { emoji: '⚒️', key: 'tatemae' };
+  if (/竣工$/.test(stripped))     return { emoji: '✅', key: 'shunko' };
+  if (/引渡し?$/.test(stripped))  return { emoji: '🔑', key: 'hikiwatashi' };
+  return null;
+}
+
+// 実行本体
+// dryRun=true の場合は書き換え件数の試算のみ
+function migrateEmojisAll(dryRun) {
+  var calendar = CalendarApp.getCalendarById(CALENDAR_ID);
+  if (!calendar) throw new Error('カレンダーが見つかりません: ' + CALENDAR_ID);
+
+  // 検索範囲: 1年前 〜 2年後
+  var now = new Date();
+  var from = new Date(now.getFullYear() - 1, 0, 1);
+  var to   = new Date(now.getFullYear() + 2, 11, 31);
+
+  var events = calendar.getEvents(from, to);
+  var changed = 0;
+  var skipped = 0;
+  var samples = [];
+
+  for (var i = 0; i < events.length; i++) {
+    var ev = events[i];
+    var title = ev.getTitle();
+    var proc = _detectProcessFromTitle(title);
+    if (!proc) { skipped++; continue; }
+
+    // 先頭絵文字を除去 → 正しい絵文字を前置
+    var rest = String(title).replace(EMOJI_PREFIX_RE, '');
+    var newTitle = proc.emoji + rest;
+
+    if (newTitle === title) { skipped++; continue; }
+
+    samples.push({ before: title, after: newTitle });
+    if (!dryRun) {
+      try { ev.setTitle(newTitle); } catch(e) {
+        Logger.log('⚠ setTitle 失敗: ' + title + ' → ' + e.message);
+        continue;
+      }
+    }
+    changed++;
+  }
+
+  var result = {
+    total: events.length,
+    changed: changed,
+    skipped: skipped,
+    dryRun: !!dryRun,
+    samples: samples.slice(0, 20) // 最初の20件だけ返す
+  };
+  Logger.log(JSON.stringify(result, null, 2));
+  return result;
+}
+
+// Web endpoint
+function handleMigrateEmojis(p) {
+  try {
+    var dryRun = (p && (p.dryRun === '1' || p.dryRun === 'true')) ? true : false;
+    var r = migrateEmojisAll(dryRun);
+    return _jsonOut({ success: true, result: r });
+  } catch (err) {
+    return _jsonOut({ success: false, error: err.toString() });
+  }
 }

@@ -699,6 +699,13 @@
             </div>
           </div>
           <div class="field">
+            <label class="field-label">竣工 <span class="req">*</span></label>
+            <div class="date-field-wrap">
+              <input type="date" name="竣工" id="d_shunko" oninput="updateDayLabel('d_shunko','dw_shunko')" required>
+              <div id="dw_shunko" class="date-info"></div>
+            </div>
+          </div>
+          <div class="field">
             <label class="field-label">引渡し <span class="req">*</span></label>
             <div class="date-field-wrap">
               <input type="date" name="引渡し" id="d_hiki" oninput="updateDayLabel('d_hiki','dw_hiki')" required>
@@ -839,11 +846,13 @@ document.getElementById('regForm').addEventListener('submit', async function(e) 
     const nameVal  = document.getElementById('propName').value.trim();
     const chakou   = document.getElementById('d_chakou').value;
     const tatemae  = document.getElementById('d_tatemae').value;
+    const shunko   = document.getElementById('d_shunko').value;
     const hiki     = document.getElementById('d_hiki').value;
 
     if (!nameVal) { showToast('物件名を入力してください', true); return; }
     if (!chakou)  { showToast('本体着工日を入力してください', true); return; }
     if (!tatemae) { showToast('建て方の日付を入力してください', true); return; }
+    if (!shunko)  { showToast('竣工日を入力してください', true); return; }
     if (!hiki)    { showToast('引渡し日を入力してください', true); return; }
 
     btn.disabled = true;
@@ -879,6 +888,7 @@ document.getElementById('regForm').addEventListener('submit', async function(e) 
         location: city,
         chakouDate: chakou,
         tatemaeDate: tatemae,
+        shunkoDate: shunko,
         hikiwatashiDate: hiki,
     });
 
@@ -933,7 +943,8 @@ function buildItemHtml(s, idx) {
     if (s.isTodo) {
         numLabel = 'ToDo';
         numCls   = 'todo';
-    } else if (s.step === 3 || s.step === 8 || s.step === 16) {
+    } else if (s.step === 3 || s.step === 8 || s.step === 14 || s.step === 17) {
+        // ★ 基準日: 着工(3) / 建方(8) / 竣工(14) / 引渡し(17)
         numLabel = String(s.step).padStart(2, '0');
         numCls   = 'base';
     } else {
@@ -1040,6 +1051,7 @@ document.getElementById('btnConfirm').addEventListener('click', async function()
     const body = new URLSearchParams({
         mode: 'registerDirect',
         bukkenName: currentBukkenName,
+        notionPageId: registeredPageId || '',
         schedules: JSON.stringify(currentSchedules),
     });
 

@@ -918,20 +918,9 @@ function createPropertyPage(name, city, startDate, frameDate, deliveryDate,
     throw new Error('物件作成エラー: ' + result.message);
   }
 
-  // ★ v7: GCal マスターにも4工程イベントを作成（iCalUID付与）
-  //       失敗しても物件作成は成功扱い。GCal なしで動作継続可能
-  try {
-    var notionId = String(result.id).replace(/-/g, '');
-    bulkUpsertMshubEvents(notionId, {
-      chakou:      startDate    || null,
-      tatemae:     frameDate    || null,
-      shunko:      null,        // 竣工はこの時点では未入力
-      hikiwatashi: deliveryDate || null
-    }, name);
-  } catch(gcalErr) {
-    Logger.log('⚠ GCalイベント作成失敗（物件は作成済み）: ' + gcalErr.message);
-  }
-
+  // ★ v7.1: 物件作成では GCal には書かない。
+  //         GCalイベントは工程作成ツール(registerDirect)側で iCalUID 付きで作る。
+  //         → 1回の登録フローで作成経路が1本になり重複なし。
   return result.id;
 }
 
