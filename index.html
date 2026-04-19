@@ -14,7 +14,7 @@
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="manifest" href="manifest.json">
     <title>m's hub</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;800;900&family=Fraunces:ital,wght@0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         /* ===== View Transitions: タブ切替クロスフェード ===== */
         /* 対応: Chrome/Edge/Safari 18+。未対応ブラウザでは無視される */
@@ -43,23 +43,43 @@
         }
 
         :root {
-            --primary: #006837;
-            --primary-l: #e8f5e9;
-            --primary-m: #81c784;
-            --bg: #f4f6f9;
+            /* ブランドグリーン — oklch で統一 */
+            --primary:   oklch(0.55 0.14 155);
+            --primary-l: oklch(0.94 0.04 155);
+            --primary-m: oklch(0.73 0.12 155);
+            /* Rich版エイリアス */
+            --brand:        oklch(0.55 0.14 155);
+            --brand-ink:    oklch(0.35 0.11 155);
+            --brand-soft:   oklch(0.94 0.04 155);
+            --brand-softer: oklch(0.97 0.02 155);
+            --brand-line:   oklch(0.88 0.04 155);
+            /* ニュートラル — 温かみのある oklch */
+            --bg:      oklch(0.985 0.003 95);
             --surface: #ffffff;
-            --surface2: #f8f9fb;
-            --border: #e8eaed;
-            --border2: #d1d5db;
-            --text1: #111827;
-            --text2: #374151;
-            --text3: #4b5563;
-            --green: #059669;
-            --green-l: #ecfdf5;
-            --amber: #d97706;
-            --amber-l: #fffbeb;
-            --red: #dc2626;
-            --red-l: #fef2f2;
+            --surface2: oklch(0.97 0.005 95);
+            --border:  oklch(0.92 0.005 95);
+            --border2: oklch(0.88 0.006 95);
+            --text1:   oklch(0.22 0.01 95);
+            --text2:   oklch(0.38 0.01 95);
+            --text3:   oklch(0.55 0.008 95);
+            /* Rich版インクエイリアス */
+            --ink:   oklch(0.22 0.01 95);
+            --ink-2: oklch(0.38 0.01 95);
+            --ink-3: oklch(0.55 0.008 95);
+            --ink-4: oklch(0.70 0.006 95);
+            --line:  oklch(0.92 0.005 95);
+            --line-2: oklch(0.95 0.004 95);
+            /* ステータス */
+            --green:   oklch(0.52 0.16 155);
+            --green-l: oklch(0.94 0.04 155);
+            --amber:   oklch(0.78 0.12 85);
+            --amber-l: oklch(0.96 0.04 85);
+            --red:     oklch(0.58 0.18 25);
+            --red-l:   oklch(0.96 0.04 25);
+            /* シャドウ */
+            --shadow-sm: 0 1px 2px rgba(15,25,20,0.04);
+            --shadow:    0 1px 3px rgba(15,25,20,0.05), 0 1px 2px rgba(15,25,20,0.04);
+            --shadow-lg: 0 4px 20px rgba(15,25,20,0.06), 0 1px 3px rgba(15,25,20,0.04);
         }
 
         /* ===== ダークモード（OS 設定に自動追従） ===== */
@@ -67,23 +87,34 @@
            気になる箇所が出たら個別に修正する */
         @media (prefers-color-scheme: dark) {
             :root {
-                --primary: #34d399;       /* 暗背景で読める明るめのグリーン */
-                --primary-l: #064e3b;     /* 緑系アクセント背景 */
-                --primary-m: #10b981;
-                --bg: #0f1419;            /* 画面背景 */
-                --surface: #1a1f26;       /* カード背景 */
-                --surface2: #242a33;      /* カード内のサブ背景 */
-                --border: #2d333b;        /* 境界線 */
-                --border2: #3a4049;
-                --text1: #f9fafb;         /* 主要テキスト */
-                --text2: #e5e7eb;         /* 二次テキスト（明るめ） */
-                --text3: #cbd5e1;         /* キャプション（暗背景で読める明度） */
-                --green: #34d399;
-                --green-l: #064e3b;
-                --amber: #fbbf24;
-                --amber-l: #422006;
-                --red: #f87171;
-                --red-l: #450a0a;
+                --primary:   oklch(0.68 0.18 155);
+                --primary-l: oklch(0.30 0.05 155);
+                --primary-m: oklch(0.58 0.16 155);
+                --brand:        oklch(0.68 0.18 155);
+                --brand-ink:    oklch(0.82 0.14 155);
+                --brand-soft:   oklch(0.30 0.05 155);
+                --brand-softer: oklch(0.25 0.03 155);
+                --brand-line:   oklch(0.35 0.05 155);
+                --bg:      oklch(0.18 0.005 95);
+                --surface: oklch(0.22 0.006 95);
+                --surface2: oklch(0.26 0.007 95);
+                --border:  oklch(0.30 0.008 95);
+                --border2: oklch(0.27 0.007 95);
+                --text1:   oklch(0.95 0.005 95);
+                --text2:   oklch(0.78 0.006 95);
+                --text3:   oklch(0.60 0.008 95);
+                --ink:   oklch(0.95 0.005 95);
+                --ink-2: oklch(0.78 0.006 95);
+                --ink-3: oklch(0.60 0.008 95);
+                --ink-4: oklch(0.45 0.006 95);
+                --line:  oklch(0.30 0.008 95);
+                --line-2: oklch(0.26 0.006 95);
+                --green:   oklch(0.68 0.18 155);
+                --green-l: oklch(0.30 0.05 155);
+                --amber:   oklch(0.85 0.12 85);
+                --amber-l: oklch(0.28 0.06 80);
+                --red:     oklch(0.70 0.15 25);
+                --red-l:   oklch(0.28 0.06 25);
             }
             /* ハードコードされた白背景を持つ代表的な要素を救済 */
             body { color-scheme: dark; }
@@ -225,18 +256,27 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 60px;
-            background-color: var(--surface);
-            border-top: 1px solid var(--border);
+            background: transparent;
+            border-top: none;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            z-index: 99;
+            padding-bottom: max(env(safe-area-inset-bottom, 0px), 10px);
+            padding-left: max(env(safe-area-inset-left, 0px), 0px);
+            padding-right: max(env(safe-area-inset-right, 0px), 0px);
+        }
+
+        .bottom-nav-inner {
+            background: oklch(0.20 0.025 155);
+            border-radius: 28px;
             display: flex;
             justify-content: space-around;
-            align-items: center;
-            z-index: 99;
-            /* iPhone のホームインジケーター・角丸部分への対応 */
-            /* safe-area-insetが0でも物理的な角丸（約44pt）を避けるため最低20pxを確保 */
-            padding-bottom: env(safe-area-inset-bottom, 0px);
-            padding-left: max(env(safe-area-inset-left, 0px), 20px);
-            padding-right: max(env(safe-area-inset-right, 0px), 20px);
+            padding: 6px;
+            box-shadow: 0 8px 28px oklch(0.1 0.05 155 / 0.30);
+            width: calc(100% - 32px);
+            max-width: 480px;
+            margin-bottom: 6px;
         }
 
         .bottom-nav-item {
@@ -244,15 +284,18 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            gap: 3px;
             cursor: pointer;
-            color: var(--text3);
-            transition: color 0.12s ease;
+            color: oklch(0.68 0.06 155);
+            transition: background 0.18s ease, color 0.18s ease;
             flex: 1;
+            padding: 8px 4px 6px;
+            border-radius: 22px;
         }
 
         .bottom-nav-item.active {
-            color: var(--primary);
+            background: var(--brand);
+            color: white;
         }
 
         .bottom-nav-item svg {
@@ -386,19 +429,19 @@
         .card-head {
             display: flex;
             align-items: center;
-            padding: 11px 0 11px 10px;
+            padding: 12px 14px 12px 16px;
             margin-bottom: 12px;
-            border-bottom: 1px solid var(--border);
-            border-left: 3px solid var(--primary);
+            border-bottom: 1px solid var(--line);
+            border-left: 3px solid var(--brand);
             gap: 6px;
         }
 
         .card-title {
-            font-size: 13px;
+            font-size: 15px;
             font-weight: 700;
-            color: var(--text1);
+            color: var(--ink);
             flex: 1;
-            letter-spacing: 0.2px;
+            letter-spacing: -0.01em;
         }
 
         .card-action {
@@ -574,6 +617,101 @@
         .greeting-img-mobile {
             display: none;
         }
+
+        /* ===== Rich版 グリーティングカード ===== */
+        .greet {
+            position: relative;
+            height: 400px;
+            overflow: hidden;
+            border-radius: 18px;
+            background: #1a2520;
+            box-shadow: 0 12px 32px rgba(15,25,20,0.15);
+            margin-bottom: 16px;
+        }
+        .greet-img {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            object-position: center 15%;
+            filter: saturate(0.92) contrast(1.02);
+            transform: scale(1.7) translateY(-8%);
+            transform-origin: center 20%;
+        }
+        .greet-grad {
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg,
+                rgba(8,16,12,0.10) 0%, transparent 25%,
+                transparent 55%,
+                rgba(8,16,12,0.28) 72%, rgba(8,16,12,0.72) 100%);
+        }
+        .greet-top {
+            position: absolute; top: 18px; left: 20px; right: 16px;
+            z-index: 2;
+            display: flex; justify-content: flex-end; align-items: flex-start;
+            color: white;
+        }
+        .greet-date { display: flex; align-items: flex-start; gap: 10px; }
+        .greet-dd {
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 44px; font-weight: 300;
+            letter-spacing: -0.02em;
+            line-height: 1;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 2px 16px rgba(0,0,0,0.3);
+        }
+        .greet-dd-meta { display: flex; flex-direction: column; gap: 2px; padding-top: 6px; }
+        .greet-dd-month {
+            font-family: 'Fraunces', serif;
+            font-style: italic; font-weight: 500;
+            font-size: 16px; line-height: 1;
+            letter-spacing: -0.01em;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+        }
+        .greet-dd-dow {
+            font-size: 10px; font-weight: 700;
+            letter-spacing: 0.22em; opacity: 0.9;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+        }
+        .greet-dd-year {
+            font-size: 10px; font-weight: 600;
+            letter-spacing: 0.12em; opacity: 0.75;
+            font-variant-numeric: tabular-nums;
+            margin-top: 2px;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+        }
+        .greet-rokuyo { display: flex; flex-direction: row; gap: 4px; align-items: center; margin-top: 4px; flex-wrap: wrap; }
+        .greet-bottom {
+            position: absolute; bottom: 20px; left: 20px; right: 20px;
+            z-index: 2; color: white;
+        }
+        .greet-kicker {
+            font-family: 'Fraunces', serif;
+            font-style: italic; font-weight: 400;
+            font-size: 15px; line-height: 1.5;
+            margin-bottom: 4px; opacity: 0.9;
+            text-shadow: 0 1px 10px rgba(0,0,0,0.55);
+        }
+        .greet-sub {
+            font-size: 14px; font-weight: 500;
+            line-height: 1.55; letter-spacing: 0.02em;
+            margin-bottom: 12px;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.6);
+        }
+        .greet-badges { display: flex; gap: 7px; flex-wrap: wrap; }
+        .greet-badge {
+            background: rgba(255,255,255,0.14);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 100px;
+            font-size: 11px; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 6px;
+            border: 1px solid rgba(255,255,255,0.24);
+            backdrop-filter: blur(10px);
+        }
+        .greet-badge .greet-num { font-weight: 700; font-size: 13px; }
+        .rokuyo-tag { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 5px; background-color: rgba(255,255,255,0.82); color: #006837; letter-spacing: 0.5px; text-shadow: none; display: inline-flex; align-items: center; }
+        .rokuyo-tag.lucky { background-color: rgba(0,140,70,0.85); color: #fff; }
+        .rokuyo-tag.caution { background-color: rgba(220,38,38,0.9); color: #ffffff; }
 
         .schedule-section {
             margin-bottom: 12px;
@@ -1106,54 +1244,41 @@
             color: var(--text1);
         }
 
-        .month-table {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 3px;
+        /* ===== 年間棒グラフ (ybc) ===== */
+        .ybc-legend { display: flex; gap: 14px; margin-bottom: 10px; }
+        .ybc-legend-item { display: flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 600; color: var(--ink-2); }
+        .ybc-legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+        .ybc {
+            display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px;
+            align-items: end; height: 100px;
+            padding: 0 2px 0; border-bottom: 1px solid var(--line);
+            position: relative;
         }
-
-        .month-cell {
-            text-align: center;
-            padding: 3px 1px;
-            border-radius: 4px;
-            background-color: var(--surface2);
-            border: 1px solid var(--border);
-        }
-
-        .month-cell.past {
-            background-color: var(--primary-l);
-            border-color: var(--primary-m);
-        }
-
-        .month-cell.current {
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .month-cell.current .month-cell-label,
-        .month-cell.current .month-cell-count {
-            color: #fff;
-        }
-
-        .month-cell.start-row .month-cell.past {
-            background-color: #eff6ff;
-            border-color: #93c5fd;
-        }
-
-        .month-cell-label {
-            font-size: 8px;
-            color: var(--text2);
-            font-weight: 500;
-            line-height: 1.2;
-        }
-
-        .month-cell-count {
-            font-family: 'DM Mono', monospace;
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text1);
-            line-height: 1.3;
-        }
+        .ybc::before { content: ''; position: absolute; left: 0; right: 0; top: 33%; border-top: 1px dashed var(--line); z-index: 0; }
+        .ybc::after  { content: ''; position: absolute; left: 0; right: 0; top: 66%; border-top: 1px dashed var(--line); z-index: 0; }
+        .ybc-col { display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; position: relative; z-index: 1; }
+        .ybc-bars { display: flex; flex: 1; align-items: flex-end; gap: 2px; width: 100%; justify-content: center; padding-bottom: 2px; }
+        .ybc-stack { display: flex; flex-direction: column; align-items: center; gap: 1px; height: 100%; justify-content: flex-end; }
+        .ybc-count { font-size: 8px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; min-height: 9px; }
+        .ybc-count.chakko      { color: #2563eb; }
+        .ybc-count.hikiwatashi { color: #d97706; }
+        .ybc-count.zero        { opacity: 0; }
+        .ybc-bar { width: 9px; border-radius: 2px 2px 0 0; min-height: 2px; transition: height 0.3s ease; }
+        .ybc-bar.chakko      { background: linear-gradient(180deg, #3b82f6, #1d4ed8); }
+        .ybc-bar.hikiwatashi { background: linear-gradient(180deg, #f59e0b, #b45309); }
+        .ybc-bar.zero        { background: var(--line); height: 2px !important; }
+        .ybc-col.current .ybc-bar { box-shadow: 0 0 0 1.5px var(--ink); }
+        .ybc-labels { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; padding: 5px 2px 0; }
+        .ybc-label { text-align: center; font-size: 8.5px; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+        .ybc-label.current { color: var(--brand); font-weight: 800; position: relative; }
+        .ybc-label.current::before { content: ''; position: absolute; left: 50%; top: -6px; width: 4px; height: 4px; border-radius: 50%; background: var(--brand); transform: translateX(-50%); }
+        .ybc-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+        .ybc-sum { background: var(--surface2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+        .ybc-sum-lbl { font-size: 10px; font-weight: 700; color: var(--ink-3); letter-spacing: 0.06em; margin-bottom: 2px; display: flex; align-items: center; gap: 4px; }
+        .ybc-sum-num { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+        .ybc-sum-num .unit { font-size: 11px; font-weight: 600; color: var(--ink-3); margin-left: 2px; }
+        .ybc-sum-sub { font-size: 10px; color: var(--ink-3); margin-top: 3px; }
+        .ybc-sum-sub .num { font-weight: 700; color: var(--ink); }
 
         .section-divider {
             height: 1px;
@@ -1642,6 +1767,20 @@
             to   { transform: rotate(360deg); }
         }
 
+        /* Googleタスク更新ボタン（ピル型・ミニマル） */
+        .gtask-refresh-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 28px; height: 28px; padding: 0;
+            background: var(--surface2, #f1f3f5);
+            border: none; border-radius: 999px;
+            color: var(--text2, #6b7280); cursor: pointer;
+            transition: background .15s, color .15s, transform .1s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .gtask-refresh-btn:active { background: var(--sfc-light, #e2e6ea); transform: scale(0.94); }
+        .gtask-refresh-btn:disabled { opacity: 0.55; cursor: default; }
+        .gtask-refresh-btn svg.spinning { animation: spin 0.8s linear infinite; }
+
         /* トースト通知 */
         #syncToast {
             position: fixed;
@@ -1976,22 +2115,10 @@
                 padding: 12px 14px 16px;
             }
 
-            .month-table {
-                grid-template-columns: repeat(6, 1fr);
-                gap: 2px;
-            }
-
-            .month-cell {
-                padding: 2px 1px;
-            }
-
-            .month-cell-count {
-                font-size: 10px;
-            }
-
-            .month-cell-label {
-                font-size: 7px;
-            }
+            .ybc { height: 80px; }
+            .ybc-bar { width: 7px; }
+            .ybc-count { font-size: 7px; }
+            .ybc-label { font-size: 7.5px; }
 
         }
 
@@ -2018,28 +2145,10 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* ===== 新ボトムナビ（6タブ、アクティブインジケーター付き） ===== */
-        .bottom-nav {
-            height: calc(62px + env(safe-area-inset-bottom, 0px));
-            align-items: flex-start;
-            padding-top: 4px;
-            /* 物理的な角丸を避けるため最低20pxを確保 */
-            padding-left: max(env(safe-area-inset-left, 0px), 20px);
-            padding-right: max(env(safe-area-inset-right, 0px), 20px);
-        }
-        .main-content { margin-bottom: calc(62px + env(safe-area-inset-bottom, 0px)); }
-        .bottom-nav-item { position: relative; gap: 3px; }
-        .bottom-nav-item.active::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 50%;
-            transform: translateX(-50%);
-            width: 20px; height: 2px;
-            background: var(--primary);
-            border-radius: 0 0 2px 2px;
-        }
+        /* ===== 新ボトムナビ（フローティングピル） ===== */
+        .main-content { margin-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
         .bottom-nav-item svg { width: 22px; height: 22px; }
-        .bottom-nav-label { font-size: 10px; font-weight: 500; }
+        .bottom-nav-item.active::before { display: none; }
 
         /* ===== ver2: フォント・コントラスト改善 ===== */
         body { font-size: 15px; }
@@ -2056,28 +2165,48 @@
 
         /* ===== ver2: ポータルカード（ホーム） ===== */
         .portal-status-bar {
-            display: flex; gap: 6px; margin-bottom: 10px;
+            display: flex;
+            background: var(--surface);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 14px;
+            overflow: hidden;
         }
         .portal-stat {
-            flex: 1; min-width: 0; background: var(--surface);
-            border: 1px solid var(--border); border-radius: 8px;
-            padding: 6px 10px; cursor: pointer;
-            display: flex; align-items: center; justify-content: space-between;
-            gap: 6px;
-            transition: border-color 0.15s;
+            flex: 1; min-width: 0;
+            padding: 14px 10px 12px;
+            cursor: pointer;
+            display: flex; flex-direction: column; align-items: center;
+            gap: 3px;
+            position: relative;
+            -webkit-tap-highlight-color: transparent;
         }
-        .portal-stat:active { border-color: var(--primary); }
+        .portal-stat:not(:last-child)::after {
+            content: ''; position: absolute;
+            right: 0; top: 20%; bottom: 20%;
+            width: 1px; background: var(--line);
+        }
+        .portal-stat:active { background: var(--brand-softer); }
         .portal-stat-label {
-            font-size: 11px; color: var(--text2); font-weight: 500;
+            font-size: 10px; color: var(--ink-3);
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
             order: 1;
         }
         .portal-stat-num {
-            font-family: 'Noto Sans JP', sans-serif; font-size: 15px;
-            font-weight: 700; color: var(--primary); line-height: 1;
+            font-size: 30px; font-weight: 800;
+            color: var(--ink);
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            font-variant-numeric: tabular-nums;
             order: 2;
         }
         .portal-stat-unit {
-            font-size: 10px; font-weight: 600; margin-left: 1px;
+            font-size: 10px; font-weight: 600;
+            color: var(--ink-3);
+            margin-left: 1px;
         }
         .portal-tools-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
@@ -2107,84 +2236,76 @@
         #homeMonthDigestCard { padding: 0; overflow: hidden; }
         .home-month-nav {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 10px 12px; border-bottom: 1px solid var(--border);
+            padding: 10px 14px; border-bottom: 1px solid var(--line);
         }
+        .home-month-nav-center { text-align: center; }
+        .home-month-nav-year { font-size: 10px; font-weight: 600; color: var(--ink-3); letter-spacing: 0.15em; }
+        .home-month-nav-month { font-size: 18px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; line-height: 1.15; }
+        .home-month-nav-eng { font-size: 12px; font-weight: 400; color: var(--ink-3); margin-left: 3px; }
+        .home-month-legend {
+            display: flex; gap: 10px; padding: 7px 14px; flex-wrap: wrap;
+            border-bottom: 1px solid var(--line);
+        }
+        .home-month-legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: var(--ink-2); }
+        .home-month-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
         .home-month-body {
             position: relative; overflow: clip; touch-action: pan-y;
         }
         .home-month-btn {
-            width: 30px; height: 30px; border-radius: 8px; border: none;
-            background: var(--surface2); color: var(--text2);
+            width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--line);
+            background: var(--surface); color: var(--ink-2);
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: background .15s, color .15s;
         }
         .home-month-btn:active, .home-month-btn:hover {
-            background: var(--primary-l); color: var(--primary);
+            background: var(--brand-soft); color: var(--brand);
         }
-        .home-month-label {
-            font-size: 14px; font-weight: 700; color: var(--text1);
+        /* ===== ○月の工程: フェーズ行 + ピル ===== */
+        .phase-rows { display: flex; flex-direction: column; padding: 4px 14px 10px; }
+        .phase-row {
+            display: grid;
+            grid-template-columns: 50px 1fr auto;
+            gap: 8px;
+            align-items: center;
+            padding: 7px 0;
+            border-top: 1px solid var(--line);
         }
-        .home-month-grid {
-            display: grid; grid-template-columns: 1fr 1fr;
+        .phase-row:first-child { border-top: none; padding-top: 2px; }
+        .phase-row-label {
+            display: flex; align-items: center; gap: 5px;
+            font-size: 11px; font-weight: 700; color: var(--ink-2);
+            white-space: nowrap;
         }
-        .home-month-cell {
-            padding: 10px 12px;
-            border-right: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-            min-width: 0;
+        .phase-row-dot {
+            width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
         }
-        .home-month-cell:nth-child(2n)     { border-right: none; }
-        .home-month-cell:nth-child(n+3)    { border-bottom: none; }
-        .home-month-cell-head {
-            display: flex; align-items: center; gap: 4px;
-            font-size: 11px; font-weight: 700;
-            margin-bottom: 8px;
+        .phase-row-items { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+        .phase-pill {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 8px 3px 6px;
+            border-radius: 100px;
+            font-size: 10px; font-weight: 600;
+            background: var(--surface2); border: 1px solid var(--line);
+            color: var(--ink); white-space: nowrap;
         }
-        .home-month-cell-head > span:first-of-type { letter-spacing: .02em; }
-        .home-month-count {
-            margin-left: auto;
-            font-family: 'DM Mono', monospace; font-size: 10px;
-            color: var(--text3); font-weight: 600;
-            padding: 1px 6px; background: var(--surface2); border-radius: 10px;
-        }
-        .home-month-cell-body {
-            max-height: 180px; overflow-y: auto;
-        }
-        .home-month-item {
-            padding: 5px 8px;
-            border-left: 3px solid #ccc;
-            background: var(--surface2);
-            border-radius: 4px;
-            margin-bottom: 4px;
-        }
-        .home-month-item:last-child { margin-bottom: 0; }
-        .home-month-item.past {
-            opacity: 0.4;
-            border-left-color: #bbb !important;
-        }
-        .home-month-item.past .home-month-item-name { color: var(--text3); }
-        .home-month-item-row {
-            display: flex; align-items: baseline; gap: 6px;
-            min-width: 0; overflow: hidden;
-        }
-        .home-month-item-name {
-            font-size: 12px; font-weight: 600; color: var(--text1);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            flex-shrink: 1; min-width: 0;
-        }
-        .home-month-item-loc {
-            font-size: 10px; color: var(--text3);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            flex-shrink: 0;
-        }
-        .home-month-item-date {
-            font-size: 10px; font-family: 'DM Mono', monospace;
-            color: var(--text3); letter-spacing: -0.01em;
-            margin-top: 1px;
+        .phase-pill.past { opacity: 0.55; }
+        .phase-pill-day { font-weight: 700; font-size: 9.5px; font-variant-numeric: tabular-nums; }
+        .phase-pill-name { max-width: 72px; overflow: hidden; text-overflow: ellipsis; }
+        .phase-pill.blue   { background: oklch(0.96 0.02 250); border-color: oklch(0.87 0.05 250); color: #2563eb; }
+        .phase-pill.blue   .phase-pill-day { color: #2563eb; }
+        .phase-pill.green  { background: var(--brand-soft); border-color: var(--brand-line); color: var(--brand); }
+        .phase-pill.green  .phase-pill-day { color: var(--brand); }
+        .phase-pill.purple { background: oklch(0.97 0.02 290); border-color: oklch(0.88 0.05 290); color: #7c3aed; }
+        .phase-pill.purple .phase-pill-day { color: #7c3aed; }
+        .phase-pill.amber  { background: oklch(0.97 0.04 75); border-color: oklch(0.89 0.09 75); color: #d97706; }
+        .phase-pill.amber  .phase-pill-day { color: #d97706; }
+        .phase-row-total {
+            font-size: 11px; font-weight: 800; color: var(--ink);
+            padding: 1px 6px; background: var(--surface2); border-radius: 5px;
+            min-width: 24px; text-align: center; font-variant-numeric: tabular-nums;
         }
         .home-month-empty {
-            text-align: center; padding: 14px 6px;
-            color: var(--text3); font-size: 11px;
+            font-size: 11px; color: var(--ink-3); font-style: italic;
         }
 
         /* ===== 共通: セグメント型タブ（pill） ===== */
@@ -3181,6 +3302,7 @@
     </nav>
 
     <nav class="bottom-nav">
+        <div class="bottom-nav-inner">
         <div class="bottom-nav-item active" data-tab="home" onclick="switchTab('home')">
             <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             <span class="bottom-nav-label">ホーム</span>
@@ -3201,39 +3323,36 @@
             <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
             <span class="bottom-nav-label">ツール</span>
         </div>
+        </div>
     </nav>
 
     <div class="tab-content active" id="tab-home">
     <main class="main-content mobile" id="mainContent">
 
-        <div class="card greeting-card">
-            <img class="greeting-img-mobile" src="assets/treeing.png" alt="">
-            <div class="greeting-content">
-                <div class="greeting-top">
-                    <div class="date-area">
-                        <div class="date-main-row">
-                            <div class="date-main" id="dateMain">2026年4月4日（土）</div>
-                        </div>
-                        <div class="date-rokuyo" id="dateRokuyo"></div>
+        <div class="greet">
+            <img class="greet-img" src="assets/hero.jpg" alt="hero">
+            <div class="greet-grad"></div>
+            <div class="greet-top">
+                <div class="greet-date">
+                    <span class="greet-dd" id="greetDay"></span>
+                    <div class="greet-dd-meta">
+                        <div class="greet-dd-month" id="greetMonth"></div>
+                        <div class="greet-dd-dow" id="greetDow"></div>
+                        <div class="greet-dd-year" id="greetYear"></div>
+                        <div class="greet-rokuyo" id="dateRokuyo"></div>
                     </div>
                 </div>
-                <div class="greeting-bottom">
-                    <div class="greeting-comment" id="greetingComment"></div>
-                </div>
+            </div>
+            <div class="greet-bottom">
+                <div class="greet-kicker" id="greetKicker"></div>
+                <div class="greet-sub" id="greetingComment"></div>
+                <div class="greet-badges" id="greetBadges"></div>
             </div>
         </div>
 
-        <!-- ステータスサマリー -->
-        <div class="portal-status-bar" id="homeStatusBar">
-            <div class="portal-stat" onclick="switchTab('properties')">
-                <div class="portal-stat-num"><span id="homeStatShikakari">—</span><span class="portal-stat-unit">件</span></div>
-                <div class="portal-stat-label">仕掛り中</div>
-            </div>
-            <div class="portal-stat" onclick="switchTab('properties')">
-                <div class="portal-stat-num"><span id="homeStatPrecon">—</span><span class="portal-stat-unit">件</span></div>
-                <div class="portal-stat-label">着工前</div>
-            </div>
-        </div>
+        <!-- ステータスサマリー（グリーティングカードに表示済みのため非表示） -->
+        <span id="homeStatShikakari" style="display:none;"></span>
+        <span id="homeStatPrecon" style="display:none;"></span>
 
         <!-- 今月の工程ダイジェスト（着工・建て方・竣工・引渡し） -->
         <div class="grid-full">
@@ -3247,9 +3366,9 @@
                 <div class="card-head">
                     <div class="card-title" id="handoverTitle"></div>
                 </div>
-                <div id="statusCards"></div>
-                <div class="section-divider"></div>
                 <div class="schedule-chart-area" id="scheduleChart"></div>
+                <div class="section-divider"></div>
+                <div id="statusCards"></div>
             </div>
         </div>
 
@@ -3830,13 +3949,27 @@
             const p = document.getElementById('homeStatPrecon');
             if (s) s.textContent = activeShikakari.length;
             if (p) p.textContent = preconProperties.length;
+            const badges = document.getElementById('greetBadges');
+            if (badges) badges.innerHTML =
+                `<span class="greet-badge">仕掛り中 <span class="greet-num">${activeShikakari.length}</span></span>` +
+                `<span class="greet-badge">着工前 <span class="greet-num">${preconProperties.length}</span></span>`;
         }
 
         function updateDate() {
             const now = new Date();
-            const weeks = ['日', '月', '火', '水', '木', '金', '土'];
-            document.getElementById('dateMain').textContent =
-                `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日（${weeks[now.getDay()]}）`;
+            const engMonths = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            const engDows   = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+            const kickers = ['Good night.','Good night.','Good night.','Good night.','Good night.',
+                             'Good morning.','Good morning.','Good morning.','Good morning.','Good morning.',
+                             'Good morning.','Good afternoon.','Good afternoon.','Good afternoon.',
+                             'Good afternoon.','Good afternoon.','Good afternoon.','Good afternoon.',
+                             'Good evening.','Good evening.','Good evening.','Good evening.','Good evening.','Good night.'];
+            const el = id => document.getElementById(id);
+            if (el('greetDay'))   el('greetDay').textContent   = now.getDate();
+            if (el('greetMonth')) el('greetMonth').textContent = engMonths[now.getMonth()];
+            if (el('greetDow'))   el('greetDow').textContent   = engDows[now.getDay()];
+            if (el('greetYear'))  el('greetYear').textContent  = now.getFullYear();
+            if (el('greetKicker')) el('greetKicker').textContent = kickers[now.getHours()];
 
             const rokuyo = getRokuyo(now);
             const sanrinbo = isSanrinbo(now);
@@ -4134,6 +4267,31 @@
             }
         }
 
+        // Googleタスクだけを手動リフレッシュ（スピンボタン）
+        let _gtaskRefreshing = false;
+        async function refreshGoogleTasks(btn) {
+            if (_gtaskRefreshing) return;
+            _gtaskRefreshing = true;
+            const icon = btn ? btn.querySelector('svg') : null;
+            if (icon) icon.classList.add('spinning');
+            if (btn) btn.disabled = true;
+            try {
+                _fetchLiveDataLastAt = 0; // TTLリセットして強制取得
+                await fetchLiveData();
+                const d = new Date();
+                const ts = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+                const lbl = document.getElementById('gtaskUpdatedLabel');
+                if (lbl) lbl.textContent = '更新: ' + ts;
+            } catch(e) {
+                const lbl = document.getElementById('gtaskUpdatedLabel');
+                if (lbl) lbl.textContent = '更新失敗';
+            } finally {
+                _gtaskRefreshing = false;
+                if (icon) icon.classList.remove('spinning');
+                if (btn) btn.disabled = false;
+            }
+        }
+
         // ============================================================
         // GAS APIリアルタイム取得（優先タスク + カレンダー）
         // GAS_WEBAPP_URL が設定されていれば自動で呼ばれる
@@ -4355,47 +4513,47 @@
 
         function renderMonthTable() {
             const now = new Date();
-            const year = now.getFullYear();
             const currentMonth = now.getMonth(); // 0-based
-            const startCounts = yearlyStartCounts;
+            const startCounts    = yearlyStartCounts;
             const deliveryCounts = yearlyDeliveryCounts;
-            const startTotal = startCounts.reduce((a, b) => a + b, 0);
+            const startTotal    = startCounts.reduce((a, b) => a + b, 0);
             const deliveryTotal = deliveryCounts.reduce((a, b) => a + b, 0);
             const c = document.getElementById('scheduleChart');
+            if (!c) return;
 
-            function buildRow(data, colorPast, colorCurrent) {
-                return `<div class="month-table">${data.map((cnt, i) => {
-                    const isPast = i < currentMonth;
-                    const isCurr = i === currentMonth;
-                    const cls = isCurr ? 'current' : isPast ? 'past' : '';
-                    const style = isCurr ? `background-color:${colorCurrent};border-color:${colorCurrent};`
-                        : isPast ? `background-color:${colorPast};border-color:${colorPast === '#eff6ff' ? '#93c5fd' : 'var(--primary-m)'};` : '';
-                    return `<div class="month-cell ${cls}" ${style ? `style="${style}"` : ''}>
-                        <div class="month-cell-label">${monthLabels[i]}</div>
-                        <div class="month-cell-count">${cnt}</div>
-                    </div>`;
-                }).join('')}</div>`;
-            }
+            const max = Math.max(...startCounts, ...deliveryCounts, 1);
+            const LABELS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+            const colsHtml = startCounts.map((ch, i) => {
+                const hk = deliveryCounts[i];
+                const isCurr = i === currentMonth;
+                const chH  = ch  ? Math.max(4, Math.round((ch  / max) * 100)) : 0;
+                const hkH  = hk  ? Math.max(4, Math.round((hk  / max) * 100)) : 0;
+                return `<div class="ybc-col${isCurr ? ' current' : ''}">
+                    <div class="ybc-bars">
+                        <div class="ybc-stack">
+                            <div class="ybc-count chakko${ch === 0 ? ' zero' : ''}">${ch || 0}</div>
+                            <div class="ybc-bar chakko${ch === 0 ? ' zero' : ''}" style="height:${chH}%;"></div>
+                        </div>
+                        <div class="ybc-stack">
+                            <div class="ybc-count hikiwatashi${hk === 0 ? ' zero' : ''}">${hk || 0}</div>
+                            <div class="ybc-bar hikiwatashi${hk === 0 ? ' zero' : ''}" style="height:${hkH}%;"></div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            const labelsHtml = LABELS.map((lbl, i) =>
+                `<div class="ybc-label${i === currentMonth ? ' current' : ''}">${lbl}</div>`
+            ).join('');
 
             c.innerHTML = `
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                    <div>
-                        <div class="schedule-chart-row-label">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="15" rx="2"/><path d="M2 10h20"/><path d="M12 6V2"/><path d="M6 6V2"/><path d="M18 6V2"/></svg>
-                            着工
-                            <span class="schedule-chart-row-total">${startTotal}棟</span>
-                        </div>
-                        ${buildRow(startCounts, '#eff6ff', '#2563eb')}
-                    </div>
-                    <div>
-                        <div class="schedule-chart-row-label">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                            引渡し
-                            <span class="schedule-chart-row-total">${deliveryTotal}棟</span>
-                        </div>
-                        ${buildRow(deliveryCounts, 'var(--primary-l)', 'var(--primary)')}
-                    </div>
+                <div class="ybc-legend">
+                    <div class="ybc-legend-item"><span class="ybc-legend-dot" style="background:#3b82f6;"></span>着工</div>
+                    <div class="ybc-legend-item"><span class="ybc-legend-dot" style="background:#f59e0b;"></span>引渡し</div>
                 </div>
+                <div class="ybc">${colsHtml}</div>
+                <div class="ybc-labels">${labelsHtml}</div>
             `;
         }
 
@@ -4409,14 +4567,10 @@
         let homeMonthSliding = false;
 
         const HOME_MONTH_TYPES = [
-            { key: '着工', label: '着工',   color: '#2563eb',
-              icon: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#2563eb" stroke-width="2.5"><rect x="2" y="6" width="20" height="15" rx="2"/><path d="M2 10h20M12 6V2M6 6V2M18 6V2"/></svg>' },
-            { key: '建方', label: '建て方', color: '#3b82f6',
-              icon: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#3b82f6" stroke-width="2.5"><path d="M3 21V10l9-7 9 7v11"/><path d="M9 21v-6h6v6"/></svg>' },
-            { key: '竣工', label: '竣工',   color: '#059669',
-              icon: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' },
-            { key: '引渡', label: '引渡し', color: 'var(--primary)',
-              icon: '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--primary)" stroke-width="2.5"><path d="M21 10H3M21 14H3M12 3v18"/></svg>' }
+            { key: '着工', label: '着工',   pillClass: 'blue',   dotColor: '#2563eb' },
+            { key: '建方', label: '建て方', pillClass: 'green',  dotColor: 'var(--brand)' },
+            { key: '竣工', label: '竣工',   pillClass: 'purple', dotColor: '#7c3aed' },
+            { key: '引渡', label: '引渡し', pillClass: 'amber',  dotColor: '#d97706' }
         ];
 
         function _buildHomeMonthGridHtml(offset) {
@@ -4441,31 +4595,27 @@
             });
             Object.values(bucket).forEach(list => list.sort((a,b) => a.date - b.date));
 
-            function buildItem(ev, color) {
+            function buildItem(ev, pillClass) {
                 const d = ev.date;
                 const isPast = d.getTime() < todayMs;
-                const dayLbl = `${d.getMonth()+1}/${d.getDate()}(${WEEKDAYS_JP[d.getDay()]})`;
-                const locHtml = ev.location ? `<span class="home-month-item-loc">${ev.location}</span>` : '';
-                return `<div class="home-month-item${isPast ? ' past' : ''}" style="border-left-color:${isPast ? '#bbb' : color};">
-                    <div class="home-month-item-row">
-                        <span class="home-month-item-name">${ev.name}</span>
-                        ${locHtml}
-                    </div>
-                    <div class="home-month-item-date">${dayLbl}</div>
-                </div>`;
+                const dayLbl = `${d.getMonth()+1}/${d.getDate()}`;
+                const chk = isPast ? `<span style="font-size:8px;margin-right:1px;opacity:0.7;">✓</span>` : '';
+                return `<span class="phase-pill ${pillClass}${isPast ? ' past' : ''}">
+                    ${chk}<span class="phase-pill-day">${dayLbl}</span>
+                    <span class="phase-pill-name">${ev.name}</span>
+                </span>`;
             }
-            const empty = `<div class="home-month-empty">なし</div>`;
 
-            return `<div class="home-month-grid">
+            return `<div class="phase-rows">
                 ${HOME_MONTH_TYPES.map(t => `
-                    <div class="home-month-cell">
-                        <div class="home-month-cell-head" style="color:${t.color};">
-                            ${t.icon}<span>${t.label}</span>
-                            <span class="home-month-count">${bucket[t.key].length}</span>
+                    <div class="phase-row">
+                        <div class="phase-row-label">${t.label}</div>
+                        <div class="phase-row-items">
+                            ${bucket[t.key].length
+                                ? bucket[t.key].map(ev => buildItem(ev, t.pillClass)).join('')
+                                : `<span class="home-month-empty">なし</span>`}
                         </div>
-                        <div class="home-month-cell-body">
-                            ${bucket[t.key].length ? bucket[t.key].map(ev => buildItem(ev, t.color)).join('') : empty}
-                        </div>
+                        <div class="phase-row-total">${bucket[t.key].length}</div>
                     </div>
                 `).join('')}
             </div>`;
@@ -4505,8 +4655,11 @@
 
             // ラベルも一緒に切替
             const target = new Date(new Date().getFullYear(), new Date().getMonth() + nextOffset, 1);
-            const lbl = document.querySelector('#homeUpcomingProps .home-month-label');
-            if (lbl) lbl.textContent = `${target.getFullYear()}年${target.getMonth()+1}月の工程`;
+            const _em = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            const yearEl  = document.getElementById('homeMonthNavYear');
+            const monthEl = document.getElementById('homeMonthNavMonth');
+            if (yearEl)  yearEl.textContent = target.getFullYear();
+            if (monthEl) monthEl.innerHTML  = `${target.getMonth()+1}月<span class="home-month-nav-eng">/ ${_em[target.getMonth()]}</span>`;
 
             setTimeout(() => {
                 oldPane.remove();
@@ -4522,17 +4675,29 @@
             if (!el) return;
             const now = new Date();
             const target = new Date(now.getFullYear(), now.getMonth() + homeMonthOffset, 1);
-            const monthLabel = `${target.getFullYear()}年${target.getMonth()+1}月`;
+            const engMonths = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            const year  = target.getFullYear();
+            const month = target.getMonth() + 1;
+            const eng   = engMonths[target.getMonth()];
 
             el.innerHTML = `
+                <div class="card-head">
+                    <div class="card-title">月別工程スケジュール</div>
+                </div>
                 <div class="home-month-nav">
                     <button class="home-month-btn" onclick="changeHomeMonth(-1)" aria-label="前月">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
                     </button>
-                    <div class="home-month-label">${monthLabel}の工程</div>
+                    <div class="home-month-nav-center">
+                        <div class="home-month-nav-year" id="homeMonthNavYear">${year}</div>
+                        <div class="home-month-nav-month" id="homeMonthNavMonth">${month}月<span class="home-month-nav-eng">/ ${eng}</span></div>
+                    </div>
                     <button class="home-month-btn" onclick="changeHomeMonth(1)" aria-label="翌月">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                     </button>
+                </div>
+                <div class="home-month-legend">
+                    ${HOME_MONTH_TYPES.map(t => `<span class="home-month-legend-item"><span class="home-month-legend-dot" style="background:${t.dotColor};"></span>${t.label}</span>`).join('')}
                 </div>
                 <div class="home-month-body" id="homeMonthBody">
                     ${_buildHomeMonthGridHtml(homeMonthOffset)}
@@ -4794,6 +4959,8 @@
             document.getElementById('deliveredToggle').addEventListener('click', () => {
                 document.getElementById('deliveredCard').classList.toggle('open');
             });
+            // 開閉状態を localStorage から復元＆以降の変更を自動保存
+            applyStatusCardFold();
         }
 
         function closeModal() {
@@ -5055,27 +5222,49 @@
             }, ANIM_DUR);
         }
 
-        // ========= 週間予定 スワイプジェスチャー（指追従・スナップ） =========
+        // ========= 週間予定 スワイプジェスチャー（指追従・慣性スナップ） =========
         (function() {
-            var THRESH_RATIO = 0.28; // 幅の28%以上でページ送り
-            var THRESH_PX    = 44;   // 最低でも44px以上でページ送り
-            var ANIM_MS      = 280;  // スナップアニメーション時間
-            var EASE         = 'cubic-bezier(0.25,0.46,0.45,0.94)';
+            var THRESH_RATIO = 0.28;  // 幅の28%以上でページ送り
+            var THRESH_PX    = 44;    // 最低でも44px以上でページ送り
+            var FLICK_VEL    = 0.45;  // 指離し時の速度がこれ以上(px/ms)なら距離が短くてもページ送り
+            var BASE_ANIM    = 280;   // 基準アニメーション時間
+            var MIN_ANIM     = 170;   // 速い慣性時の最短アニメ時間
+            var MAX_ANIM     = 360;   // ゆっくり時の最長アニメ時間
+            var EASE_STD     = 'cubic-bezier(0.25,0.46,0.45,0.94)';
+            var EASE_FLICK   = 'cubic-bezier(0.18,0.72,0.24,1)'; // 慣性寄り（急減速）
 
             var touchId = null, startX = 0, startY = 0;
             var decided = false, isHoriz = false;
-            var ready   = false;   // prepare()完了フラグ
-            var swDir   = null;    // 'next' | 'prev'
-            var curPane = null;    // 現在のパネル（絶対配置に変更済み）
-            var nxtPane = null;    // 先読みパネル（絶対配置）
+            var ready   = false;
+            var swDir   = null;
+            var curPane = null, nxtPane = null;
             var elW     = 0;
             var snapping = false;
+            // 速度計算用: 直近のポイントを保持して指離し時の velocity を計算
+            var samples = [];  // [{x, t}]
 
             function getEl() { return document.getElementById('tab-week'); }
 
             function reset() {
                 touchId = null; decided = false; isHoriz = false;
                 ready = false; swDir = null; curPane = null; nxtPane = null; elW = 0;
+                samples = [];
+            }
+
+            function pushSample(x) {
+                var now = performance.now();
+                samples.push({ x: x, t: now });
+                // 直近120msのみ保持（速度算出用）
+                while (samples.length > 1 && now - samples[0].t > 120) samples.shift();
+            }
+
+            function calcVelocity() {
+                if (samples.length < 2) return 0;
+                var first = samples[0];
+                var last = samples[samples.length - 1];
+                var dt = last.t - first.t;
+                if (dt <= 0) return 0;
+                return (last.x - first.x) / dt; // px/ms（+=右、-=左）
             }
 
             function prepare(el, dx) {
@@ -5122,11 +5311,18 @@
                 nxtPane.style.transform = 'translateX(' + (nxtStart + dx) + 'px)';
             }
 
-            function snapComplete(el) {
+            function snapComplete(el, dxAtRelease, velocity) {
                 snapping = true;
                 schedWeekOffset += (swDir === 'next' ? 1 : -1);
                 var exitX = swDir === 'next' ? -elW : elW;
-                var tr = 'transform ' + ANIM_MS + 'ms ' + EASE;
+
+                // 残距離と速度から自然な持続時間を計算
+                var remaining = Math.abs(exitX - dxAtRelease);
+                var speed = Math.max(Math.abs(velocity), 0.3); // px/ms、最低値で割り込み防止
+                var dur = Math.max(MIN_ANIM, Math.min(MAX_ANIM, Math.round(remaining / speed)));
+                var ease = Math.abs(velocity) > FLICK_VEL ? EASE_FLICK : EASE_STD;
+                var tr = 'transform ' + dur + 'ms ' + ease;
+
                 curPane.style.transition = tr;
                 nxtPane.style.transition = tr;
                 curPane.style.transform = 'translateX(' + exitX + 'px)';
@@ -5139,14 +5335,16 @@
                     se.style.height = '';
                     snapping = false;
                     schedSliding = false;
-                    _renderSchedTab(); // 新しい週で正式再描画＆自動取得
-                }, ANIM_MS + 20);
+                    _renderSchedTab();
+                }, dur + 20);
             }
 
-            function snapBack(el) {
+            function snapBack(el, dxAtRelease, velocity) {
                 snapping = true;
-                var dur = Math.round(ANIM_MS * 0.55);
-                var tr = 'transform ' + dur + 'ms ' + EASE;
+                var remaining = Math.abs(dxAtRelease);
+                var speed = Math.max(Math.abs(velocity), 0.4);
+                var dur = Math.max(140, Math.min(260, Math.round(remaining / speed)));
+                var tr = 'transform ' + dur + 'ms ' + EASE_STD;
                 var nxtStart = swDir === 'next' ? elW : -elW;
                 curPane.style.transition = tr;
                 nxtPane.style.transition = tr;
@@ -5167,16 +5365,15 @@
                 if (schedViewMode !== 'week' && schedViewMode !== 'month') return;
                 if (touchId !== null) return;
                 var t = e.changedTouches[0];
-                // 日付ストリップ/月セル/詳細パネル内のタップはそれぞれのハンドラに任せる
-                if (e.target && e.target.closest && (
-                    e.target.closest('.week-day-strip') ||
-                    e.target.closest('.month-cal-cell') ||
-                    e.target.closest('#monthDayDetail')
-                )) return;
+                // 週ビューの日付ストリップだけは専用ハンドラに委譲（日付切替用）。
+                // 月セル/詳細パネルは tap は near-zero 移動のため干渉せず、月スワイプを有効化。
+                if (e.target && e.target.closest && e.target.closest('.week-day-strip')) return;
                 touchId = t.identifier;
                 startX = t.clientX; startY = t.clientY;
                 decided = false; isHoriz = false;
                 ready = false; swDir = null; curPane = null; nxtPane = null;
+                samples = [];
+                pushSample(t.clientX);
             }
 
             function getTouch(e) {
@@ -5203,6 +5400,7 @@
                 if (!isHoriz) return;
 
                 e.preventDefault(); // 横スワイプ中はページスクロールを抑制
+                pushSample(t.clientX);
 
                 var el = getEl();
                 if (!el) return;
@@ -5225,6 +5423,8 @@
                 touchId = null;
 
                 var dx = t.clientX - startX;
+                pushSample(t.clientX);
+                var vel = calcVelocity(); // px/ms（符号付き）
                 var el = getEl();
 
                 if (!ready || !curPane || !nxtPane || !el) {
@@ -5234,12 +5434,16 @@
                 }
 
                 var thresh = Math.max(THRESH_PX, elW * THRESH_RATIO);
-                var triggered = (swDir === 'next' && dx <= -thresh) || (swDir === 'prev' && dx >= thresh);
+                var distTriggered = (swDir === 'next' && dx <= -thresh) || (swDir === 'prev' && dx >= thresh);
+                // フリック(速い指離し)判定: 方向が一致し速度が閾値以上なら距離が短くてもページ送り
+                var flickTriggered = (swDir === 'next' && vel <= -FLICK_VEL) || (swDir === 'prev' && vel >= FLICK_VEL);
+                // 逆方向に速く振り戻した場合はキャンセル
+                var reverseFlick = (swDir === 'next' && vel >= FLICK_VEL) || (swDir === 'prev' && vel <= -FLICK_VEL);
 
-                if (triggered) {
-                    snapComplete(el);
+                if ((distTriggered || flickTriggered) && !reverseFlick) {
+                    snapComplete(el, dx, vel);
                 } else {
-                    snapBack(el);
+                    snapBack(el, dx, vel);
                     schedSliding = false;
                 }
                 reset();
@@ -5250,7 +5454,7 @@
                 touchId = null;
                 var el = getEl();
                 if (ready && curPane && nxtPane && el) {
-                    snapBack(el);
+                    snapBack(el, 0, 0);
                 } else if (el) {
                     el.style.height = '';
                 }
@@ -6032,7 +6236,15 @@
                                 <div class="card-title">Googleタスク</div>
                                 <a href="https://tasks.google.com" target="_blank" style="font-size:12px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:3px;">開く <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
                             </div>
-                            <div style="font-size:11px;color:var(--text2);margin-bottom:10px;font-family:'DM Mono',monospace;">更新: ${googleTasksUpdatedAt}</div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                                <div style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;" id="gtaskUpdatedLabel">更新: ${googleTasksUpdatedAt}</div>
+                                <button class="gtask-refresh-btn" onclick="refreshGoogleTasks(this)" title="Googleタスクを更新" aria-label="Googleタスクを更新">
+                                    <svg id="gtaskRefreshIcon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                                    </svg>
+                                </button>
+                            </div>
                             ${gtHtml}
                         </div>
                     </div>
@@ -7085,6 +7297,62 @@
             });
         }
 
+        // ===== 折り畳み状態の永続化 =====
+        // localStorage: { "foldState.v1": { key: boolean } }  true = open / expanded
+        const FOLD_KEY = 'foldState.v1';
+        function _loadFoldState() {
+            try { return JSON.parse(localStorage.getItem(FOLD_KEY)) || {}; } catch(e) { return {}; }
+        }
+        function _saveFoldState(state) {
+            try { localStorage.setItem(FOLD_KEY, JSON.stringify(state)); } catch(e) {}
+        }
+        function getFoldState(key, fallback) {
+            const s = _loadFoldState();
+            return Object.prototype.hasOwnProperty.call(s, key) ? !!s[key] : !!fallback;
+        }
+        function setFoldState(key, value) {
+            const s = _loadFoldState();
+            s[key] = !!value;
+            _saveFoldState(s);
+        }
+        // element の open/collapsed 状態を localStorage と同期するヘルパ
+        // mode: 'open' → class 'open' 付与で開 / 'collapsed' → class 'collapsed' で閉
+        function persistFold(el, key, mode, defaultOpen) {
+            if (!el) return;
+            const saved = getFoldState(key, defaultOpen);
+            if (mode === 'open') {
+                el.classList.toggle('open', saved);
+            } else {
+                // 'collapsed' モード: 閉=collapsedクラス、開=クラスなし
+                el.classList.toggle('collapsed', !saved);
+            }
+        }
+        function observeFold(el, key, mode) {
+            if (!el) return;
+            const mo = new MutationObserver(() => {
+                const isOpen = mode === 'open'
+                    ? el.classList.contains('open')
+                    : !el.classList.contains('collapsed');
+                setFoldState(key, isOpen);
+            });
+            mo.observe(el, { attributes: true, attributeFilter: ['class'] });
+        }
+        // 着工済み/引渡し済カードの開閉状態を復元
+        function applyStatusCardFold() {
+            const started = document.getElementById('startedCard');
+            const delivered = document.getElementById('deliveredCard');
+            if (started && !started._foldHooked) {
+                persistFold(started, 'startedCard', 'open', false);
+                observeFold(started, 'startedCard', 'open');
+                started._foldHooked = true;
+            }
+            if (delivered && !delivered._foldHooked) {
+                persistFold(delivered, 'deliveredCard', 'open', false);
+                observeFold(delivered, 'deliveredCard', 'open');
+                delivered._foldHooked = true;
+            }
+        }
+
         function setupResponsive() {
             // スマホ: プルダウン式の開閉
             const isMobile = () => window.innerWidth <= 768;
@@ -7097,10 +7365,19 @@
                 });
             });
 
-            // 初期状態: 5件制限があるためスマホでも開いた状態にする
+            // 初期状態: 各カードに識別キーを付けて localStorage から開閉状態を復元
+            //   （data-section + index のペアをキーにする）
             function applyMobileState() {
-                document.querySelectorAll('.collapsible-card').forEach(card => {
-                    card.classList.remove('collapsed');
+                document.querySelectorAll('.collapsible-card').forEach((card, idx) => {
+                    const sec = card.closest('.draggable-section');
+                    const secKey = sec ? (sec.dataset.section || 'sec') : 'sec';
+                    const key = 'card.' + secKey + '.' + idx;
+                    if (!card._foldHooked) {
+                        // デフォルトは開いた状態（= collapsed なし）
+                        persistFold(card, key, 'collapsed', true);
+                        observeFold(card, key, 'collapsed');
+                        card._foldHooked = true;
+                    }
                 });
             }
             applyMobileState();
