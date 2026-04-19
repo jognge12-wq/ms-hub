@@ -1462,6 +1462,75 @@
         .gtask-item.completing .gtask-title {
             text-decoration: line-through;
         }
+
+        /* ===== Google Tasks：.prio-group と揃えたグループコンテナ ===== */
+        /* 現場タスクの優先パネルと同じ「角丸ひとつ＋ヘッダ＋罫線区切り行」構造 */
+        .gtask-group {
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .gtask-group-hdr {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+        }
+        .gtask-group-name {
+            flex: 1;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text1);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .gtask-group-cnt {
+            font-size: 10px;
+            font-weight: 600;
+            color: #fff;
+            background: var(--text3);
+            border-radius: 10px;
+            padding: 1px 6px;
+            font-family: 'DM Mono', monospace;
+            flex-shrink: 0;
+        }
+        /* 色バリエーション（.prio-group と同じ配色語彙） */
+        .gtask-group-overdue     { border-color: #fecaca; }
+        .gtask-group-overdue    .gtask-group-hdr  { background: #fff5f5; }
+        .gtask-group-overdue    .gtask-group-name { color: #991b1b; }
+        .gtask-group-overdue    .gtask-group-cnt  { background: var(--red); }
+        .gtask-group-this-week   { border-color: oklch(0.88 0.10 85); }
+        .gtask-group-this-week  .gtask-group-hdr  { background: oklch(0.97 0.04 85); }
+        .gtask-group-this-week  .gtask-group-name { color: oklch(0.38 0.13 80); }
+        .gtask-group-this-week  .gtask-group-cnt  { background: var(--amber); }
+        .gtask-group-later       { border-color: var(--brand-line); }
+        .gtask-group-later      .gtask-group-hdr  { background: var(--brand-soft); }
+        .gtask-group-later      .gtask-group-name { color: var(--brand-ink); }
+        .gtask-group-later      .gtask-group-cnt  { background: var(--primary); }
+        .gtask-group-no-date     { border-color: var(--border); }
+        .gtask-group-no-date    .gtask-group-hdr  { background: var(--surface2); }
+        .gtask-group-no-date    .gtask-group-name { color: var(--text2); }
+        .gtask-group-no-date    .gtask-group-cnt  { background: var(--text3); }
+
+        /* グループ内の .gtask-item は「行」として見せる（bg/border/radius 解除） */
+        /* グループ内のタイトル/期限は現場タスクの .prio-row と同じ字サイズ・太さに揃える */
+        .gtask-group .gtask-title { font-size: 12px; line-height: 1.5; font-weight: 400; }
+        .gtask-group .gtask-due   { font-size: 10px; font-weight: 400; white-space: nowrap; flex-shrink: 0; margin-left: auto; }
+        .gtask-group .gtask-item {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            border-top: 1px solid var(--border);
+            padding: 10px 14px;
+            margin-bottom: 0;
+        }
+        .gtask-group-overdue   .gtask-item { border-top-color: #fecaca; }
+        .gtask-group-this-week .gtask-item { border-top-color: oklch(0.90 0.07 85); }
+        .gtask-group-later     .gtask-item { border-top-color: var(--brand-line); }
+
         .gtask-later-toggle {
             display: flex;
             align-items: center;
@@ -3601,11 +3670,12 @@
             const tid = (t.id || '').replace(/'/g, '');
             const lid = (t.listId || '').replace(/'/g, '');
             // 期限切れのみ日付を表示（他はグループヘッダーに日付があるので不要）
-            let dueLine = '';
+            // 横並びにすることで非期限切れ行と高さが揃う
+            let dueTag = '';
             if (isOverdue) {
                 let dueText = t.due ? _gtaskFmtDate(t.due) : '期限不明';
                 if (t.deadline) dueText += ' (期限: ' + _gtaskFmtDate(t.deadline) + ')';
-                dueLine = `<div class="gtask-due overdue-text">${dueText}</div>`;
+                dueTag = `<div class="gtask-due overdue-text">${dueText}</div>`;
             }
             return `<div class="gtask-item ${cls}">
                     <label class="gtask-cb-wrap" onclick="event.stopPropagation()">
@@ -3614,16 +3684,22 @@
                     </label>
                     <div class="task-content">
                         <div class="gtask-title">${t.title}</div>
-                        ${dueLine}
                     </div>
+                    ${dueTag}
                 </div>`;
         }
 
-        // 通常のグループ見出し + アイテム列
+        // 通常のグループ見出し + アイテム列（.prio-group と揃えたコンテナ形式）
         function _gtaskSimpleGroupHtml(label, items, cls, icon) {
             if (!items.length) return '';
-            return `<div class="gtask-group-label">${icon} ${label} <span class="gtask-count">${items.length}件</span></div>` +
-                items.map(t => _gtaskItemHtml(t, cls)).join('');
+            return `<div class="gtask-group gtask-group-${cls}">
+                <div class="gtask-group-hdr">
+                    ${icon}
+                    <span class="gtask-group-name">${label}</span>
+                    <span class="gtask-group-cnt">${items.length}</span>
+                </div>
+                ${items.map(t => _gtaskItemHtml(t, cls)).join('')}
+            </div>`;
         }
 
         // 明日以降を日付ごとにグループ化して表示（Google Tasksアプリ準拠）
@@ -3642,9 +3718,15 @@
             order.forEach(function(key) {
                 const { date, items } = groups[key];
                 const label = `${date.getMonth()+1}月${date.getDate()}日(${WEEKDAYS_JP[date.getDay()]})`;
-                const icon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--primary-m)" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
-                html += `<div class="gtask-group-label">${icon} ${label} <span class="gtask-count">${items.length}件</span></div>`;
-                html += items.map(function(t) { return _gtaskItemHtml(t, 'later'); }).join('');
+                const icon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+                html += `<div class="gtask-group gtask-group-later">
+                    <div class="gtask-group-hdr">
+                        ${icon}
+                        <span class="gtask-group-name">${label}</span>
+                        <span class="gtask-group-cnt">${items.length}</span>
+                    </div>
+                    ${items.map(function(t) { return _gtaskItemHtml(t, 'later'); }).join('')}
+                </div>`;
             });
             return html;
         }

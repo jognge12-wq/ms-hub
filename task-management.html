@@ -5,45 +5,75 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <script src="config.js"></script>
   <title>施工管理 / タスク</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;800;900&family=Fraunces:ital,wght@0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --green:      #006837;
-      --green-dark: #004d29;   /* sfc-darkに統一 */
-      --green-light:#e8f5e9;   /* sfc-lightに統一 */
-      --green-mid:  #4a9e72;
-      --bg:         #f1f5f9;   /* slate-100に統一 */
-      --card:       #ffffff;
-      --border:     #e2e8f0;   /* slate-200に統一 */
-      --t1:         #1e293b;   /* slate-800に統一 */
-      --t2:         #475569;   /* slate-600 */
-      --t3:         #64748b;   /* slate-500 */
-      --red:        #ef4444;
-      --amber:      #f59e0b;
-      --blue:       #2563eb;
-      --fp:         'Noto Sans JP', sans-serif;
-      --fm:         'DM Mono', monospace;
+      /* ブランドグリーン — oklch で統一 */
+      --green:       oklch(0.55 0.14 155);
+      --green-dark:  oklch(0.35 0.11 155);
+      --green-light: oklch(0.94 0.04 155);
+      --green-mid:   oklch(0.73 0.12 155);
+      /* Rich版エイリアス */
+      --brand:        oklch(0.55 0.14 155);
+      --brand-ink:    oklch(0.35 0.11 155);
+      --brand-soft:   oklch(0.94 0.04 155);
+      --brand-softer: oklch(0.97 0.02 155);
+      --brand-line:   oklch(0.88 0.04 155);
+      /* ニュートラル */
+      --bg:     oklch(0.985 0.003 95);
+      --card:   #ffffff;
+      --border: oklch(0.92 0.005 95);
+      --t1:     oklch(0.22 0.01 95);
+      --t2:     oklch(0.38 0.01 95);
+      --t3:     oklch(0.55 0.008 95);
+      /* Rich版インクエイリアス */
+      --ink:   oklch(0.22 0.01 95);
+      --ink-2: oklch(0.38 0.01 95);
+      --ink-3: oklch(0.55 0.008 95);
+      --ink-4: oklch(0.70 0.006 95);
+      --line:  oklch(0.92 0.005 95);
+      --line-2: oklch(0.95 0.004 95);
+      /* ステータス */
+      --red:   oklch(0.58 0.18 25);
+      --amber: oklch(0.78 0.12 85);
+      --blue:  oklch(0.55 0.13 240);
+      /* その他 */
+      --fp: 'Noto Sans JP', sans-serif;
+      --fm: 'DM Mono', monospace;
       --radius-card: 16px;
-      --shadow-card: 0 4px 20px rgba(0,0,0,.09);
+      --shadow-card: 0 4px 20px rgba(15,25,20,.08);
+      --shadow-sm: 0 1px 2px rgba(15,25,20,0.04);
+      --shadow-lg: 0 4px 20px rgba(15,25,20,0.06), 0 1px 3px rgba(15,25,20,0.04);
     }
 
     /* ===== ダークモード（OS 設定に自動追従） ===== */
     @media (prefers-color-scheme: dark) {
       :root {
-        --green:      #34d399;
-        --green-dark: #10b981;
-        --green-light:#064e3b;
-        --green-mid:  #6ee7b7;
-        --bg:         #0f1419;
-        --card:       #1a1f26;
-        --border:     #2d333b;
-        --t1:         #f9fafb;
-        --t2:         #e5e7eb;
-        --t3:         #cbd5e1;
-        --red:        #f87171;
-        --amber:      #fbbf24;
-        --blue:       #60a5fa;
+        --green:       oklch(0.68 0.18 155);
+        --green-dark:  oklch(0.82 0.14 155);
+        --green-light: oklch(0.30 0.05 155);
+        --green-mid:   oklch(0.58 0.16 155);
+        --brand:        oklch(0.68 0.18 155);
+        --brand-ink:    oklch(0.82 0.14 155);
+        --brand-soft:   oklch(0.30 0.05 155);
+        --brand-softer: oklch(0.25 0.03 155);
+        --brand-line:   oklch(0.35 0.05 155);
+        --bg:     oklch(0.18 0.005 95);
+        --card:   oklch(0.22 0.006 95);
+        --border: oklch(0.30 0.008 95);
+        --t1:     oklch(0.95 0.005 95);
+        --t2:     oklch(0.78 0.006 95);
+        --t3:     oklch(0.60 0.008 95);
+        --ink:   oklch(0.95 0.005 95);
+        --ink-2: oklch(0.78 0.006 95);
+        --ink-3: oklch(0.60 0.008 95);
+        --ink-4: oklch(0.45 0.006 95);
+        --line:  oklch(0.30 0.008 95);
+        --line-2: oklch(0.26 0.006 95);
+        --red:   oklch(0.70 0.15 25);
+        --amber: oklch(0.85 0.12 85);
+        --blue:  oklch(0.65 0.13 240);
         --shadow-card: 0 4px 20px rgba(0,0,0,.35);
       }
       body { color-scheme: dark; }
@@ -54,20 +84,21 @@
 
     /* ─ Header ─────────────────────────────────────────────── */
     .hdr { background: var(--card); position: sticky; top: 0; z-index: 200;
-           box-shadow: 0 1px 0 var(--border), 0 2px 8px rgba(0,0,0,.06);
-           border-radius: 0 0 14px 14px; }
-    .hdr-top { display: flex; align-items: center; height: 40px; padding: 0 14px; gap: 10px; }
+           box-shadow: 0 1px 0 var(--border); }
+    .hdr-top { display: flex; align-items: center; min-height: 44px;
+               padding: 0 14px; border-left: 3px solid var(--brand); gap: 10px; }
 
-    .hdr-info { flex: 1; display: flex; align-items: center; }
-    .hdr-title { font-size: 14px; font-weight: 700; letter-spacing: .04em; color: var(--t1); }
+    .hdr-info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 0; }
+    .hdr-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em;
+                 color: var(--ink); line-height: 1.15; }
     .tabs { display: flex; border-top: 1px solid var(--border); }
-    .tab { flex: 1; padding: 10px 4px 11px; background: none; border: none;
-           color: var(--t3); font-family: var(--fp); font-size: 12px;
+    .tab { flex: 1; padding: 11px 4px 11px; background: none; border: none;
+           color: var(--t3); font-family: var(--fp); font-size: 12.5px; font-weight: 600;
            cursor: pointer; position: relative; transition: color .15s;
            -webkit-tap-highlight-color: transparent; }
     .tab.on { color: var(--green); font-weight: 700; }
-    .tab.on::after { content: ''; position: absolute; bottom: 0; left: 14%; width: 72%; height: 2.5px;
-                     background: var(--green); border-radius: 2px 2px 0 0; }
+    .tab.on::after { content: ''; position: absolute; bottom: -1px; left: 20%; right: 20%;
+                     height: 2.5px; background: var(--green); border-radius: 2px 2px 0 0; }
 
     /* ─ Panes ───────────────────────────────────────────────── */
     .pane { display: none; padding: 12px 12px 100px; max-width: 640px; margin: 0 auto; }
@@ -140,27 +171,28 @@
 
     /* ─ Property card ───────────────────────────────────────── */
     /* overflow: clip で sticky を許可。未対応ブラウザは hidden にフォールバック */
-    .prop-card { background: var(--card); border-radius: var(--radius-card); margin-bottom: 10px;
-                 overflow: hidden; box-shadow: var(--shadow-card);
-                 border: 1.5px solid transparent; transition: border-color .18s; }
+    .prop-card { background: var(--card); border-radius: 18px; margin-bottom: 10px;
+                 overflow: hidden; border: 1.5px solid var(--border);
+                 box-shadow: var(--shadow-lg);
+                 transition: border-color .18s, box-shadow .18s; }
     @supports (overflow: clip) {
       .prop-card { overflow: clip; }
     }
-    .prop-card.open { border-color: #c5dfd0; }
+    .prop-card.open { border-color: var(--green-mid); }
     .prop-card.done-all { opacity: .75; }
     .prop-hdr { display: flex; align-items: flex-start; padding: 13px 14px 10px;
                 cursor: pointer; gap: 11px; user-select: none;
                 -webkit-tap-highlight-color: transparent;
                 background: var(--card); }
-    .prop-hdr:active { background: #fafafa; }
+    .prop-hdr:active { background: var(--green-light); }
     /* カード展開時：物件名ヘッダーを画面上部に追従（外側ヘッダー + ジャンプバーの直下に固定） */
     .prop-card.open .prop-hdr {
       position: sticky;
-      top: 118px; /* hdr-top(40) + tabs(~38) + jump-bar(~40) */
+      top: 118px;
       z-index: 10;
       box-shadow: 0 2px 8px rgba(0,0,0,.04);
     }
-    .prop-icon { width: 36px; height: 36px; background: var(--green-light); border-radius: 9px;
+    .prop-icon { width: 38px; height: 38px; background: var(--green-light); border-radius: 12px;
                  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
                  color: var(--green); margin-top: 1px;
                  transition: background .18s, color .18s; }
@@ -169,24 +201,26 @@
     /* 物件名＋市町村を同じ行に並べる */
     .prop-title-row { display: flex; align-items: baseline; gap: 6px;
                       min-width: 0; flex-wrap: wrap; }
-    .prop-name { font-size: 14px; font-weight: 600; min-width: 0;
-                 overflow-wrap: anywhere; }
+    .prop-name { font-size: 15px; font-weight: 700; letter-spacing: -0.01em;
+                 min-width: 0; overflow-wrap: anywhere; }
     .prop-addr { font-size: 11px; color: var(--t3); white-space: nowrap;
                  position: relative; padding-left: 9px; }
     .prop-addr::before { content: '・'; position: absolute; left: 0;
                          color: var(--border); font-weight: 400; }
     /* ミニ進捗バー（常時表示） */
     .prop-mini-row { display: flex; align-items: center; gap: 7px; margin-top: 5px; }
-    .prop-mini-bg { flex: 1; max-width: 80px; height: 3px; background: var(--bg);
+    .prop-mini-bg { flex: 1; max-width: 80px; height: 4px; background: var(--border);
                     border-radius: 2px; overflow: hidden; }
     .prop-mini-fill { height: 100%; background: var(--green); border-radius: 2px;
                       transition: width .35s ease; }
-    .prop-mini-lbl { font-family: var(--fm); font-size: 10px; color: var(--t3); }
+    .prop-mini-lbl { font-size: 10px; font-weight: 700; color: var(--green);
+                     font-variant-numeric: tabular-nums; }
     .prop-dates { display: flex; gap: 6px; margin-top: 4px; flex-wrap: nowrap; overflow: hidden; }
     .prop-date { font-size: 10px; color: var(--t2); display: flex; align-items: center; gap: 3px; }
     .prop-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
-    .prop-progress-badge { font-size: 11px; padding: 2px 9px; border-radius: 10px;
-                           background: var(--green-light); color: var(--green); font-weight: 600; }
+    .prop-progress-badge { font-size: 11px; padding: 4px 12px; border-radius: 100px;
+                           background: var(--green-light); color: var(--green); font-weight: 700;
+                           font-family: var(--fm); font-variant-numeric: tabular-nums; }
     /* 進捗モーダル */
     .progress-modal-bg { position: fixed; inset: 0; background: rgba(15,23,42,.45);
                          z-index: 310; display: none; align-items: flex-end; justify-content: center; }
@@ -218,28 +252,33 @@
 
     /* ─ Progress bar ────────────────────────────────────────── */
     .prog-row { display: flex; align-items: center; padding: 10px 14px 8px; gap: 10px; }
-    .prog-bg { flex: 1; height: 8px; background: #dde8e2; border-radius: 4px; overflow: hidden; }
-    .prog-fill { height: 100%; background: var(--green); border-radius: 4px; transition: width .4s ease;
+    .prog-bg { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .prog-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width .4s ease;
                  min-width: 0; }
-    .prog-lbl { font-family: var(--fm); font-size: 12px; color: var(--green); font-weight: 600;
-                flex-shrink: 0; min-width: 40px; text-align: right; }
+    .prog-lbl { font-size: 11px; color: var(--green); font-weight: 700;
+                flex-shrink: 0; min-width: 36px; text-align: right;
+                font-variant-numeric: tabular-nums; }
 
     /* ─ Phase section ───────────────────────────────────────── */
     .phase-sec { border-bottom: 1px solid var(--border); }
     .phase-sec:last-child { border-bottom: none; }
-    .phase-hdr { display: flex; align-items: center; padding: 0 0 0 12px; cursor: pointer;
-                 gap: 6px; background: var(--bg); user-select: none;
+    .phase-hdr { display: flex; align-items: center; padding: 0 0 0 14px; cursor: pointer;
+                 gap: 8px; background: var(--card); user-select: none;
                  -webkit-tap-highlight-color: transparent; min-height: 48px; }
-    .phase-sec.open .phase-hdr { background: #f0f6f2; }
+    .phase-sec.open .phase-hdr { background: var(--green-light); }
     .phase-hdr:active { background: var(--green-light); }
-    .phase-lbl { flex: 1; font-size: 11px; font-weight: 700; color: var(--t2);
-                 letter-spacing: .04em; text-transform: uppercase; }
-    .phase-lbl.done { color: var(--t3); text-decoration: line-through; }
-    .phase-cnt { font-family: var(--fm); font-size: 10px; color: var(--t3);
-                 background: white; border: 1px solid var(--border);
-                 padding: 1px 7px; border-radius: 10px; }
-    .phase-badge { font-size: 10px; padding: 1px 7px; background: var(--green-light);
-                   color: var(--green); border-radius: 8px; font-weight: 600; }
+    .phase-lbl { flex: 1; font-size: 13px; font-weight: 700; color: var(--t1);
+                 letter-spacing: -0.005em; }
+    .phase-lbl.done { color: var(--t3); text-decoration: line-through;
+                      text-decoration-color: var(--border); }
+    .phase-cnt { font-size: 10.5px; font-weight: 700; color: var(--t3);
+                 background: var(--card); border: 1px solid var(--border);
+                 padding: 2px 8px; border-radius: 100px;
+                 font-variant-numeric: tabular-nums; }
+    .phase-sec.open .phase-cnt { color: var(--green); border-color: var(--green-mid);
+                                  background: var(--green-light); }
+    .phase-badge { font-size: 10px; padding: 2px 8px; background: var(--green-light);
+                   color: var(--green); border-radius: 100px; font-weight: 700; }
     /* 展開矢印：右端に独立したタップゾーンを設ける（誤タップ防止） */
     .phase-expand-zone { display: flex; align-items: center; justify-content: center;
                          width: 44px; height: 48px; flex-shrink: 0;
@@ -463,28 +502,37 @@
     .btn-modal.cancel { background: var(--bg); color: var(--t2); border: 1px solid var(--border); }
     .btn-modal.danger { background: #fff0f0; color: var(--red); }
 
-    /* ─ ··· オーバーフローメニュー ─────────────────────────── */
+    /* ─ ··· オーバーフローメニュー（ミニマル・SVGアイコン） ─────── */
     .tabs { position: relative; }
-    .tab-more-wrap { position: relative; flex: 0 0 44px; display: flex; }
-    .tab-more { flex: 1; font-size: 18px; letter-spacing: 1px; color: var(--t3);
-                padding-bottom: 13px; }
+    .tab-more-wrap { position: relative; flex: 0 0 44px; display: flex;
+                     align-items: center; justify-content: center; }
+    .tab-more { flex: 1; display: flex; align-items: center; justify-content: center;
+                padding: 10px 4px 11px; background: none; border: none;
+                color: var(--t3); cursor: pointer; position: relative;
+                -webkit-tap-highlight-color: transparent; transition: color .15s; }
+    .tab-more:active { color: var(--t1); }
+    .tab-more svg { display: block; }
     .tab-more.sub-active { color: var(--green); }
+    .tab-more.sub-active::after { content: ''; position: absolute; bottom: 0;
+                                   left: 30%; width: 40%; height: 2.5px;
+                                   background: var(--green); border-radius: 2px 2px 0 0; }
     .more-menu {
-      display: none; position: absolute; right: 0; top: calc(100% + 4px);
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,.13);
-      z-index: 400; min-width: 150px; overflow: hidden;
+      display: none; position: absolute; right: 0; top: calc(100% + 6px);
+      background: var(--card); border-radius: 12px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.04);
+      z-index: 400; min-width: 160px; overflow: hidden;
+      padding: 6px;
     }
     .more-menu.open { display: flex; flex-direction: column; }
     .more-menu-item {
-      padding: 13px 18px; font-size: 13px; font-weight: 500; color: var(--t1);
+      padding: 10px 14px; font-size: 13px; font-weight: 500; color: var(--t1);
       cursor: pointer; text-align: left; background: none; border: none;
-      font-family: var(--fp); -webkit-tap-highlight-color: transparent;
-      border-bottom: 1px solid var(--border);
+      border-radius: 8px; font-family: var(--fp);
+      -webkit-tap-highlight-color: transparent;
+      transition: background .12s;
     }
-    .more-menu-item:last-child { border-bottom: none; }
     .more-menu-item:active { background: var(--bg); }
-    .more-menu-item.on { color: var(--green); font-weight: 700; }
+    .more-menu-item.on { color: var(--green); font-weight: 700; background: rgba(0,104,55,0.07); }
     /* タブに件数バッジ */
     .tab-prio-badge {
       display: none; background: #dc2626; color: white;
@@ -548,7 +596,7 @@
 <header class="hdr">
   <div class="hdr-top">
     <div class="hdr-info">
-      <div class="hdr-title">タスク管理</div>
+      <div class="hdr-title">現場タスク</div>
     </div>
     <!-- 更新時刻ラベル（タブに応じて切り替え） -->
     <span class="tbar-meta" id="lbl-upd-prio">同期前</span>
@@ -565,7 +613,13 @@
     <button class="tab on" id="tab-btn-prio"  onclick="switchTab('prio',this)">優先タスク<span id="prio-tab-badge" class="tab-prio-badge"></span></button>
     <button class="tab"    id="tab-btn-props" onclick="switchTab('props',this)">物件一覧</button>
     <div class="tab-more-wrap">
-      <button class="tab tab-more" id="btn-more" onclick="toggleMoreMenu(event)">···</button>
+      <button class="tab tab-more" id="btn-more" onclick="toggleMoreMenu(event)" aria-label="その他">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <line x1="4" y1="7"  x2="20" y2="7"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <line x1="4" y1="17" x2="20" y2="17"/>
+        </svg>
+      </button>
       <div id="more-menu" class="more-menu">
         <button class="more-menu-item" id="more-item-master"  onclick="switchTab('master',null);closeMoreMenu()">マスタータスク</button>
         <button class="more-menu-item" id="more-item-history" onclick="switchTab('history',null);closeMoreMenu()">変更履歴</button>
