@@ -755,63 +755,122 @@
             opacity: 0.45;
         }
 
-        /* 終了済みイベント（個別グレーアウト） */
-        .sched-item-past {
-            opacity: 0.42;
-            filter: grayscale(0.4);
-        }
+        /* スワイプ専用フレーム（日付ストリップから下だけ動く） */
+        .sched-swipe-frame { position: relative; overflow: hidden; }
+        .sched-swipe-pane  { width: 100%; }
 
-        .sched-item {
-            background-color: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 0 8px 8px 0;
-            padding: 10px 10px 10px 12px;
-            margin-bottom: 8px;
-            display: flex;
-            gap: 10px;
-            border-left: 5px solid var(--primary);
+        /* ===== 予定タブ: C案タイムライン ===== */
+        .sched-tl-card {
+            background: var(--surface);
+            border-radius: 14px;
+            border: 1.5px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 10px;
         }
-
-        .sched-content {
-            flex: 1;
-            min-width: 0;
+        .sched-tl-allday {
+            padding: 8px 14px;
+            background: oklch(0.97 0.04 65);
+            border-bottom: 1px solid oklch(0.88 0.07 65);
         }
-
-        .sched-time {
+        .sched-tl-allday-label {
+            display: block;
+            font-size: 10px; font-weight: 700;
+            color: oklch(0.42 0.13 50); letter-spacing: .04em;
+            margin-bottom: 6px;
+        }
+        .sched-tl-allday-pills {
+            display: flex; flex-wrap: wrap; gap: 6px;
+        }
+        .sched-tl-allday-pill {
+            padding: 3px 9px; border-radius: 10px;
+            background: var(--surface);
+            border: 1px solid oklch(0.88 0.07 65);
+            font-size: 11px; font-weight: 500; color: var(--text1);
+            display: inline-flex; align-items: center; gap: 6px;
+            max-width: 100%;
+        }
+        .sched-tl-allday-pill.past { opacity: .42; filter: grayscale(.4); }
+        .sched-tl-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .sched-tl-row {
+            display: flex; gap: 0;
+            padding: 11px 14px 11px 0;
+            border-top: 1px solid var(--border);
+            position: relative;
+        }
+        .sched-tl-row:first-child { border-top: none; }
+        .sched-tl-time {
             font-family: 'DM Mono', monospace;
-            font-size: 11px;
-            color: var(--text2);
-            margin-bottom: 2px;
-            font-weight: 500;
+            font-size: 11px; color: var(--text3); font-weight: 600;
+            width: 64px; flex-shrink: 0; text-align: right;
+            padding-right: 12px; line-height: 1.4;
+            border-right: 2px solid var(--border);
+            position: relative;
+        }
+        .sched-tl-row.now .sched-tl-time { color: var(--primary); }
+        .sched-tl-time::after {
+            content: ''; position: absolute; right: -5px; top: 6px;
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--surface); border: 2px solid var(--text3);
+        }
+        .sched-tl-row.now .sched-tl-time::after {
+            background: var(--primary); border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-l);
+        }
+        .sched-tl-time-end { font-weight: 400; font-size: 9px; display: block; }
+        .sched-tl-body {
+            flex: 1; min-width: 0;
+            margin-left: 12px;
+            padding-left: 10px;
+            border-left: 3px solid var(--border);
+            border-radius: 0 4px 4px 0;
+        }
+        .sched-tl-title {
+            font-size: 12px; font-weight: 500; color: var(--text1); line-height: 1.5;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .sched-tl-meta {
+            font-size: 10px; color: var(--text3); margin-top: 2px;
+            display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+        }
+        .sched-tl-cal { display: inline-flex; align-items: center; gap: 4px; }
+        .sched-tl-cal-dot { width: 6px; height: 6px; border-radius: 50%; }
+        .sched-tl-row.past { opacity: .45; filter: grayscale(.35); }
+
+        /* タスクブロック（C案） */
+        .sched-tl-tasks {
+            margin-top: 8px;
+            background: var(--surface);
+            border-radius: 14px;
+            border: 1.5px solid oklch(0.88 0.06 245);
+            overflow: hidden;
+        }
+        .sched-tl-tasks-hdr {
+            padding: 8px 14px;
+            background: oklch(0.97 0.03 245);
+            color: oklch(0.35 0.13 260);
+            font-size: 11px; font-weight: 700;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .sched-tl-tasks-cnt {
+            margin-left: auto; font-weight: 600; font-size: 10px;
+            color: oklch(0.55 0.16 250);
+        }
+        .sched-tl-task-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 14px;
+            border-top: 1px solid oklch(0.88 0.06 245);
+        }
+        .sched-tl-task-row:first-of-type { border-top: none; }
+        .sched-tl-task-title {
+            font-size: 12px; color: var(--text1); font-weight: 400;
+            flex: 1; min-width: 0;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
 
-        .sched-title {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text1);
-            margin-bottom: 2px;
-        }
-
-        .sched-meta {
-            font-size: 11px;
-            color: var(--text2);
-        }
-
-        .sched-location {
-            font-size: 11px;
-            color: var(--text3);
-            margin-top: 2px;
-        }
-
-        .sched-all-day {
-            background-color: var(--surface2);
-            border: 1px solid var(--border);
-            border-left: 5px solid #d50000;
-            border-radius: 0 8px 8px 0;
-            padding: 8px 10px 8px 12px;
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text1);
+        /* 空状態 */
+        .sched-tl-empty {
+            text-align: center; padding: 14px 12px;
+            color: var(--text3); font-size: 12px;
         }
 
         .property-item {
@@ -2975,14 +3034,16 @@
         }
         .day-anim-right { animation: day-slide-from-right 0.18s cubic-bezier(0.22,1,0.36,1) both; }
         .day-anim-left  { animation: day-slide-from-left  0.18s cubic-bezier(0.22,1,0.36,1) both; }
-        .sched-today-btn, .sched-view-btn {
+        .sched-today-btn {
             padding: 5px 11px; border-radius: 8px; font-size: 12px; font-weight: 600;
             border: 1px solid var(--border); cursor: pointer; background: var(--surface);
             color: var(--primary); transition: background 0.15s;
         }
-        .sched-today-btn:hover, .sched-view-btn:hover { background: var(--primary-l); }
-        .sched-view-btn { border-color: var(--primary); }
-        .sched-view-btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+        .sched-today-btn:hover:not(:disabled) { background: var(--primary-l); }
+        .sched-today-btn:disabled { opacity: 0.35; cursor: default; }
+        /* 左右のグループを対称にして、今週(=中央ラベル)が常にセンターに来るように */
+        .sched-nav-right { display: flex; align-items: center; gap: 6px; }
+        /* 予定タブ更新ボタン: タスクタブと統一（.gtask-refresh-btn 流用） */
 
         /* スケジュール 更新ステータスバー */
         .sched-status-bar {
@@ -3011,103 +3072,10 @@
             border-color: #e53e3e;
             color: #b00020;
         }
-        /* ===== 月間カレンダーグリッド ===== */
-        .month-cal-grid {
-            display: grid; grid-template-columns: repeat(7, 1fr);
-            gap: 2px; padding: 8px;
-            background: var(--surface);
-            border-radius: 10px 10px 0 0;
-        }
-        .month-cal-head {
-            text-align: center; font-size: 11px; font-weight: 600;
-            color: var(--text3); padding: 4px 0;
-        }
-        .month-cal-head.sun { color: #ef4444; }
-        .month-cal-head.sat { color: #3b82f6; }
-        .month-cal-cell {
-            min-height: 42px; border-radius: 6px; padding: 4px 3px;
-            cursor: pointer; transition: background 0.1s;
-        }
-        .month-cal-cell:hover:not(.empty) { background: var(--surface2); }
-        .month-cal-cell.empty { cursor: default; }
-        .month-cal-cell.today { background: var(--primary-l); }
-        .month-cal-day {
-            font-size: 12px; text-align: center; font-weight: 500; line-height: 1.4;
-        }
-        .month-cal-cell.today .month-cal-day {
-            color: var(--primary); font-weight: 700;
-        }
-        .month-cal-cell.sun .month-cal-day { color: #ef4444; }
-        .month-cal-cell.sat .month-cal-day { color: #3b82f6; }
-        .month-cal-dots { display: flex; gap: 2px; justify-content: center; margin-top: 2px; flex-wrap: wrap; }
-        .month-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
-        .month-dot.gcal-dot { width: 4px; height: 4px; opacity: 0.7; }
-        .month-cal-cell.selected {
-            background: var(--primary-l);
-            outline: 2px solid var(--primary);
-            outline-offset: -1px;
-        }
-        .month-cal-cell.selected .month-cal-day { color: var(--primary); font-weight: 700; }
-
-        /* ===== GCalスタイル月間カレンダー ===== */
-        .month-cal-grid-gcal {
-            display: grid; grid-template-columns: repeat(7, 1fr);
-            gap: 1px; padding: 4px;
-            background: var(--border, #e2e4e7);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        .mcg-head {
-            text-align: center; font-size: 11px; font-weight: 600;
-            color: var(--text3); padding: 6px 0;
-            background: var(--surface, #fff);
-        }
-        .mcg-head.sun { color: #ef4444; }
-        .mcg-head.sat { color: #3b82f6; }
-        .mcg-cell {
-            min-height: 64px; padding: 2px 3px;
-            background: var(--surface, #fff);
-            cursor: pointer; transition: background 0.1s;
-            display: flex; flex-direction: column;
-        }
-        .mcg-cell:hover:not(.empty) { background: #f8faf9; }
-        .mcg-cell.empty { background: var(--surface2, #f5f5f5); cursor: default; min-height: 24px; }
-        .mcg-cell.today { background: rgba(0, 104, 55, 0.06); }
-        .mcg-cell.selected { background: var(--primary-l); outline: 2px solid var(--primary); outline-offset: -1px; }
-        .mcg-day {
-            font-size: 11px; font-weight: 500; text-align: center;
-            line-height: 20px; width: 20px; margin: 0 auto 1px;
-            border-radius: 50%;
-        }
-        .mcg-cell.today .mcg-day {
-            background: var(--primary, #006837); color: #fff; font-weight: 700;
-        }
-        .mcg-cell.sun .mcg-day { color: #ef4444; }
-        .mcg-cell.sat .mcg-day { color: #3b82f6; }
-        .mcg-events {
-            flex: 1; display: flex; flex-direction: column; gap: 1px;
-            overflow: hidden;
-        }
-        .mcg-ev {
-            font-size: 8px; line-height: 1.3;
-            padding: 1px 3px;
-            border-radius: 2px;
-            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-            font-weight: 500;
-        }
-        .mcg-ev-prop { font-weight: 700; }
-        .mcg-ev-time { font-family: 'DM Mono', monospace; opacity: 0.7; }
-        .mcg-ev-more {
-            font-size: 8px; color: var(--text3); text-align: center;
-            padding: 1px 0;
-        }
-        .mcg-cell.selected .mcg-day { color: var(--primary); font-weight: 700; }
-        .mcg-cell.selected.today .mcg-day { background: var(--primary); color: #fff; }
-
         /* ===== 週間タブ ===== */
         .week-day-strip {
             display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
-            margin-bottom: 16px;
+            margin-bottom: 16px; padding: 0 2px;
             /* カレンダーを固定し、下のイベント一覧だけスクロールできるように */
             position: sticky; top: 52px; z-index: 5;
             background: var(--bg);
@@ -3633,6 +3601,22 @@
         // ============================================================
         // Google Tasks 共通ユーティリティ（renderGoogleTasks と renderTasksTab で共有）
         // ============================================================
+        // 場所文字列の冗長表記を整理: "岐阜市、日本、岐阜県岐阜市" → "岐阜市"
+        // GCal の location は重複や住所階層が混在するため、最短の市町村名を選ぶ
+        function _cleanLocation(loc) {
+            if (!loc) return '';
+            const parts = String(loc).split(/[、,]/).map(s => s.trim()).filter(Boolean);
+            const noJp = parts.filter(p => p !== '日本' && p.toLowerCase() !== 'japan');
+            if (noJp.length === 0) return '';
+            // ある項目が他の項目の部分文字列なら、長い方を捨てる（短い市町村名を残す）
+            const kept = noJp.filter((p, i) =>
+                !noJp.some((q, j) => i !== j && p !== q && p.includes(q))
+            );
+            // 残りの中で最短のものを採用（重複や住所階層を吸収）
+            kept.sort((a, b) => a.length - b.length);
+            return kept[0] || noJp[0];
+        }
+
         function _gtaskFmtDate(dateStr) {
             const today = new Date(); today.setHours(0,0,0,0);
             const d = new Date(dateStr); d.setHours(0,0,0,0);
@@ -4265,37 +4249,50 @@
                 const isPastDay = dateMs < todayMs;
                 const nowHHMM   = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
 
-                let evHtml = '';
-                if (day.events.length === 0) {
-                    evHtml = '<div style="padding:6px 0;color:var(--text3);font-size:12px;">予定なし</div>';
-                } else {
-                    day.events.forEach(function(ev) {
+                // 終日 / 時刻付きに分け、C案タイムライン構造で出力
+                const allDay = day.events.filter(function(e) { return e.isAllDay; });
+                const timed  = day.events.filter(function(e) { return !e.isAllDay; })
+                    .sort(function(a, b) { return (a.startTime || '').localeCompare(b.startTime || ''); });
+
+                let cardInner = '';
+                if (allDay.length > 0) {
+                    let pillsHtml = '';
+                    allDay.forEach(function(ev) {
                         const bc = ev.color || '#4285f4';
-                        const locHtml = ev.location ? `<div class="sched-location">${ev.location}</div>` : '';
-                        if (ev.isAllDay) {
-                            // 終日予定: 日付が変わった（過去日）のみグレー
-                            const pastCls = isPastDay ? ' sched-item-past' : '';
-                            evHtml += `<div class="sched-item sched-all-day${pastCls}" style="border-left-color:${bc};">
-                                <div class="sched-content"><div class="sched-title">${ev.title}</div>${locHtml}</div>
-                            </div>`;
-                        } else {
-                            // 時刻付き: 過去日 or 今日で終了時刻を過ぎたらグレー
-                            const isEnded = isPastDay || (isToday && ev.endTime && ev.endTime <= nowHHMM);
-                            const pastCls = isEnded ? ' sched-item-past' : '';
-                            evHtml += `<div class="sched-item${pastCls}" style="border-left-color:${bc};">
-                                <div class="sched-content">
-                                    <div class="sched-time">${ev.startTime} - ${ev.endTime}</div>
-                                    <div class="sched-title">${ev.title}</div>
-                                    ${locHtml}
-                                </div>
-                            </div>`;
-                        }
+                        const pastCls = isPastDay ? ' past' : '';
+                        const cleaned = _cleanLocation(ev.location);
+                        const locHtml = cleaned ? ` <span style="color:var(--text3);">· ${cleaned}</span>` : '';
+                        pillsHtml += `<span class="sched-tl-allday-pill${pastCls}"><span class="sched-tl-dot" style="background:${bc};"></span>${ev.title}${locHtml}</span>`;
+                    });
+                    cardInner += `<div class="sched-tl-allday">
+                        <span class="sched-tl-allday-label">終日</span>
+                        <div class="sched-tl-allday-pills">${pillsHtml}</div>
+                    </div>`;
+                }
+
+                if (timed.length === 0 && allDay.length === 0) {
+                    cardInner += '<div class="sched-tl-empty">予定なし</div>';
+                } else if (timed.length > 0) {
+                    timed.forEach(function(ev) {
+                        const bc = ev.color || '#4285f4';
+                        const isEnded = isPastDay || (isToday && ev.endTime && ev.endTime <= nowHHMM);
+                        const isNow = isToday && ev.startTime && ev.endTime && ev.startTime <= nowHHMM && ev.endTime > nowHHMM;
+                        const cls = (isEnded ? ' past' : '') + (isNow ? ' now' : '');
+                        const cleaned = _cleanLocation(ev.location);
+                        const locHtml = cleaned ? `<span>· ${cleaned}</span>` : '';
+                        cardInner += `<div class="sched-tl-row${cls}">
+                            <div class="sched-tl-time">${ev.startTime}<span class="sched-tl-time-end">${ev.endTime}</span></div>
+                            <div class="sched-tl-body" style="border-left:3px solid ${bc};">
+                                <div class="sched-tl-title">${ev.title}</div>
+                                <div class="sched-tl-meta">${locHtml}</div>
+                            </div>
+                        </div>`;
                     });
                 }
 
                 html += `<div class="schedule-section${sectionExtra}">
                     <div class="schedule-label">${mo}月${d}日（${dow}） ${badge}</div>
-                    ${evHtml}
+                    <div class="sched-tl-card">${cardInner}</div>
                 </div>`;
             });
 
@@ -4306,37 +4303,34 @@
         let schedRefreshing = false;
         let schedLastUpdated = '';
         let schedAutoFetchDone = {}; // weekOffset → true で自動取得済みマーク
-        async function schedRefresh() {
+        async function schedRefresh(btn) {
             if (schedRefreshing) return;
             schedRefreshing = true;
-            // 更新ステータスバー
+            // 更新ステータス（タスクタブと同じくスピナーはボタン側で表現）
             const statusEl = document.getElementById('schedStatusBar');
-            if (statusEl) {
-                statusEl.innerHTML = '<div class="spin" style="width:14px;height:14px;border-width:2px;"></div>&nbsp;更新中…';
-                statusEl.classList.remove('error', 'ok');
-                statusEl.classList.add('loading');
-            }
-            const btns = document.querySelectorAll('[onclick="schedRefresh()"]');
-            btns.forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
+            if (statusEl) statusEl.textContent = '更新中…';
+            // アイコンボタン（gtask-refresh-btn と同等）：SVGに .spinning を付ける
+            const allBtns = document.querySelectorAll('[onclick^="schedRefresh"]');
+            const icons = [];
+            allBtns.forEach(b => {
+                b.disabled = true;
+                const ic = b.querySelector('svg');
+                if (ic) { ic.classList.add('spinning'); icons.push(ic); }
+                else { b.style.opacity = '0.5'; }
+            });
             try {
                 _fetchLiveDataLastAt = 0; // 手動更新はTTLをリセットして必ず再取得
                 await fetchLiveData(schedWeekOffset);
                 const d = new Date();
-                schedLastUpdated = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-                if (statusEl) {
-                    statusEl.textContent = '最終更新: ' + schedLastUpdated;
-                    statusEl.classList.remove('loading', 'error');
-                    statusEl.classList.add('ok');
-                }
+                // タスクタブと統一: YYYY-MM-DD HH:MM
+                schedLastUpdated = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+                if (statusEl) statusEl.textContent = '更新: ' + schedLastUpdated;
             } catch(e) {
-                if (statusEl) {
-                    statusEl.textContent = '更新失敗: ' + (e.message || e);
-                    statusEl.classList.remove('loading', 'ok');
-                    statusEl.classList.add('error');
-                }
+                if (statusEl) statusEl.textContent = '更新失敗: ' + (e.message || e);
             } finally {
                 schedRefreshing = false;
-                btns.forEach(b => { b.disabled = false; b.style.opacity = ''; });
+                icons.forEach(ic => ic.classList.remove('spinning'));
+                allBtns.forEach(b => { b.disabled = false; b.style.opacity = ''; });
                 // スケジュールタブを強制再描画
                 const weekEl = document.getElementById('tab-week');
                 if (weekEl) {
@@ -5165,8 +5159,8 @@
             if (ov) ov.classList.remove('open');
         }
 
-        // ===== 週間タブ =====
-        // scheduleEventsから指定日の予定HTMLを生成（場所情報も含む）
+        // ===== 予定タブ =====
+        // scheduleEventsから指定日の予定HTMLを生成（C案タイムライン）
         function getCalendarEventsForDate(targetDateMs) {
             const d = new Date(targetDateMs);
             const dateStr = d.getFullYear() + '-' +
@@ -5183,89 +5177,127 @@
             });
 
             // ── Google Calendar イベント ────────────────────────────────
-            let calHtml = '';
             const day = scheduleEvents && scheduleEvents.find(s => s.dateStr === dateStr);
             const hasEntry = !!day;
 
-            if (day && day.events.length > 0) {
-                const nowEvt     = new Date();
-                const todayMsEvt = new Date(nowEvt.getFullYear(), nowEvt.getMonth(), nowEvt.getDate()).getTime();
-                const isPastDayEvt = targetDateMs < todayMsEvt;
-                const isTodayEvt   = targetDateMs === todayMsEvt;
-                const nowHHMMEvt   = String(nowEvt.getHours()).padStart(2,'0') + ':' + String(nowEvt.getMinutes()).padStart(2,'0');
+            const nowEvt     = new Date();
+            const todayMsEvt = new Date(nowEvt.getFullYear(), nowEvt.getMonth(), nowEvt.getDate()).getTime();
+            const isPastDayEvt = targetDateMs < todayMsEvt;
+            const isTodayEvt   = targetDateMs === todayMsEvt;
+            const nowHHMMEvt   = String(nowEvt.getHours()).padStart(2,'0') + ':' + String(nowEvt.getMinutes()).padStart(2,'0');
 
+            const allDayEvs = [];
+            const timedEvs  = [];
+            if (day && day.events.length > 0) {
                 day.events.forEach(function(ev) {
-                    const bc = ev.color || '#4285f4';
-                    const locHtml = ev.location ? `<div class="sched-location">${ev.location}</div>` : '';
-                    if (ev.isAllDay) {
-                        const pastCls = isPastDayEvt ? ' sched-item-past' : '';
-                        calHtml += `<div class="sched-item sched-all-day${pastCls}" style="border-left-color:${bc};">
-                            <div class="sched-content">
-                                <div class="sched-title">${ev.title}</div>
-                                ${locHtml}
-                            </div>
-                        </div>`;
-                    } else {
-                        const isEnded = isPastDayEvt || (isTodayEvt && ev.endTime && ev.endTime <= nowHHMMEvt);
-                        const pastCls = isEnded ? ' sched-item-past' : '';
-                        calHtml += `<div class="sched-item${pastCls}" style="border-left-color:${bc};">
-                            <div class="sched-content">
-                                <div class="sched-time">${ev.startTime} - ${ev.endTime}</div>
-                                <div class="sched-title">${ev.title}</div>
-                                ${locHtml}
-                            </div>
-                        </div>`;
-                    }
+                    if (ev.isAllDay) allDayEvs.push(ev);
+                    else timedEvs.push(ev);
                 });
+                // 時間順ソート
+                timedEvs.sort((a,b) => (a.startTime || '').localeCompare(b.startTime || ''));
             }
 
-            // ── Googleタスクセクション HTML ─────────────────────────────
+            // 「現在進行中」の最初の時間イベントだけに now マークを付ける
+            let nowIdx = -1;
+            if (isTodayEvt) {
+                for (let i = 0; i < timedEvs.length; i++) {
+                    const ev = timedEvs[i];
+                    if (ev.startTime && ev.endTime && ev.startTime <= nowHHMMEvt && nowHHMMEvt < ev.endTime) {
+                        nowIdx = i;
+                        break;
+                    }
+                }
+            }
+
+            // 終日ピル（ラベルは1行目に独立、ピルは下段で wrap 整列）
+            let alldayHtml = '';
+            if (allDayEvs.length > 0) {
+                const pastCls = isPastDayEvt ? ' past' : '';
+                const pillsHtml = allDayEvs.map(function(ev) {
+                    const bc = ev.color || '#4285f4';
+                    const cleaned = _cleanLocation(ev.location);
+                    const loc = cleaned ? ` <span style="color:var(--text3);">· ${cleaned}</span>` : '';
+                    return `<span class="sched-tl-allday-pill${pastCls}"><span class="sched-tl-dot" style="background:${bc};"></span>${ev.title}${loc}</span>`;
+                }).join('');
+                alldayHtml = `<div class="sched-tl-allday">
+                    <span class="sched-tl-allday-label">終日</span>
+                    <div class="sched-tl-allday-pills">${pillsHtml}</div>
+                </div>`;
+            }
+
+            // 時間指定（タイムライン行）
+            let timedHtml = '';
+            timedEvs.forEach(function(ev, idx) {
+                const bc = ev.color || '#4285f4';
+                const isEnded = isPastDayEvt || (isTodayEvt && ev.endTime && ev.endTime <= nowHHMMEvt);
+                const pastCls = isEnded ? ' past' : '';
+                const nowCls  = (idx === nowIdx) ? ' now' : '';
+                const cleaned = _cleanLocation(ev.location);
+                const loc = cleaned ? `<span>· ${cleaned}</span>` : '';
+                const calName = ev.calendarName || '';
+                const calMeta = calName
+                    ? `<span class="sched-tl-cal">${calName}</span>`
+                    : '';
+                timedHtml += `<div class="sched-tl-row${nowCls}${pastCls}">
+                    <div class="sched-tl-time">${ev.startTime || ''}<span class="sched-tl-time-end">-${ev.endTime || ''}</span></div>
+                    <div class="sched-tl-body" style="border-left:3px solid ${bc};">
+                        <div class="sched-tl-title">${ev.title}</div>
+                        <div class="sched-tl-meta">${calMeta}${loc}</div>
+                    </div>
+                </div>`;
+            });
+
+            // カレンダーカード（終日 + タイムライン）
+            let calCard = '';
+            if (alldayHtml || timedHtml) {
+                calCard = `<div class="sched-tl-card">${alldayHtml}${timedHtml}</div>`;
+            }
+
+            // Googleタスクブロック
             let tasksHtml = '';
             if (dayTasks.length > 0) {
                 const itemsHtml = dayTasks.map(function(t) {
                     const tid = (t.id || '').replace(/'/g, '');
                     const lid = (t.listId || '').replace(/'/g, '');
-                    return `<div class="gtask-item this-week">
+                    return `<div class="sched-tl-task-row">
                         <label class="gtask-cb-wrap" onclick="event.stopPropagation()">
                             <input type="checkbox" class="gtask-cb" ${tid ? `onchange="completeGoogleTask('${tid}','${lid}',this)"` : 'disabled'}>
                             <span class="gtask-cb-icon"></span>
                         </label>
-                        <div class="task-content">
-                            <div class="gtask-title">${t.title}</div>
-                        </div>
+                        <div class="sched-tl-task-title">${t.title}</div>
                     </div>`;
                 }).join('');
-                tasksHtml = `<div style="border-top:1px solid var(--border);margin-top:6px;padding-top:6px;">
-                    <div style="font-size:10px;font-weight:700;color:var(--text3);margin-bottom:4px;display:flex;align-items:center;gap:4px;">
-                        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                        Googleタスク
+                tasksHtml = `<div class="sched-tl-tasks">
+                    <div class="sched-tl-tasks-hdr">
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        Googleタスク <span class="sched-tl-tasks-cnt">${dayTasks.length}件</span>
                     </div>
                     ${itemsHtml}
                 </div>`;
             }
 
-            // 何も無い場合は null を返す（呼び出し元が「予定なし」または「範囲外」を判断）
-            if (!calHtml && !tasksHtml) {
+            if (!calCard && !tasksHtml) {
                 if (!hasEntry) return null;
-                return '<div style="padding:8px 0;color:var(--text3);font-size:12px;text-align:center;">予定なし</div>';
+                return '<div class="sched-tl-empty">予定なし</div>';
             }
 
-            return (calHtml || '<div style="padding:6px 0;color:var(--text3);font-size:12px;text-align:center;">カレンダー予定なし</div>') + tasksHtml;
+            return (calCard || '<div class="sched-tl-empty">カレンダー予定なし</div>') + tasksHtml;
         }
 
         // スケジュールタブ: 週オフセット（0=今週, -1=先週, 1=翌週...）
         let schedWeekOffset = 0;
-        let schedViewMode = 'month'; // 'week' | 'month'（デフォルトは月間）
         let schedSliding = false;
 
         // アニメーション付きで週を変更（← → ボタン用）
+        // 日付ストリップから下（.sched-swipe-frame）だけがスライドする
         function changeSchedWeek(delta) {
             if (schedSliding) return;
-            const el = document.getElementById('tab-week');
-            const oldPane = el.firstElementChild;
+            const tabEl = document.getElementById('tab-week');
+            const frame = tabEl && tabEl.querySelector('.sched-swipe-frame');
+            const oldPane = frame && frame.firstElementChild;
             const dir = delta > 0 ? 'next' : 'prev';
 
-            if (!oldPane || schedViewMode !== 'week') {
+            if (!frame || !oldPane) {
                 schedWeekOffset += delta;
                 _renderSchedTab();
                 return;
@@ -5274,22 +5306,25 @@
             schedSliding = true;
 
             // 1. 旧パネルを絶対配置＋終了アニメーションクラス付与
-            //    （DOMから切り離しても JS 参照とスタイルは維持される）
+            const h = oldPane.offsetHeight;
+            frame.style.height = h + 'px';
             oldPane.style.cssText = 'position:absolute;top:0;left:0;width:100%;';
             oldPane.classList.add('week-slide-pane', `week-anim-exit-${dir}`);
 
-            // 2. 新しいオフセットで描画（el.innerHTML が差し替わり oldPane はデタッチ）
+            // 2. 新しいオフセットで描画（tabEl.innerHTML が差し替わり oldPane はデタッチ）
             schedWeekOffset += delta;
             _renderSchedTab();
 
-            // 3. 新パネル（now el.firstElementChild）に入場アニメーションクラス付与
-            const newPane = el.firstElementChild;
+            // 3. 新フレームを取り直し、新パネルに入場アニメーション
+            const newFrame = tabEl.querySelector('.sched-swipe-frame');
+            const newPane = newFrame && newFrame.firstElementChild;
             if (newPane) {
                 newPane.classList.add('week-slide-pane', `week-anim-enter-${dir}`);
             }
-
-            // 4. 旧パネルを再挿入（絶対配置なのでレイアウトに影響しない）
-            el.appendChild(oldPane);
+            if (newFrame) {
+                newFrame.style.height = h + 'px';
+                newFrame.appendChild(oldPane);
+            }
 
             // 5. アニメーション完了後にクリーンアップ
             const ANIM_DUR = 310;
@@ -5298,6 +5333,7 @@
                 if (newPane) {
                     newPane.classList.remove('week-slide-pane', `week-anim-enter-${dir}`);
                 }
+                if (newFrame) newFrame.style.height = '';
                 schedSliding = false;
             }, ANIM_DUR);
         }
@@ -5324,6 +5360,11 @@
             var samples = [];  // [{x, t}]
 
             function getEl() { return document.getElementById('tab-week'); }
+            // スワイプ対象は「日付ストリップから下」だけ。フレームを返す。
+            function getFrame() {
+                var t = document.getElementById('tab-week');
+                return t ? t.querySelector('.sched-swipe-frame') : null;
+            }
 
             function reset() {
                 touchId = null; decided = false; isHoriz = false;
@@ -5347,40 +5388,38 @@
                 return (last.x - first.x) / dt; // px/ms（+=右、-=左）
             }
 
-            function prepare(el, dx) {
+            // 引数 frame は .sched-swipe-frame（=現フレーム、prepare 内で新フレームに入れ替わる）
+            function prepare(frame, dx) {
                 if (ready) return;
                 swDir   = dx < 0 ? 'next' : 'prev';
-                curPane = el.firstElementChild;
+                curPane = frame.firstElementChild;
                 if (!curPane) { reset(); return; }
 
-                elW = el.offsetWidth;
+                elW = frame.offsetWidth;
                 var h = curPane.offsetHeight;
 
-                // コンテナ高さを固定（パネルが全部絶対配置になるため）
-                el.style.height = h + 'px';
+                // フレーム高さを固定（パネルが全部絶対配置になるため）
+                frame.style.height = h + 'px';
 
                 // 現パネルを絶対配置に変換
                 curPane.style.cssText = 'position:absolute;top:0;left:0;width:100%;will-change:transform;transform:translateX(0px)';
 
-                // 次/前の週（月）をレンダリング（el.innerHTMLが書き換わりcurPaneはデタッチ）
+                // tab-week 全体を再描画（旧フレームごと差し替わるが curPane の JS 参照は保持）
                 var saved = schedWeekOffset;
                 schedWeekOffset += (swDir === 'next' ? 1 : -1);
                 var now = new Date();
                 var todayMs = +new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                if (schedViewMode === 'month') {
-                    _renderMonthView(el, now, todayMs, { skipInitDay: true }); // 先読み中はdetail閉じたまま
-                } else {
-                    _renderWeekView(el, now, todayMs);
-                }
+                _renderWeekView(getEl(), now, todayMs);
                 schedWeekOffset = saved; // 完了時に再度更新する
 
-                // 先読みパネルを取得して絶対配置
-                nxtPane = el.firstElementChild;
+                // 新フレームを取得してから先読みパネルを絶対配置・curPane を再挿入
+                var newFrame = getFrame();
+                if (!newFrame) { reset(); return; }
+                newFrame.style.height = h + 'px';
+                nxtPane = newFrame.firstElementChild;
                 var nxtX = swDir === 'next' ? elW : -elW;
                 nxtPane.style.cssText = 'position:absolute;top:0;left:0;width:100%;will-change:transform;transform:translateX(' + nxtX + 'px)';
-
-                // 現パネルをコンテナに再挿入
-                el.appendChild(curPane);
+                newFrame.appendChild(curPane);
                 ready = true;
             }
 
@@ -5442,7 +5481,6 @@
 
             function onStart(e) {
                 if (snapping || schedSliding) return;
-                if (schedViewMode !== 'week' && schedViewMode !== 'month') return;
                 if (touchId !== null) return;
                 var t = e.changedTouches[0];
                 // 週ビューの日付ストリップだけは専用ハンドラに委譲（日付切替用）。
@@ -5482,11 +5520,10 @@
                 e.preventDefault(); // 横スワイプ中はページスクロールを抑制
                 pushSample(t.clientX);
 
-                var el = getEl();
-                if (!el) return;
-
                 if (!ready) {
-                    prepare(el, dx);
+                    var frame = getFrame();
+                    if (!frame) return;
+                    prepare(frame, dx);
                     if (!ready) return;
                     schedSliding = true; // 描画中はボタンアニメーション禁止
                 }
@@ -5505,9 +5542,9 @@
                 var dx = t.clientX - startX;
                 pushSample(t.clientX);
                 var vel = calcVelocity(); // px/ms（符号付き）
-                var el = getEl();
+                var frame = getFrame(); // prepare 後の新フレーム
 
-                if (!ready || !curPane || !nxtPane || !el) {
+                if (!ready || !curPane || !nxtPane || !frame) {
                     schedSliding = false;
                     reset();
                     return;
@@ -5521,9 +5558,9 @@
                 var reverseFlick = (swDir === 'next' && vel >= FLICK_VEL) || (swDir === 'prev' && vel <= -FLICK_VEL);
 
                 if ((distTriggered || flickTriggered) && !reverseFlick) {
-                    snapComplete(el, dx, vel);
+                    snapComplete(frame, dx, vel);
                 } else {
-                    snapBack(el, dx, vel);
+                    snapBack(frame, dx, vel);
                     schedSliding = false;
                 }
                 reset();
@@ -5532,11 +5569,11 @@
             function onCancel(e) {
                 if (touchId === null) return;
                 touchId = null;
-                var el = getEl();
-                if (ready && curPane && nxtPane && el) {
-                    snapBack(el, 0, 0);
-                } else if (el) {
-                    el.style.height = '';
+                var frame = getFrame();
+                if (ready && curPane && nxtPane && frame) {
+                    snapBack(frame, 0, 0);
+                } else if (frame) {
+                    frame.style.height = '';
                 }
                 schedSliding = false;
                 reset();
@@ -5556,7 +5593,6 @@
 
         function renderWeekTab() {
             schedWeekOffset = 0;
-            // schedViewMode は既定 'month'（ユーザーがタブ再訪時に切替を維持したい場合はそのまま保持）
             _renderSchedTab();
             // 初回タブ表示時: GAS接続済みかつまだ更新していない場合は自動取得
             if (GAS_WEBAPP_URL && !schedLastUpdated) {
@@ -5569,33 +5605,19 @@
             const now = new Date();
             const todayMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
-            if (schedViewMode === 'month') {
-                _renderMonthView(el, now, todayMs);
-            } else {
-                _renderWeekView(el, now, todayMs);
-            }
+            _renderWeekView(el, now, todayMs);
 
             // ナビゲーション後、表示範囲にGCalイベントがなければ自動取得
-            const fetchKey = schedViewMode + '_' + schedWeekOffset;
+            const fetchKey = 'week_' + schedWeekOffset;
             if (GAS_WEBAPP_URL && !schedRefreshing && !schedAutoFetchDone[fetchKey]) {
-                let needsFetch = false;
-                if (schedViewMode === 'month') {
-                    const target = new Date(now.getFullYear(), now.getMonth() + schedWeekOffset, 1);
-                    const yr = target.getFullYear(), mo = target.getMonth();
-                    needsFetch = !scheduleEvents || !scheduleEvents.some(s => {
-                        const d = new Date(s.dateStr + 'T00:00:00');
-                        return d.getFullYear() === yr && d.getMonth() === mo && s.events && s.events.length > 0;
-                    });
-                } else {
-                    const baseDate2 = new Date(now);
-                    baseDate2.setDate(now.getDate() - now.getDay() + schedWeekOffset * 7);
-                    const ws = new Date(baseDate2.getFullYear(), baseDate2.getMonth(), baseDate2.getDate());
-                    const we = new Date(ws); we.setDate(ws.getDate() + 6);
-                    needsFetch = !scheduleEvents || !scheduleEvents.some(s => {
-                        const d = new Date(s.dateStr + 'T00:00:00');
-                        return d >= ws && d <= we && s.events && s.events.length > 0;
-                    });
-                }
+                const baseDate2 = new Date(now);
+                baseDate2.setDate(now.getDate() - now.getDay() + schedWeekOffset * 7);
+                const ws = new Date(baseDate2.getFullYear(), baseDate2.getMonth(), baseDate2.getDate());
+                const we = new Date(ws); we.setDate(ws.getDate() + 6);
+                const needsFetch = !scheduleEvents || !scheduleEvents.some(s => {
+                    const d = new Date(s.dateStr + 'T00:00:00');
+                    return d >= ws && d <= we && s.events && s.events.length > 0;
+                });
                 if (needsFetch) {
                     schedAutoFetchDone[fetchKey] = true;
                     schedRefresh();
@@ -5613,10 +5635,12 @@
             endOfWeek.setDate(startOfWeek.getDate() + 6);
 
             const isCurrentWeek = schedWeekOffset === 0;
-            const weekLabel = isCurrentWeek ? '今週'
-                : schedWeekOffset === -1 ? '先週'
-                : schedWeekOffset === 1 ? '翌週'
-                : `${startOfWeek.getMonth()+1}/${startOfWeek.getDate()} 〜 ${endOfWeek.getMonth()+1}/${endOfWeek.getDate()}`;
+            // 週ラベルは常に「○月」。週が月を跨ぐ場合は「4月 / 5月」
+            const startMonth = startOfWeek.getMonth() + 1;
+            const endMonth   = endOfWeek.getMonth() + 1;
+            const weekLabel  = startMonth === endMonth
+                ? `${startMonth}月`
+                : `${startMonth}月 / ${endMonth}月`;
 
             let stripHtml = '<div class="week-day-strip">';
             for (let i = 0; i < 7; i++) {
@@ -5633,8 +5657,9 @@
             }
             stripHtml += '</div>';
 
-            // GCal 週間ビューリンク
-            const gcalWeekUrl = `https://calendar.google.com/calendar/r/week/${startOfWeek.getFullYear()}/${startOfWeek.getMonth()+1}/${startOfWeek.getDate()}`;
+            // GCal リンク
+            const gcalWeekUrl  = `https://calendar.google.com/calendar/r/week/${startOfWeek.getFullYear()}/${startOfWeek.getMonth()+1}/${startOfWeek.getDate()}`;
+            const gcalMonthUrl = `https://calendar.google.com/calendar/r/month/${startOfWeek.getFullYear()}/${startOfWeek.getMonth()+1}`;
             // この週のエントリが存在するか（auto-fill含む）
             const weekHasEntry = scheduleEvents && scheduleEvents.some(s => {
                 const d = new Date(s.dateStr + 'T00:00:00');
@@ -5648,14 +5673,13 @@
                 </div>` : '';
 
             el.innerHTML = `<div class="tab-pane">
-                <!-- スティッキーヘッダー: タブ + 年月ナビ -->
+                <!-- スティッキーヘッダー: GCal月間リンク + 更新 / 週ナビ（タイトルは他タブに合わせて非表示） -->
                 <div class="sched-sticky-hdr">
-                    <div class="sched-sticky-top">
-                        <div class="seg-tabs">
-                            <button class="seg-tab" onclick="schedViewMode='month';_renderSchedTab()">月間</button>
-                            <button class="seg-tab active" onclick="schedViewMode='week';_renderSchedTab()">週間</button>
+                    <div class="sched-sticky-top" style="justify-content:flex-end;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <a href="${gcalMonthUrl}" target="_blank" style="font-size:11px;color:var(--primary);text-decoration:none;display:inline-flex;align-items:center;gap:3px;font-weight:600;">GCal月間 <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
+                            ${GAS_WEBAPP_URL ? `<button class="gtask-refresh-btn" onclick="schedRefresh(this)" title="カレンダーを更新" aria-label="カレンダーを更新"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>` : ''}
                         </div>
-                        ${GAS_WEBAPP_URL ? `<button class="sched-view-btn" onclick="schedRefresh()" title="GASから再取得"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> 更新</button>` : ''}
                     </div>
                     <div class="sched-nav-bar">
                         <button class="sched-nav-btn" onclick="changeSchedWeek(-1)">
@@ -5664,23 +5688,28 @@
                         <div class="sched-nav-center">
                             <span class="sched-nav-label">${weekLabel}</span>
                         </div>
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            ${!isCurrentWeek ? `<button class="sched-today-btn" onclick="schedWeekOffset=0;_renderSchedTab()">今週</button>` : ''}
+                        <div class="sched-nav-right">
+                            <button class="sched-today-btn" ${isCurrentWeek ? 'disabled' : ''} onclick="schedWeekOffset=0;_renderSchedTab()">今週</button>
                             <button class="sched-nav-btn" onclick="changeSchedWeek(1)">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                             </button>
                         </div>
                     </div>
                 </div>
-                ${GAS_WEBAPP_URL ? `<div id="schedStatusBar" class="sched-status-bar ${schedLastUpdated?'ok':''}">${schedLastUpdated ? '最終更新: ' + schedLastUpdated : 'まだ更新されていません（更新ボタンで取得）'}</div>` : ''}
-                ${stripHtml}
-                ${noDataBanner}
-                <div class="card" style="margin-bottom:16px;">
-                    <div class="card-head">
-                        <div class="card-title" id="weekDayTitle">${isCurrentWeek ? '今日' : weekLabel.split('〜')[0].trim() + '〜'}の予定</div>
-                        <a href="${gcalWeekUrl}" target="_blank" style="font-size:11px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:3px;">GCal <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
+                ${GAS_WEBAPP_URL ? `<div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><div id="schedStatusBar" style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;">${schedLastUpdated ? '更新: ' + schedLastUpdated : 'まだ更新されていません'}</div></div>` : ''}
+                <!-- 日付ストリップから下だけが横スワイプで動く（GCal週ビュー風） -->
+                <div class="sched-swipe-frame">
+                    <div class="sched-swipe-pane">
+                        ${stripHtml}
+                        ${noDataBanner}
+                        <div class="card" style="margin-bottom:16px;">
+                            <div class="card-head">
+                                <div class="card-title" id="weekDayTitle">${isCurrentWeek ? '今日' : weekLabel.split('〜')[0].trim() + '〜'}の予定</div>
+                                <a href="${gcalWeekUrl}" target="_blank" style="font-size:11px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:3px;">GCal <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
+                            </div>
+                            <div id="weekTodayEvents"></div>
+                        </div>
                     </div>
-                    <div id="weekTodayEvents"></div>
                 </div>
             </div>`;
 
@@ -5745,164 +5774,6 @@
 
             // 左右スワイプで「日付」切り替え（週変更は矢印ボタン）
             initWeekSwipe(el, weekDayMsList, initMs);
-        }
-
-        function _renderMonthView(el, now, todayMs, opts) {
-            opts = opts || {};
-            const weeks = WEEKDAYS_JP;
-            // schedWeekOffsetを月オフセットとして流用
-            const targetDate = new Date(now.getFullYear(), now.getMonth() + schedWeekOffset, 1);
-            const year = targetDate.getFullYear();
-            const month = targetDate.getMonth();
-            const monthLabel = `${year}年${month+1}月`;
-            const isCurrentMonth = (year === now.getFullYear() && month === now.getMonth());
-
-            // 月初の曜日
-            const firstDay = new Date(year, month, 1).getDay();
-            const lastDate = new Date(year, month+1, 0).getDate();
-
-            // GCalイベントを日別にマッピング（ドット表示・詳細表示はGCalのみ）
-            const gcalEventsMap = {};
-            if (scheduleEvents) {
-                scheduleEvents.forEach(s => {
-                    const d = new Date(s.dateStr + 'T00:00:00');
-                    if (d.getFullYear() === year && d.getMonth() === month && s.events && s.events.length > 0) {
-                        gcalEventsMap[d.getDate()] = s.events;
-                    }
-                });
-            }
-
-            let calHtml = `<div class="month-cal-grid">`;
-            // ヘッダー行
-            weeks.forEach((w, i) => {
-                const cls = i === 0 ? 'sun' : i === 6 ? 'sat' : '';
-                calHtml += `<div class="month-cal-head ${cls}">${w}</div>`;
-            });
-            // 空白セル（月初の曜日分）
-            for (let i = 0; i < firstDay; i++) {
-                calHtml += `<div class="month-cal-cell empty"></div>`;
-            }
-            // 日付セル（ドット表示）
-            for (let d = 1; d <= lastDate; d++) {
-                const dow = (firstDay + d - 1) % 7;
-                const dMs = new Date(year, month, d).getTime();
-                const isToday = dMs === todayMs;
-                const isSun = dow === 0, isSat = dow === 6;
-                const gcalEvs = gcalEventsMap[d] || [];
-                const cls = [isToday?'today':'', isSun?'sun':'', isSat?'sat':''].filter(Boolean).join(' ');
-
-                // ドット表示（GCalイベントのみ）
-                let dotsHtml = '';
-                gcalEvs.forEach(ev => {
-                    dotsHtml += `<span class="month-dot" style="background:${ev.color || '#4285f4'};"></span>`;
-                });
-
-                calHtml += `<div class="month-cal-cell ${cls}" data-day="${d}">
-                    <div class="month-cal-day">${d}</div>
-                    ${dotsHtml ? `<div class="month-cal-dots">${dotsHtml}</div>` : ''}
-                </div>`;
-            }
-            calHtml += `</div>`;
-
-            // この月のGCalデータがあるか
-            const gcalMonthUrl = `https://calendar.google.com/calendar/r/month/${year}/${month+1}`;
-            const monthHasGcalData = scheduleEvents && scheduleEvents.some(s => {
-                const d = new Date(s.dateStr + 'T00:00:00');
-                return d.getFullYear() === year && d.getMonth() === month && s.events && s.events.length > 0;
-            });
-            const monthNoDataNote = !monthHasGcalData ? `
-                <div style="font-size:11px;color:var(--text3);padding:6px 2px 2px;display:flex;align-items:center;justify-content:space-between;">
-                    <span>GCalデータ未取得（「更新」ボタンで読み込み）</span>
-                    <a href="${gcalMonthUrl}" target="_blank" style="color:var(--primary);text-decoration:none;font-size:11px;">GCalで確認 ↗</a>
-                </div>` : '';
-
-            el.innerHTML = `<div class="tab-pane">
-                <!-- スティッキーヘッダー: タブ + 年月ナビ -->
-                <div class="sched-sticky-hdr">
-                    <div class="sched-sticky-top">
-                        <div class="seg-tabs">
-                            <button class="seg-tab active" onclick="schedViewMode='month';_renderSchedTab()">月間</button>
-                            <button class="seg-tab" onclick="schedViewMode='week';schedWeekOffset=0;_renderSchedTab()">週間</button>
-                        </div>
-                        ${GAS_WEBAPP_URL ? `<button class="sched-view-btn" onclick="schedRefresh()" title="GASから再取得"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> 更新</button>` : ''}
-                    </div>
-                    <div class="sched-nav-bar">
-                        <button class="sched-nav-btn" onclick="schedWeekOffset--;_renderSchedTab()">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-                        </button>
-                        <div class="sched-nav-center">
-                            <span class="sched-nav-label">${monthLabel}</span>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            ${!isCurrentMonth ? `<button class="sched-today-btn" onclick="schedWeekOffset=0;_renderSchedTab()">今月</button>` : ''}
-                            <button class="sched-nav-btn" onclick="schedWeekOffset++;_renderSchedTab()">
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                ${GAS_WEBAPP_URL ? `<div id="schedStatusBar" class="sched-status-bar ${schedLastUpdated?'ok':''}">${schedLastUpdated ? '最終更新: ' + schedLastUpdated : 'まだ更新されていません（更新ボタンで取得）'}</div>` : ''}
-                <div class="card" style="margin-bottom:16px;">
-                    ${calHtml}
-                    ${monthNoDataNote}
-                    <!-- 選択日の詳細パネル -->
-                    <div id="monthDayDetail" style="display:none;border-top:1px solid var(--border);padding:12px 14px;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                            <div style="font-size:13px;font-weight:700;color:var(--text1);" id="monthDayDetailTitle"></div>
-                            <a id="monthDayGcalLink" href="#" target="_blank" style="font-size:11px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:3px;">GCal <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
-                        </div>
-                        <div id="monthDayDetailContent"></div>
-                    </div>
-                </div>
-            </div>`;
-
-            // 指定日の詳細を表示（tap時もinitial時も共通で使用）
-            function showMonthDay(day, opts) {
-                opts = opts || {};
-                const dMs = new Date(year, month, day).getTime();
-                const d = new Date(dMs);
-                const label = `${month+1}月${day}日（${weeks[d.getDay()]}）`;
-
-                el.querySelectorAll('.month-cal-cell').forEach(c => c.classList.remove('selected'));
-                const cell = el.querySelector(`.month-cal-cell[data-day="${day}"]`);
-                if (cell) cell.classList.add('selected');
-
-                const panel = document.getElementById('monthDayDetail');
-                const titleEl = document.getElementById('monthDayDetailTitle');
-                const contentEl = document.getElementById('monthDayDetailContent');
-                const gcalLink = document.getElementById('monthDayGcalLink');
-                if (!panel || !titleEl || !contentEl || !gcalLink) return;
-
-                titleEl.textContent = label;
-                gcalLink.href = `https://calendar.google.com/calendar/r/day/${year}/${month+1}/${day}`;
-
-                const calHtmlForDay = getCalendarEventsForDate(dMs);
-
-                const hasSchedData = scheduleEvents && scheduleEvents.length > 0;
-                const noCalData = !hasSchedData ? `<div style="padding:6px 0 2px;color:var(--text3);font-size:11px;">Googleカレンダーの詳細は <a href="https://calendar.google.com/calendar/r/day/${year}/${month+1}/${day}" target="_blank" style="color:var(--primary);">こちら</a></div>` : '';
-
-                if (!calHtmlForDay) {
-                    contentEl.innerHTML = `<div style="text-align:center;padding:8px;color:var(--text3);font-size:12px;">この日の予定はありません</div>${noCalData}`;
-                } else {
-                    contentEl.innerHTML = calHtmlForDay + noCalData;
-                }
-                panel.style.display = 'block';
-            }
-
-            // 日付セルのタップ → 詳細パネル（scrollIntoViewはしない: 画面が勝手に動くのを防ぐ）
-            el.querySelectorAll('.month-cal-cell[data-day]').forEach(cell => {
-                cell.addEventListener('click', () => {
-                    showMonthDay(parseInt(cell.dataset.day));
-                });
-            });
-
-            // 初期表示: 今月なら今日、他月なら1日を自動で選択（スワイプ先読み中はスキップ）
-            if (!opts.skipInitDay) {
-                const initDay = isCurrentMonth ? now.getDate() : 1;
-                showMonthDay(initDay);
-            }
-
-            // 左右スワイプで月切替は #tab-week 全体に設定済みの指追従スワイプに統一
         }
 
         // ===== 物件タブ =====

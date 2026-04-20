@@ -26,6 +26,8 @@
       --text3:       #64748b;
       --red:         #ef4444;
       --check-on:    #2D8A4E;
+      --shadow-sm:   0 1px 2px rgba(15,25,20,0.04);
+      --shadow-lg:   0 4px 20px rgba(15,25,20,0.06), 0 1px 3px rgba(15,25,20,0.04);
     }
     /* ===== カラートークン（ダーク） ===== */
     @media (prefers-color-scheme: dark) {
@@ -65,40 +67,72 @@
       margin: 0 auto;
       padding: 8px 16px 24px;
     }
+    /* ページヘッダー：グラデーションなし・左バー付きカード */
     .app-header {
-      background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
-      color: #fff;
-      padding: 18px 20px 16px;
-      border-radius: 16px 16px 0 0;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-left: 4px solid var(--sfc-primary);
+      border-radius: 14px;
+      padding: 14px 16px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow-lg);
     }
-    .app-header svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-    .app-header-title { font-size: 15px; font-weight: 700; letter-spacing: 0.03em; }
-    .app-header-sub { font-size: 10px; opacity: 0.65; margin-top: 2px; }
+    .app-header-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: var(--sfc-light);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .app-header-icon svg {
+      width: 18px; height: 18px;
+      stroke: var(--sfc-primary); fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .app-header-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--text1); }
+    .app-header-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
 
+    /* フォーム本体：透明（各セクションがカードになる） */
     .form-body {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-top: none;
-      border-radius: 0 0 16px 16px;
-      padding: 0 0 20px;
+      background: transparent;
+      border: none;
+      padding: 0;
     }
 
-    /* ===== セクション ===== */
+    /* ===== セクションカード ===== */
     .section {
-      padding: 16px 20px 0;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      border-left: 3px solid var(--sfc-primary);
+    }
+    .section-icon {
+      width: 16px; height: 16px;
+      stroke: var(--sfc-primary); fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
     }
     .section-title {
-      font-size: 11px;
+      font-size: 15px;
       font-weight: 700;
-      color: var(--sfc-primary);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid var(--border);
+      color: var(--text1);
+      letter-spacing: -0.01em;
+    }
+    .section-body {
+      padding: 14px 16px 16px;
     }
 
     /* ===== フィールド ===== */
@@ -193,7 +227,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
-    @media (max-width: 380px) {
+    @media (max-width: 300px) {
       .check-grid { grid-template-columns: 1fr; }
     }
     .check-item {
@@ -204,8 +238,13 @@
       border: 1.5px solid var(--border);
       border-radius: 10px;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background 0.15s, border-color 0.15s;
       -webkit-tap-highlight-color: transparent;
+      background: var(--surface2);
+    }
+    .check-item:has(input:checked) {
+      background: var(--sfc-light);
+      border-color: var(--sfc-border);
     }
     .check-item:active { background: var(--sfc-light); }
     .check-item input[type="checkbox"] {
@@ -234,16 +273,19 @@
     }
     .check-item span {
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text1);
+    }
+    .check-item:has(input:checked) span {
+      color: var(--sfc-dark);
     }
 
     /* ===== 送信ボタン ===== */
     .btn-submit {
       display: block;
-      width: calc(100% - 40px);
-      margin: 16px auto 0;
-      padding: 14px;
+      width: 100%;
+      margin: 10px 0 0;
+      padding: 15px;
       background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
       color: #fff;
       font-size: 14px;
@@ -650,7 +692,9 @@
 
   <!-- ===== ヘッダー ===== -->
   <div class="app-header">
-    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <div class="app-header-icon">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </div>
     <div>
       <div class="app-header-title">新規物件登録</div>
       <div class="app-header-sub">Notion 担当物件一覧へ登録</div>
@@ -663,56 +707,66 @@
 
       <!-- 基本情報 -->
       <div class="section">
-        <div class="section-title">基本情報</div>
-        <div class="field">
-          <label class="field-label">物件名 <span class="req">*</span></label>
-          <input type="text" name="物件名" id="propName" placeholder="〇〇様邸" required>
+        <div class="section-head">
+          <svg class="section-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="section-title">基本情報</span>
         </div>
-        <div class="field">
-          <label class="field-label">市町村</label>
-          <select name="市町村">
-            <option value="">（選択してください）</option>
-            <option>岐阜市</option><option>大垣市</option><option>高山市</option>
-            <option>多治見市</option><option>関市</option><option>中津川市</option>
-            <option>美濃市</option><option>瑞浪市</option><option>羽島市</option>
-            <option>恵那市</option><option>美濃加茂市</option><option>土岐市</option>
-            <option>各務原市</option><option>可児市</option><option>山県市</option>
-            <option>瑞穂市</option><option>飛騨市</option><option>本巣市</option>
-            <option>郡上市</option>
-          </select>
+        <div class="section-body">
+          <div class="field">
+            <label class="field-label">物件名 <span class="req">*</span></label>
+            <input type="text" name="物件名" id="propName" placeholder="〇〇様邸" required>
+          </div>
+          <div class="field">
+            <label class="field-label">市町村</label>
+            <select name="市町村">
+              <option value="">（選択してください）</option>
+              <option>岐阜市</option><option>大垣市</option><option>高山市</option>
+              <option>多治見市</option><option>関市</option><option>中津川市</option>
+              <option>美濃市</option><option>瑞浪市</option><option>羽島市</option>
+              <option>恵那市</option><option>美濃加茂市</option><option>土岐市</option>
+              <option>各務原市</option><option>可児市</option><option>山県市</option>
+              <option>瑞穂市</option><option>飛騨市</option><option>本巣市</option>
+              <option>郡上市</option>
+            </select>
+          </div>
         </div>
       </div>
 
       <!-- 工程 -->
       <div class="section">
-        <div class="section-title">工程</div>
-        <div class="date-fields">
-          <div class="field">
-            <label class="field-label">本体着工 <span class="req">*</span></label>
-            <div class="date-field-wrap">
-              <input type="date" name="本体着工" id="d_chakou" oninput="updateDayLabel('d_chakou','dw_chakou')" required>
-              <div id="dw_chakou" class="date-info"></div>
+        <div class="section-head">
+          <svg class="section-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="2" x2="9" y2="6"/><line x1="15" y1="2" x2="15" y2="6"/></svg>
+          <span class="section-title">工程</span>
+        </div>
+        <div class="section-body">
+          <div class="date-fields">
+            <div class="field">
+              <label class="field-label">本体着工 <span class="req">*</span></label>
+              <div class="date-field-wrap">
+                <input type="date" name="本体着工" id="d_chakou" oninput="updateDayLabel('d_chakou','dw_chakou')" required>
+                <div id="dw_chakou" class="date-info"></div>
+              </div>
             </div>
-          </div>
-          <div class="field">
-            <label class="field-label">建て方 <span class="req">*</span></label>
-            <div class="date-field-wrap">
-              <input type="date" name="建て方" id="d_tatemae" oninput="updateDayLabel('d_tatemae','dw_tatemae')" required>
-              <div id="dw_tatemae" class="date-info"></div>
+            <div class="field">
+              <label class="field-label">建て方 <span class="req">*</span></label>
+              <div class="date-field-wrap">
+                <input type="date" name="建て方" id="d_tatemae" oninput="updateDayLabel('d_tatemae','dw_tatemae')" required>
+                <div id="dw_tatemae" class="date-info"></div>
+              </div>
             </div>
-          </div>
-          <div class="field">
-            <label class="field-label">竣工 <span class="req">*</span></label>
-            <div class="date-field-wrap">
-              <input type="date" name="竣工" id="d_shunko" oninput="updateDayLabel('d_shunko','dw_shunko')" required>
-              <div id="dw_shunko" class="date-info"></div>
+            <div class="field">
+              <label class="field-label">竣工 <span class="req">*</span></label>
+              <div class="date-field-wrap">
+                <input type="date" name="竣工" id="d_shunko" oninput="updateDayLabel('d_shunko','dw_shunko')" required>
+                <div id="dw_shunko" class="date-info"></div>
+              </div>
             </div>
-          </div>
-          <div class="field">
-            <label class="field-label">引渡し <span class="req">*</span></label>
-            <div class="date-field-wrap">
-              <input type="date" name="引渡し" id="d_hiki" oninput="updateDayLabel('d_hiki','dw_hiki')" required>
-              <div id="dw_hiki" class="date-info"></div>
+            <div class="field">
+              <label class="field-label">引渡し <span class="req">*</span></label>
+              <div class="date-field-wrap">
+                <input type="date" name="引渡し" id="d_hiki" oninput="updateDayLabel('d_hiki','dw_hiki')" required>
+                <div id="dw_hiki" class="date-info"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -720,16 +774,21 @@
 
       <!-- チェック項目 -->
       <div class="section">
-        <div class="section-title">チェック項目</div>
-        <div class="check-grid">
-          <label class="check-item"><input type="checkbox" name="棟札" value="on"> <span>棟札</span></label>
-          <label class="check-item"><input type="checkbox" name="鎮物" value="on"> <span>鎮め物</span></label>
-          <label class="check-item"><input type="checkbox" name="先外" value="on"> <span>先行外構</span></label>
-          <label class="check-item"><input type="checkbox" name="改良" value="on"> <span>地盤改良</span></label>
-          <label class="check-item"><input type="checkbox" name="外構" value="on"> <span>外構工事</span></label>
-          <label class="check-item"><input type="checkbox" name="手形" value="on"> <span>手形</span></label>
-          <label class="check-item"><input type="checkbox" name="支給品" value="on"> <span>支給品</span></label>
-          <label class="check-item"><input type="checkbox" name="間接照明" value="on"> <span>間接照明</span></label>
+        <div class="section-head">
+          <svg class="section-icon" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span class="section-title">チェック項目</span>
+        </div>
+        <div class="section-body">
+          <div class="check-grid">
+            <label class="check-item"><input type="checkbox" name="棟札" value="on"> <span>棟札</span></label>
+            <label class="check-item"><input type="checkbox" name="鎮物" value="on"> <span>鎮め物</span></label>
+            <label class="check-item"><input type="checkbox" name="先外" value="on"> <span>先行外構</span></label>
+            <label class="check-item"><input type="checkbox" name="改良" value="on"> <span>地盤改良</span></label>
+            <label class="check-item"><input type="checkbox" name="外構" value="on"> <span>外構工事</span></label>
+            <label class="check-item"><input type="checkbox" name="手形" value="on"> <span>手形</span></label>
+            <label class="check-item"><input type="checkbox" name="支給品" value="on"> <span>支給品</span></label>
+            <label class="check-item"><input type="checkbox" name="間接照明" value="on"> <span>間接照明</span></label>
+          </div>
         </div>
       </div>
 

@@ -1227,15 +1227,26 @@ function handleGetDashboardData() {
             var evColorId = ev.colorId || '';
             var color = (evColorId && evColorMap[evColorId]) ? evColorMap[evColorId] : calColor;
 
-            // 対象期間の全イベントを収集（祝日カレンダーも含む）
-            if (schedMap[evDateStr] !== undefined) {
+            // 複数日の終日イベント: start.date 〜 end.date（exclusive）を各日に展開
+            // 時間指定イベントは開始日のみ
+            var dayList = [evDateStr];
+            if (isAllDay && ev.end && ev.end.date) {
+              var endExclusive = new Date(ev.end.date + 'T00:00:00+09:00');
+              var cur = new Date(evStart.getTime() + 86400000); // 翌日から
+              dayList = [evDateStr];
+              while (cur < endExclusive) {
+                dayList.push(Utilities.formatDate(cur, 'Asia/Tokyo', 'yyyy-MM-dd'));
+                cur = new Date(cur.getTime() + 86400000);
+              }
+            }
+
+            dayList.forEach(function(dateStr) {
+              if (schedMap[dateStr] === undefined) return; // 対象範囲外
+
               // 重複キー: iCalUID（共有/招待で同一）+ 日付 + 開始時刻
               // iCalUID が無ければタイトル+開始時刻にフォールバック
-              var dedupKey = (ev.iCalUID || evTitle) + '|' + evDateStr + '|' + (isAllDay ? 'allday' : (evStartRaw || ''));
-              if (seenEventKeys[dedupKey]) {
-                // 同一イベントを別カレンダーから再取得 → スキップ
-                return;
-              }
+              var dedupKey = (ev.iCalUID || evTitle) + '|' + dateStr + '|' + (isAllDay ? 'allday' : (evStartRaw || ''));
+              if (seenEventKeys[dedupKey]) return;
               seenEventKeys[dedupKey] = true;
 
               var startTime = null, endTime = null;
@@ -1252,12 +1263,9 @@ function handleGetDashboardData() {
                 endTime:   endTime,
                 color:     color
               };
-              // Googleカレンダーの「場所」フィールドがあれば追加
-              if (ev.location) {
-                evObj.location = ev.location;
-              }
-              schedMap[evDateStr].push(evObj);
-            }
+              if (ev.location) evObj.location = ev.location;
+              schedMap[dateStr].push(evObj);
+            });
 
             // （着工・引渡しの集計はNotionデータから算出済み）
           });
