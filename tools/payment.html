@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="_tool-common.css">
   <script defer src="_tool-common.js"></script>
   <style>
-    /* ===== カラートークン（ライト） ===== */
+    /* ===== デザイントークン（ライト） ===== */
     :root {
       --sfc-dark:    #004d29;
       --sfc-primary: #006837;
@@ -26,8 +26,8 @@
       --text3:       #64748b;
       --red:         #ef4444;
       --check-on:    #2D8A4E;
+      --shadow-lg:   0 4px 20px rgba(0,50,30,0.10);
     }
-    /* ===== カラートークン（ダーク） ===== */
     @media (prefers-color-scheme: dark) {
       :root {
         --sfc-dark:    #0a6b3a;
@@ -59,167 +59,122 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ===== メインカード ===== */
+    /* ===== レイアウト ===== */
     .app-wrap {
       max-width: 520px;
       margin: 0 auto;
       padding: 8px 16px 24px;
-    }
-    .app-header {
-      background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
-      color: #fff;
-      padding: 18px 20px 16px;
-      border-radius: 16px 16px 0 0;
       display: flex;
-      align-items: center;
-      gap: 10px;
+      flex-direction: column;
+      gap: 12px;
     }
-    .app-header svg {
-      width: 18px; height: 18px;
-      stroke: #fff; fill: none;
-      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+
+    /* ===== アプリヘッダー ===== */
+    .app-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 18px;
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: var(--shadow-lg);
+    }
+    .app-header-icon {
+      width: 42px; height: 42px;
+      background: var(--sfc-light);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
-    .app-header-title { font-size: 15px; font-weight: 700; letter-spacing: 0.03em; }
-    .app-header-sub   { font-size: 10px; opacity: 0.65; margin-top: 2px; }
+    .app-header-icon svg {
+      width: 20px; height: 20px;
+      stroke: var(--sfc-primary); fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .app-header-title { font-size: 16px; font-weight: 700; color: var(--text1); letter-spacing: 0.02em; }
+    .app-header-sub   { font-size: 11px; color: var(--text3); margin-top: 2px; }
 
-    /* ===== セットアップ画面 ===== */
-    .setup-body {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-top: none;
-      border-radius: 0 0 16px 16px;
-      padding: 36px 24px 32px;
-      text-align: center;
-    }
-    .setup-body h2 {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text1);
-      margin-bottom: 8px;
-    }
-    .setup-body p {
-      font-size: 13px;
-      color: var(--text3);
-      margin-bottom: 20px;
-      line-height: 1.7;
-    }
-    .setup-body input[type="text"] {
-      display: block;
-      width: 100%;
-      padding: 10px 12px;
-      font-size: 13px;
-      font-family: 'DM Mono', monospace;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      background: var(--surface2);
-      color: var(--text1);
-      -webkit-appearance: none;
-      appearance: none;
-      margin-bottom: 14px;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .setup-body input[type="text"]:focus {
-      outline: none;
-      border-color: var(--sfc-primary);
-      box-shadow: 0 0 0 3px rgba(45, 138, 78, 0.12);
-    }
-    .setup-body input[type="text"]::placeholder {
-      font-family: 'Noto Sans JP', sans-serif;
-      color: var(--text3);
-    }
-
-    /* ===== メイン本体 ===== */
-    .main-body {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-top: none;
-      border-radius: 0 0 16px 16px;
-      padding: 0 0 20px;
-    }
-
-    /* ===== タブ ===== */
-    .tab-bar {
+    /* ===== セグメントコントロール（タブ） ===== */
+    .seg-ctrl {
       display: flex;
-      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+      box-shadow: var(--shadow-lg);
     }
-    .tab-btn {
+    .seg-btn {
       flex: 1;
-      padding: 13px 0;
-      font-size: 13px;
-      font-weight: 600;
+      padding: 9px 0;
+      font-size: 13px; font-weight: 600;
       font-family: 'Noto Sans JP', sans-serif;
       color: var(--text3);
       background: transparent;
-      border: none;
-      border-bottom: 2.5px solid transparent;
+      border: none; border-radius: 9px;
       cursor: pointer;
-      transition: color 0.15s, border-color 0.15s;
+      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
       -webkit-tap-highlight-color: transparent;
       letter-spacing: 0.02em;
     }
-    .tab-btn.active {
+    .seg-btn.active {
+      background: var(--surface);
       color: var(--sfc-primary);
-      border-bottom-color: var(--sfc-primary);
+      font-weight: 700;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.10);
     }
 
     /* ===== タブパネル ===== */
     .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
+    .tab-panel.active { display: flex; flex-direction: column; gap: 12px; }
 
-    /* ===== セクション ===== */
-    .section { padding: 16px 20px 0; }
-    .section-title {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--sfc-primary);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
+    /* ===== セクションカード ===== */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .section-head {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 18px;
       border-bottom: 1px solid var(--border);
     }
+    .section-head::before {
+      content: ''; width: 3px; height: 18px;
+      background: var(--sfc-primary);
+      border-radius: 2px; flex-shrink: 0;
+    }
+    .section-head svg {
+      width: 15px; height: 15px;
+      stroke: var(--sfc-primary); fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    .section-title { font-size: 13px; font-weight: 700; color: var(--text1); }
+    .section-body  { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
 
     /* ===== フィールド ===== */
-    .field { margin-bottom: 12px; }
-    .field:last-child { margin-bottom: 0; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
     .field-label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text1);
-      margin-bottom: 5px;
+      font-size: 13px; font-weight: 600; color: var(--text1);
     }
-    .field-label .req {
-      color: var(--red);
-      font-size: 11px;
-      margin-left: 3px;
-      font-weight: 500;
-    }
+    .field-label .req { color: var(--red); font-size: 11px; margin-left: 3px; font-weight: 500; }
 
     /* select に + ボタンを添える行 */
-    .select-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
+    .select-row { display: flex; gap: 8px; align-items: center; }
     .select-row select { flex: 1; min-width: 0; }
     .btn-add {
       flex-shrink: 0;
-      width: 38px;
-      height: 38px;
+      width: 38px; height: 38px;
       border-radius: 10px;
       border: 1.5px solid var(--sfc-border);
       background: var(--sfc-light);
       color: var(--sfc-primary);
-      font-size: 20px;
-      line-height: 1;
+      font-size: 20px; line-height: 1;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-family: sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-family: sans-serif;
       transition: background 0.15s;
       -webkit-tap-highlight-color: transparent;
     }
@@ -227,8 +182,7 @@
 
     /* ¥ prefix ラッパー */
     .yen-wrap {
-      display: flex;
-      align-items: center;
+      display: flex; align-items: center;
       border: 1.5px solid var(--border);
       border-radius: 10px;
       background: var(--surface2);
@@ -241,26 +195,17 @@
     }
     .yen-prefix {
       padding: 0 4px 0 12px;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text3);
-      flex-shrink: 0;
-      user-select: none;
+      font-size: 14px; font-weight: 700;
+      color: var(--text3); flex-shrink: 0; user-select: none;
     }
     .yen-wrap input[type="number"] {
-      flex: 1;
-      min-width: 0;
-      border: none !important;
-      background: transparent !important;
-      box-shadow: none !important;
-      border-radius: 0;
+      flex: 1; min-width: 0;
+      border: none !important; background: transparent !important;
+      box-shadow: none !important; border-radius: 0;
       padding: 10px 12px 10px 4px;
-      font-size: 14px;
-      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 14px; font-family: 'Noto Sans JP', sans-serif;
       color: var(--text1);
-      -webkit-appearance: none;
-      appearance: none;
-      outline: none;
+      -webkit-appearance: none; appearance: none; outline: none;
     }
     .yen-wrap input[type="number"]::-webkit-inner-spin-button,
     .yen-wrap input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
@@ -269,17 +214,14 @@
     input[type="text"],
     select,
     textarea {
-      display: block;
-      width: 100%;
+      display: block; width: 100%;
       padding: 10px 12px;
-      font-size: 14px;
-      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 14px; font-family: 'Noto Sans JP', sans-serif;
       border: 1.5px solid var(--border);
       border-radius: 10px;
       background: var(--surface2);
       color: var(--text1);
-      -webkit-appearance: none;
-      appearance: none;
+      -webkit-appearance: none; appearance: none;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
     input[type="text"]:focus,
@@ -297,42 +239,37 @@
     }
     textarea { resize: vertical; min-height: 72px; }
 
-    /* ===== 送信ボタン ===== */
+    /* ===== 登録ボタン ===== */
     .btn-submit {
-      display: block;
-      width: calc(100% - 40px);
-      margin: 16px auto 0;
+      width: 100%;
       padding: 14px;
-      background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
+      background: linear-gradient(135deg, var(--sfc-dark) 0%, var(--sfc-primary) 100%);
       color: #fff;
-      font-size: 14px;
-      font-weight: 700;
+      font-size: 14px; font-weight: 700;
       font-family: 'Noto Sans JP', sans-serif;
-      border: none;
-      border-radius: 12px;
+      border: none; border-radius: 14px;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(29, 107, 64, 0.3);
+      box-shadow: 0 4px 14px rgba(29, 107, 64, 0.35);
       -webkit-tap-highlight-color: transparent;
       transition: opacity 0.15s;
+      letter-spacing: 0.03em;
     }
-    .btn-submit:active   { opacity: 0.8; }
-    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-submit:active   { opacity: 0.85; }
+    .btn-submit:disabled { opacity: 0.45; cursor: not-allowed; }
 
-    /* ===== 一覧タブ：フィルタータブ ===== */
+    /* ===== 絞り込みタブ（ピル型） ===== */
     .filter-tabs {
       display: flex;
       gap: 6px;
-      margin-bottom: 10px;
     }
     .filter-tab {
       flex: 1;
       padding: 8px 4px;
       border: 1.5px solid var(--border);
-      border-radius: 8px;
+      border-radius: 20px;
       background: var(--surface2);
       color: var(--text2);
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 12px; font-weight: 600;
       font-family: 'Noto Sans JP', sans-serif;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
@@ -343,80 +280,65 @@
       border-color: var(--sfc-primary);
       color: #fff;
     }
-    .filter-panel { margin-bottom: 12px; }
-    .filter-panel select { width: 100%; }
+
     /* ===== 合計バー ===== */
     .total-bar {
-      display: flex;
-      gap: 12px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
-      margin-bottom: 12px;
-      font-size: 12px;
+      display: flex; gap: 0;
+      background: var(--sfc-light);
+      border: 1px solid var(--sfc-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      gap: 4px;
     }
     .total-bar-item { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-    .total-bar-label { color: var(--text3); font-size: 10px; font-weight: 600; }
-    .total-bar-value { color: var(--text1); font-weight: 700; font-family: 'DM Mono', monospace; font-size: 13px; }
-    .total-bar-value.diff-neg { color: var(--red); }
+    .total-bar-label { color: var(--sfc-primary); font-size: 10px; font-weight: 700; letter-spacing: 0.04em; }
+    .total-bar-value { color: var(--text1); font-weight: 700; font-family: 'DM Mono', monospace; font-size: 12px; }
 
     /* ===== 検索結果リスト ===== */
     .result-list  { display: flex; flex-direction: column; gap: 10px; }
     .result-empty {
-      text-align: center;
-      color: var(--text3);
-      font-size: 13px;
-      padding: 32px 0;
+      text-align: center; color: var(--text3);
+      font-size: 13px; padding: 32px 0;
     }
     .payment-card {
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
       padding: 14px 16px;
-      background: var(--surface2);
       position: relative;
+      box-shadow: var(--shadow-lg);
     }
     .payment-card-title {
-      font-size: 14px;
-      font-weight: 700;
+      font-size: 14px; font-weight: 700;
       color: var(--text1);
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       padding-right: 60px;
     }
+    .payment-card-count { font-size: 11px; color: var(--text3); margin-bottom: 10px; }
     .payment-card-meta {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      display: grid; grid-template-columns: repeat(3, 1fr);
       gap: 6px;
-      margin-bottom: 4px;
     }
     .payment-card-meta-item { display: flex; flex-direction: column; gap: 2px; }
     .payment-card-meta-label {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--text3);
-      letter-spacing: 0.04em;
+      font-size: 10px; font-weight: 600;
+      color: var(--text3); letter-spacing: 0.04em;
     }
     .payment-card-meta-value {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text1);
-      font-variant-numeric: tabular-nums;
+      font-size: 13px; font-weight: 700;
+      color: var(--text1); font-variant-numeric: tabular-nums;
     }
     .payment-card-meta-value.diff-positive { color: var(--red); }
     .payment-card-meta-value.diff-negative { color: var(--check-on); }
-    .payment-card-date { font-size: 11px; color: var(--text3); margin-top: 4px; }
     .btn-edit {
-      position: absolute;
-      top: 14px; right: 14px;
+      position: absolute; top: 14px; right: 14px;
       padding: 5px 12px;
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 12px; font-weight: 600;
       font-family: 'Noto Sans JP', sans-serif;
       background: var(--sfc-light);
       color: var(--sfc-primary);
       border: 1.5px solid var(--sfc-border);
-      border-radius: 8px;
-      cursor: pointer;
+      border-radius: 8px; cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       transition: background 0.15s;
     }
@@ -424,87 +346,59 @@
 
     /* ===== ボトムシート共通 ===== */
     .sheet-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.45);
-      z-index: 200;
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 200;
     }
     .sheet-overlay.open { display: block; }
     .sheet {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
+      position: fixed; bottom: 0; left: 0; right: 0;
       background: var(--surface);
       border-radius: 20px 20px 0 0;
       padding: 0 0 calc(24px + env(safe-area-inset-bottom, 0px));
-      z-index: 201;
-      max-width: 520px;
-      margin: 0 auto;
+      z-index: 201; max-width: 520px; margin: 0 auto;
       transform: translateY(100%);
       transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      max-height: 85vh;
-      overflow-y: auto;
+      max-height: 85vh; overflow-y: auto;
     }
     .sheet.open { transform: translateY(0); }
     .sheet-handle {
-      width: 36px; height: 4px;
-      border-radius: 2px;
-      background: var(--border);
-      margin: 12px auto 0;
+      width: 36px; height: 4px; border-radius: 2px;
+      background: var(--border); margin: 12px auto 0;
     }
     .sheet-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text1);
+      font-size: 15px; font-weight: 700; color: var(--text1);
       padding: 16px 20px 12px;
       border-bottom: 1px solid var(--border);
       margin-bottom: 16px;
     }
     .sheet-field { padding: 0 20px; margin-bottom: 14px; }
     .sheet-field-label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text1);
-      margin-bottom: 5px;
+      display: block; font-size: 13px; font-weight: 600;
+      color: var(--text1); margin-bottom: 5px;
     }
-    .sheet-actions {
-      display: flex;
-      gap: 10px;
-      padding: 16px 20px 0;
-    }
+    .sheet-actions { display: flex; gap: 10px; padding: 16px 20px 0; }
     .btn-cancel {
-      flex: 1;
-      padding: 13px;
-      font-size: 14px;
-      font-weight: 600;
+      flex: 1; padding: 13px;
+      font-size: 14px; font-weight: 600;
       font-family: 'Noto Sans JP', sans-serif;
-      background: var(--surface2);
-      color: var(--text2);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
+      background: var(--surface2); color: var(--text2);
+      border: 1.5px solid var(--border); border-radius: 12px;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
       transition: background 0.15s;
     }
     .btn-cancel:active { background: var(--border); }
     .btn-primary {
-      flex: 2;
-      padding: 13px;
-      font-size: 14px;
-      font-weight: 700;
+      flex: 2; padding: 13px;
+      font-size: 14px; font-weight: 700;
       font-family: 'Noto Sans JP', sans-serif;
-      background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      box-shadow: 0 4px 14px rgba(29, 107, 64, 0.3);
+      background: linear-gradient(135deg, var(--sfc-dark) 0%, var(--sfc-primary) 100%);
+      color: #fff; border: none; border-radius: 12px;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 4px 14px rgba(29,107,64,0.3);
       transition: opacity 0.15s;
     }
-    .btn-primary:active   { opacity: 0.8; }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary:active   { opacity: 0.85; }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
     /* ===== トースト ===== */
     .toast {
@@ -512,29 +406,22 @@
       bottom: calc(80px + env(safe-area-inset-bottom, 0px));
       left: 50%; transform: translateX(-50%) translateY(20px);
       background: #1e293b; color: #fff;
-      padding: 12px 24px;
-      border-radius: 12px;
+      padding: 12px 24px; border-radius: 12px;
       font-size: 13px; font-weight: 600;
       box-shadow: 0 4px 16px rgba(0,0,0,0.2);
       opacity: 0;
       transition: opacity 0.3s, transform 0.3s;
-      z-index: 500;
-      pointer-events: none;
-      max-width: 90vw;
-      text-align: center;
+      z-index: 500; pointer-events: none;
+      max-width: 90vw; text-align: center;
     }
     .toast.show  { opacity: 1; transform: translateX(-50%) translateY(0); }
     .toast.error { background: #dc2626; }
 
     /* ===== ローディング ===== */
     .loading-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 32px 0;
-      color: var(--text3);
-      font-size: 13px;
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; padding: 32px 0;
+      color: var(--text3); font-size: 13px;
     }
     .spinner {
       width: 20px; height: 20px;
@@ -559,108 +446,126 @@
 
   <!-- ===== ヘッダー ===== -->
   <div class="app-header">
-    <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+    <div class="app-header-icon">
+      <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+    </div>
     <div>
       <div class="app-header-title">支払い管理</div>
       <div class="app-header-sub">個人専用 支払い台帳</div>
     </div>
   </div>
 
-  <!-- ===== メイン画面 ===== -->
-  <div id="mainScreen" class="main-body" style="display:none">
+  <!-- ===== セグメントコントロール（タブ） ===== -->
+  <div class="seg-ctrl">
+    <button class="seg-btn active" id="tabBtnRegister" onclick="switchTab('register')">新規登録</button>
+    <button class="seg-btn"        id="tabBtnList"     onclick="switchTab('list')">一覧</button>
+  </div>
 
-    <!-- タブバー -->
-    <div class="tab-bar">
-      <button class="tab-btn active" id="tabBtnRegister" onclick="switchTab('register')">新規登録</button>
-      <button class="tab-btn"        id="tabBtnList"     onclick="switchTab('list')">一覧</button>
-    </div>
+  <!-- mainScreen: タブコンテンツ全体（JS から表示切替） -->
+  <div id="mainScreen" style="display:none">
 
     <!-- ===== 新規登録タブ ===== -->
     <div class="tab-panel active" id="panelRegister">
+
       <div class="section">
-        <div class="section-title">支払い情報</div>
-
-        <div class="field">
-          <label class="field-label">物件 <span class="req">*</span></label>
-          <select id="regProperty">
-            <option value="">（物件を選択）</option>
-          </select>
+        <div class="section-head">
+          <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          <span class="section-title">支払い情報</span>
         </div>
+        <div class="section-body">
 
-        <div class="field">
-          <label class="field-label">業者 <span class="req">*</span></label>
-          <div class="select-row">
-            <select id="regVendor" onchange="onRegVendorChange()">
-              <option value="">（業者を選択）</option>
+          <div class="field">
+            <label class="field-label">物件 <span class="req">*</span></label>
+            <select id="regProperty">
+              <option value="">（物件を選択）</option>
             </select>
-            <button class="btn-add" onclick="openSheet('vendorSheet')" title="業者を追加">＋</button>
           </div>
-        </div>
 
-        <div class="field">
-          <label class="field-label">担当者</label>
-          <div class="select-row">
-            <select id="regContact">
-              <option value="">（担当者を選択）</option>
-            </select>
-            <button class="btn-add" onclick="openSheet('contactSheet')" title="担当者を追加">＋</button>
+          <div class="field">
+            <label class="field-label">業者 <span class="req">*</span></label>
+            <div class="select-row">
+              <select id="regVendor" onchange="onRegVendorChange()">
+                <option value="">（業者を選択）</option>
+              </select>
+              <button class="btn-add" onclick="openSheet('vendorSheet')" title="業者を追加">＋</button>
+            </div>
           </div>
-        </div>
 
-        <div class="field">
-          <label class="field-label">見積もり額</label>
-          <div class="yen-wrap">
-            <span class="yen-prefix">¥</span>
-            <input type="number" id="regEstimate" min="0" placeholder="0">
+          <div class="field">
+            <label class="field-label">担当者</label>
+            <div class="select-row">
+              <select id="regContact">
+                <option value="">（担当者を選択）</option>
+              </select>
+              <button class="btn-add" onclick="openSheet('contactSheet')" title="担当者を追加">＋</button>
+            </div>
           </div>
-        </div>
 
-        <div class="field">
-          <label class="field-label">支払い額</label>
-          <div class="yen-wrap">
-            <span class="yen-prefix">¥</span>
-            <input type="number" id="regPayment" min="0" placeholder="0">
+          <div class="field">
+            <label class="field-label">見積もり額</label>
+            <div class="yen-wrap">
+              <span class="yen-prefix">¥</span>
+              <input type="number" id="regEstimate" min="0" placeholder="0">
+            </div>
           </div>
-        </div>
 
-        <div class="field">
-          <label class="field-label">備考</label>
-          <textarea id="regMemo" placeholder="メモを入力（任意）"></textarea>
+          <div class="field">
+            <label class="field-label">支払い額</label>
+            <div class="yen-wrap">
+              <span class="yen-prefix">¥</span>
+              <input type="number" id="regPayment" min="0" placeholder="0">
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">備考</label>
+            <textarea id="regMemo" placeholder="メモを入力（任意）"></textarea>
+          </div>
+
         </div>
       </div>
 
       <button class="btn-submit" id="regSubmitBtn" onclick="submitPayment()">Notion に登録する</button>
+
     </div><!-- /panelRegister -->
 
     <!-- ===== 一覧タブ ===== -->
     <div class="tab-panel" id="panelList">
+
       <div class="section">
-        <div class="section-title">絞り込み</div>
-        <div class="filter-tabs">
-          <button class="filter-tab active" id="ftab-property" onclick="switchFilterTab('property')">物件</button>
-          <button class="filter-tab" id="ftab-vendor"   onclick="switchFilterTab('vendor')">業者</button>
-          <button class="filter-tab" id="ftab-contact"  onclick="switchFilterTab('contact')">担当者</button>
+        <div class="section-head">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <span class="section-title">絞り込み</span>
         </div>
-        <div class="filter-panel" id="fpanel-property">
-          <select id="filterProperty" onchange="searchPayments()">
-            <option value="">すべての物件</option>
-          </select>
-        </div>
-        <div class="filter-panel" id="fpanel-vendor" style="display:none">
-          <select id="filterVendor" onchange="searchPayments()">
-            <option value="">すべての業者</option>
-          </select>
-        </div>
-        <div class="filter-panel" id="fpanel-contact" style="display:none">
-          <select id="filterContact" onchange="searchPayments()">
-            <option value="">すべての担当者</option>
-          </select>
-        </div>
-        <div id="totalBar" class="total-bar" style="display:none"></div>
-        <div id="resultList" class="result-list">
-          <div class="result-empty">データを読み込み中...</div>
+        <div class="section-body">
+          <div class="filter-tabs">
+            <button class="filter-tab active" id="ftab-property" onclick="switchFilterTab('property')">物件</button>
+            <button class="filter-tab" id="ftab-vendor"   onclick="switchFilterTab('vendor')">業者</button>
+            <button class="filter-tab" id="ftab-contact"  onclick="switchFilterTab('contact')">担当者</button>
+          </div>
+          <div class="filter-panel" id="fpanel-property">
+            <select id="filterProperty" onchange="searchPayments()">
+              <option value="">すべての物件</option>
+            </select>
+          </div>
+          <div class="filter-panel" id="fpanel-vendor" style="display:none">
+            <select id="filterVendor" onchange="searchPayments()">
+              <option value="">すべての業者</option>
+            </select>
+          </div>
+          <div class="filter-panel" id="fpanel-contact" style="display:none">
+            <select id="filterContact" onchange="searchPayments()">
+              <option value="">すべての担当者</option>
+            </select>
+          </div>
+          <div id="totalBar" class="total-bar" style="display:none"></div>
         </div>
       </div>
+
+      <div id="resultList" class="result-list">
+        <div class="result-empty">データを読み込み中...</div>
+      </div>
+
     </div><!-- /panelList -->
 
   </div><!-- /mainScreen -->
@@ -752,9 +657,12 @@ let allContacts   = [];
 // 起動
 // ================================================================
 (function boot() {
-  const setup = document.getElementById('setupScreen');
-  if (setup) setup.style.display = 'none';
-  document.getElementById('mainScreen').style.display = 'block';
+  const main = document.getElementById('mainScreen');
+  if (main) {
+    main.style.display    = 'flex';
+    main.style.flexDirection = 'column';
+    main.style.gap        = '12px';
+  }
   init();
 })();
 
@@ -1106,7 +1014,7 @@ function renderResults(items) {
     return `
 <div class="payment-card">
   <div class="payment-card-title">${escHtml(g.label)}</div>
-  <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">${g.count}件</div>
+  <div class="payment-card-count">${g.count}件</div>
   <div class="payment-card-meta">
     <div class="payment-card-meta-item">
       <span class="payment-card-meta-label">見積合計</span>
