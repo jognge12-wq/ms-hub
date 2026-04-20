@@ -1219,6 +1219,21 @@ document.getElementById('citySelect').addEventListener('change', function() {
     if (this.value === '__other__') document.getElementById('cityOther').focus();
 });
 
+// 既存選択肢と一致したら自動でドロップダウンに切り替え（重複防止）
+document.getElementById('cityOther').addEventListener('input', function() {
+    const typed = this.value.trim();
+    if (!typed) return;
+    const sel = document.getElementById('citySelect');
+    const match = Array.from(sel.options).find(function(o) {
+        return o.value !== '' && o.value !== '__other__' && o.text.trim() === typed;
+    });
+    if (match) {
+        sel.value = match.value;
+        document.getElementById('cityOtherField').style.display = 'none';
+        showToast('「' + typed + '」はリストにあります。選択に切り替えました');
+    }
+});
+
 // ---- トースト ----
 function showToast(msg, isError) {
     const t = document.getElementById('toast');
