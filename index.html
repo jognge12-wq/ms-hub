@@ -2967,19 +2967,19 @@
             position: sticky; top: 52px; z-index: 10;
             background: var(--bg);
             padding: 6px 0 0;
-            margin-bottom: 8px;
+            margin-bottom: 0;
             border-bottom: 1px solid var(--border);
         }
         .sched-sticky-top {
             display: flex; align-items: center; gap: 8px;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .sched-sticky-top .seg-tabs { flex: 1; margin-bottom: 0; }
 
         /* ===== スケジュールタブ ナビゲーション ===== */
         .sched-nav-bar {
             display: flex; align-items: center; justify-content: space-between;
-            padding-bottom: 8px;
+            padding-bottom: 4px;
         }
         .sched-nav-left, .sched-nav-right-arrow {
             flex-shrink: 0;
@@ -3075,11 +3075,8 @@
         /* ===== 週間タブ ===== */
         .week-day-strip {
             display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
-            margin-bottom: 16px; padding: 0 2px;
-            /* カレンダーを固定し、下のイベント一覧だけスクロールできるように */
-            position: sticky; top: 52px; z-index: 5;
+            margin: 0 0 8px; padding: 8px 4px;
             background: var(--bg);
-            padding: 8px 0;
         }
         .week-day-cell {
             text-align: center; padding: 8px 2px; border-radius: 8px;
@@ -4322,8 +4319,8 @@
                 _fetchLiveDataLastAt = 0; // 手動更新はTTLをリセットして必ず再取得
                 await fetchLiveData(schedWeekOffset);
                 const d = new Date();
-                // タスクタブと統一: YYYY-MM-DD HH:MM
-                schedLastUpdated = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+                // タスクタブと統一: 時刻のみ（HH:MM）
+                schedLastUpdated = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
                 if (statusEl) statusEl.textContent = '更新: ' + schedLastUpdated;
             } catch(e) {
                 if (statusEl) statusEl.textContent = '更新失敗: ' + (e.message || e);
@@ -5635,12 +5632,15 @@
             endOfWeek.setDate(startOfWeek.getDate() + 6);
 
             const isCurrentWeek = schedWeekOffset === 0;
-            // 週ラベルは常に「○月」。週が月を跨ぐ場合は「4月 / 5月」
-            const startMonth = startOfWeek.getMonth() + 1;
-            const endMonth   = endOfWeek.getMonth() + 1;
-            const weekLabel  = startMonth === endMonth
-                ? `${startMonth}月`
-                : `${startMonth}月 / ${endMonth}月`;
+            // ホーム「月別工程スケジュール」と同じ月ラベル表示（年 + ○月 / English）
+            // 週の中心日（水曜）で月を決定するので、月跨ぎの週でも表示が安定する
+            const engMonths = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            const midWeek = new Date(startOfWeek);
+            midWeek.setDate(startOfWeek.getDate() + 3);
+            const navYear  = midWeek.getFullYear();
+            const navMonth = midWeek.getMonth() + 1;
+            const navEng   = engMonths[midWeek.getMonth()];
+            const weekLabel = `${navMonth}月`;
 
             let stripHtml = '<div class="week-day-strip">';
             for (let i = 0; i < 7; i++) {
@@ -5673,30 +5673,31 @@
                 </div>` : '';
 
             el.innerHTML = `<div class="tab-pane">
-                <!-- スティッキーヘッダー: GCal月間リンク + 更新 / 週ナビ（タイトルは他タブに合わせて非表示） -->
+                <!-- スティッキーヘッダー: 更新時刻 + GCal月間リンク + 更新ボタン / 月ナビ -->
                 <div class="sched-sticky-hdr">
-                    <div class="sched-sticky-top" style="justify-content:flex-end;">
-                        <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="sched-sticky-top" style="justify-content:flex-end;align-items:center;">
+                        <div style="display:flex;align-items:center;gap:10px;">
                             <a href="${gcalMonthUrl}" target="_blank" style="font-size:11px;color:var(--primary);text-decoration:none;display:inline-flex;align-items:center;gap:3px;font-weight:600;">GCal月間 <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
+                            <div id="schedStatusBar" style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;">${GAS_WEBAPP_URL ? (schedLastUpdated ? '更新: ' + schedLastUpdated : '') : ''}</div>
                             ${GAS_WEBAPP_URL ? `<button class="gtask-refresh-btn" onclick="schedRefresh(this)" title="カレンダーを更新" aria-label="カレンダーを更新"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>` : ''}
                         </div>
                     </div>
                     <div class="sched-nav-bar">
-                        <button class="sched-nav-btn" onclick="changeSchedWeek(-1)">
+                        <button class="home-month-btn" onclick="changeSchedWeek(-1)" aria-label="前週">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
                         </button>
-                        <div class="sched-nav-center">
-                            <span class="sched-nav-label">${weekLabel}</span>
+                        <div class="home-month-nav-center" style="flex:1;">
+                            <div class="home-month-nav-year">${navYear}</div>
+                            <div class="home-month-nav-month">${navMonth}月<span class="home-month-nav-eng">/ ${navEng}</span></div>
                         </div>
                         <div class="sched-nav-right">
                             <button class="sched-today-btn" ${isCurrentWeek ? 'disabled' : ''} onclick="schedWeekOffset=0;_renderSchedTab()">今週</button>
-                            <button class="sched-nav-btn" onclick="changeSchedWeek(1)">
+                            <button class="home-month-btn" onclick="changeSchedWeek(1)" aria-label="翌週">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                             </button>
                         </div>
                     </div>
                 </div>
-                ${GAS_WEBAPP_URL ? `<div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><div id="schedStatusBar" style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;">${schedLastUpdated ? '更新: ' + schedLastUpdated : 'まだ更新されていません'}</div></div>` : ''}
                 <!-- 日付ストリップから下だけが横スワイプで動く（GCal週ビュー風） -->
                 <div class="sched-swipe-frame">
                     <div class="sched-swipe-pane">
@@ -5729,8 +5730,9 @@
                 }
                 el.querySelectorAll('.week-day-cell').forEach(c => {
                     const isActive = parseInt(c.dataset.datems) === dMs;
-                    c.style.outline = isActive ? '2px solid var(--primary)' : 'none';
-                    c.style.borderRadius = '6px';
+                    // inset box-shadow を使う（outline は親の overflow:hidden で見切れる）
+                    c.style.boxShadow = isActive ? 'inset 0 0 0 2px var(--primary)' : '';
+                    c.style.borderRadius = '8px';
                 });
                 const html = getCalendarEventsForDate(dMs);
                 if (html) {
