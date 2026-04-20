@@ -1092,6 +1092,106 @@
         .pcf-checks-inline .toggle-switch.on::after { transform: translateX(12px); }
         .pcf-checks-inline .check-label { font-size: 9px; }
 
+        /* ===== 物件タブ Rich化（B+Cドット, %なし, コンパクト） ===== */
+        .prop-rich-tabs{display:flex;padding:3px;background:var(--surface2);
+                        border-radius:10px;margin-bottom:10px;gap:0;}
+        .prop-rich-tab{flex:1;padding:6px 4px;text-align:center;font-size:11px;font-weight:600;
+                       color:var(--text2);background:transparent;border:none;border-radius:7px;cursor:pointer;
+                       display:inline-flex;align-items:center;justify-content:center;gap:3px;
+                       font-family:'Noto Sans JP',sans-serif;-webkit-tap-highlight-color:transparent;
+                       transition:background .15s, color .15s;}
+        .prop-rich-tab.active{background:var(--surface);color:var(--primary);
+                              box-shadow:0 1px 2px rgba(0,0,0,.06);}
+        .prop-rich-tab .seg-cnt{font-size:9px;font-family:'DM Mono',monospace;
+                                background:var(--text3);color:#fff;border-radius:10px;
+                                padding:0 5px;font-weight:600;}
+        .prop-rich-tab.active .seg-cnt{background:var(--primary);}
+
+        .prop-rich-card{background:var(--surface);border-radius:14px;
+                        border:1.5px solid var(--border);
+                        margin-bottom:8px;overflow:hidden;
+                        box-shadow:0 2px 6px rgba(15,25,20,0.05), 0 1px 2px rgba(15,25,20,0.03);}
+        .prop-rich-card.st-precon{--status:#3b82f6;}
+        .prop-rich-card.st-active{--status:#d97706;}
+        .prop-rich-card.st-done  {--status:#9ca3af;}
+        .prop-rich-card .prop-hdr{display:flex;align-items:center;gap:8px;padding:9px 12px;
+                                  border-left:3px solid var(--status,var(--border2));}
+        .prop-rich-card .prop-name{font-size:13px;font-weight:700;color:var(--text1);
+                                   flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+                                   letter-spacing:-.01em;}
+        .prop-rich-card .prop-name-loc{font-size:9.5px;color:var(--text3);font-weight:400;
+                                       margin-left:5px;letter-spacing:.02em;}
+        .prop-rich-card .prop-status-pill{font-size:9.5px;font-weight:700;color:#fff;
+                                          padding:1.5px 8px;border-radius:100px;
+                                          background:var(--status,var(--text3));flex-shrink:0;cursor:pointer;
+                                          font-family:'Noto Sans JP',sans-serif;letter-spacing:.02em;
+                                          display:inline-flex;align-items:center;gap:4px;border:none;
+                                          -webkit-tap-highlight-color:transparent;}
+        .prop-rich-card .prop-status-pill::after{content:'▾';font-size:8px;opacity:.7;}
+
+        /* フェーズ部 */
+        .prop-rich-card .phase-strip{padding:7px 12px 9px;background:var(--surface2);
+                                     border-top:1px solid var(--border);}
+        .prop-rich-card .phase-bar{position:relative;height:20px;display:flex;align-items:center;}
+        .prop-rich-card .phase-bar-line{position:absolute;left:8px;right:8px;top:50%;height:2px;
+                                        background:var(--border);transform:translateY(-50%);border-radius:1px;}
+        .prop-rich-card .phase-bar-fill{position:absolute;left:8px;top:50%;height:2px;
+                                        background:var(--primary);transform:translateY(-50%);border-radius:1px;
+                                        transition:width .3s ease;}
+        .prop-rich-card.st-active .phase-bar-fill{background:#d97706;}
+        .prop-rich-card.st-done   .phase-bar-fill{background:#9ca3af;}
+        .prop-rich-card .phase-dots{position:relative;display:flex;justify-content:space-between;
+                                    width:100%;align-items:center;}
+        .prop-rich-card .phase-dot{position:relative;display:flex;align-items:center;justify-content:center;}
+        .prop-rich-card .phase-dot-circle{width:12px;height:12px;border-radius:50%;background:var(--surface);
+                                          border:2px solid var(--border);display:flex;align-items:center;justify-content:center;
+                                          transition:all .15s;box-shadow:0 0 0 3px var(--surface2);}
+        .prop-rich-card .phase-dot.done .phase-dot-circle{background:var(--primary);border-color:var(--primary);}
+        .prop-rich-card .phase-dot.done .phase-dot-circle::after{content:'';width:5px;height:4px;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 12 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 5l3 4L11 1' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;}
+        .prop-rich-card.st-active .phase-dot.done .phase-dot-circle{background:#d97706;border-color:#d97706;}
+        .prop-rich-card.st-done .phase-dot.done .phase-dot-circle{background:#9ca3af;border-color:#9ca3af;}
+        .prop-rich-card .phase-dot.now .phase-dot-circle{
+            background:var(--surface);border:2px solid var(--primary);
+            box-shadow:0 0 0 3px var(--surface2), 0 0 0 5px var(--primary-l);}
+        .prop-rich-card.st-active .phase-dot.now .phase-dot-circle{
+            border-color:#d97706;box-shadow:0 0 0 3px var(--surface2), 0 0 0 5px #fff8e1;}
+        .prop-rich-card .phase-labels{display:flex;justify-content:space-between;margin-top:4px;
+                                      font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.02em;}
+        .prop-rich-card .phase-labels .lbl{flex:1;text-align:center;}
+        .prop-rich-card .phase-labels .lbl.done{color:var(--text2);}
+        .prop-rich-card .phase-labels .lbl.now{color:var(--primary);font-weight:800;}
+        .prop-rich-card.st-active .phase-labels .lbl.now{color:#92400e;}
+
+        /* カウントダウン（着工前） */
+        .prop-rich-card .prop-cd{padding:7px 12px;background:#eff6ff;border-top:1px solid #bfdbfe;
+                                 display:flex;align-items:center;gap:8px;}
+        .prop-rich-card .prop-cd-lbl{font-size:10px;font-weight:700;color:#1e3a8a;letter-spacing:.04em;}
+        .prop-rich-card .prop-cd-num{font-size:16px;font-weight:800;color:#1e40af;font-family:'DM Mono',monospace;letter-spacing:-.02em;}
+        .prop-rich-card .prop-cd-unit{font-size:11px;color:#1e40af;margin-left:-4px;}
+        .prop-rich-card .prop-cd-date{margin-left:auto;font-size:10px;color:#1e40af;font-family:'DM Mono',monospace;}
+
+        /* 日程グリッド */
+        .prop-rich-card .prop-dates{padding:6px 12px;display:grid;grid-template-columns:1fr 1fr;
+                                    gap:2px 10px;border-top:1px solid var(--border);}
+        .prop-rich-card .prop-date{display:flex;justify-content:space-between;align-items:baseline;
+                                   font-size:9.5px;padding:1px 0;}
+        .prop-rich-card .prop-date-lbl{color:var(--text3);font-weight:700;letter-spacing:.02em;}
+        .prop-rich-card .prop-date-val{font-family:'DM Mono',monospace;color:var(--text1);}
+
+        /* チェック */
+        .prop-rich-card .prop-checks{padding:7px 12px;border-top:1px solid var(--border);
+                                     display:grid;grid-template-columns:repeat(5, 1fr);gap:7px 8px;background:var(--bg);}
+        .prop-rich-card .prop-checks .check-row{display:inline-flex;align-items:center;gap:6px;}
+        .prop-rich-card .prop-checks .check-toggle{width:22px;height:12px;border-radius:6px;background:var(--border2);
+                                                   position:relative;flex-shrink:0;transition:background .2s;cursor:pointer;}
+        .prop-rich-card .prop-checks .check-toggle::after{content:'';width:8px;height:8px;border-radius:50%;background:#fff;
+                                                          position:absolute;top:2px;left:2px;transition:transform .2s;
+                                                          box-shadow:0 1px 2px rgba(0,0,0,.2);}
+        .prop-rich-card .prop-checks .check-toggle.on{background:var(--primary);}
+        .prop-rich-card .prop-checks .check-toggle.on::after{transform:translateX(10px);}
+        .prop-rich-card .prop-checks .check-label{font-size:9.5px;color:var(--text2);font-weight:500;}
+        .prop-rich-card .prop-checks .check-label.on{color:var(--text1);font-weight:600;}
+
         .property-item:hover {
             background-color: var(--surface2);
         }
@@ -5794,7 +5894,7 @@
             const p = [...properties, ...preconProperties].find(x => x.id === propId);
             if (!p) return;
             const cardEl = document.querySelector(
-                `.property-card-full[data-notion-id="${p.notionId}"]`
+                `.prop-rich-card[data-notion-id="${p.notionId}"], .property-card-full[data-notion-id="${p.notionId}"]`
             );
             _propProgressTarget = { p, cardEl };
 
@@ -5845,11 +5945,16 @@
             const oldShinchoku = p.shinchoku;
             p.shinchoku = progress;
             if (cardEl) {
-                const badge = cardEl.querySelector('.pcf-status');
+                const badge = cardEl.querySelector('.prop-status-pill, .pcf-status');
                 if (badge) badge.textContent = progress;
-                // ボーダーカラーも更新
-                const colorMap = {'工事中':'#d97706','竣工':'#9ca3af','着工前':'#3b82f6'};
-                cardEl.style.borderLeftColor = colorMap[progress] || '#9ca3af';
+                // ボーダーカラー / status クラス更新
+                const colorMap = {'工事中':'#d97706','竣工':'#9ca3af','着工前':'#3b82f6','引渡し':'#9ca3af'};
+                if (cardEl.classList.contains('prop-rich-card')) {
+                    cardEl.classList.remove('st-precon','st-active','st-done');
+                    cardEl.classList.add(progress === '着工前' ? 'st-precon' : progress === '工事中' ? 'st-active' : 'st-done');
+                } else {
+                    cardEl.style.borderLeftColor = colorMap[progress] || '#9ca3af';
+                }
             }
 
             try {
@@ -5879,10 +5984,15 @@
                 // ロールバック
                 p.shinchoku = oldShinchoku;
                 if (cardEl) {
-                    const badge = cardEl.querySelector('.pcf-status');
+                    const badge = cardEl.querySelector('.prop-status-pill, .pcf-status');
                     if (badge) badge.textContent = oldShinchoku;
-                    const colorMap = {'工事中':'#d97706','竣工':'#9ca3af','着工前':'#3b82f6'};
-                    cardEl.style.borderLeftColor = colorMap[oldShinchoku] || '#9ca3af';
+                    const colorMap = {'工事中':'#d97706','竣工':'#9ca3af','着工前':'#3b82f6','引渡し':'#9ca3af'};
+                    if (cardEl.classList.contains('prop-rich-card')) {
+                        cardEl.classList.remove('st-precon','st-active','st-done');
+                        cardEl.classList.add(oldShinchoku === '着工前' ? 'st-precon' : oldShinchoku === '工事中' ? 'st-active' : 'st-done');
+                    } else {
+                        cardEl.style.borderLeftColor = colorMap[oldShinchoku] || '#9ca3af';
+                    }
                 }
                 showSyncToast('エラー: ' + e.message);
             }
@@ -5900,130 +6010,150 @@
 
         function renderPropertiesTab() {
             const el = document.getElementById('tab-properties');
-            const activeShikakari = properties.filter(p => p.shinchoku !== '引渡し');
-            const sortedShikakari = [...activeShikakari].sort((a,b) => new Date(a.dates.引渡) - new Date(b.dates.引渡));
-            const sortedPrecon = [...preconProperties].sort((a,b) => new Date(a.dates.着工) - new Date(b.dates.着工));
 
-            function buildPropItems(list) {
-                return list.map(p => {
-                    const colorMap = {'工事中': '#d97706', '竣工': '#9ca3af', '着工前': '#3b82f6'};
-                    const bc = colorMap[p.shinchoku] || '#9ca3af';
-                    const isPrecon = p.shinchoku === '着工前';
-                    const now = new Date();
-                    const prog = calcProgress(p.dates.着工, p.dates.引渡);
-                    const daysUntilStart = Math.max(0, Math.ceil((new Date(p.dates.着工) - now) / 86400000));
+            // 引渡日の翌日 ≤ 今日 → 引渡し扱い（自動振り分け）
+            const today = new Date(); today.setHours(0,0,0,0);
+            function isHandoverPassed(p) {
+                const d = p.dates && p.dates.引渡;
+                if (!d) return false;
+                const h = new Date(d); h.setHours(0,0,0,0);
+                const dayAfter = new Date(h); dayAfter.setDate(dayAfter.getDate() + 1);
+                return today >= dayAfter;
+            }
+            function deriveStatus(p) {
+                if (isHandoverPassed(p)) return '引渡し';
+                return p.shinchoku || '';
+            }
 
-                    // 重要日程（空でない項目のみ）
-                    const datesHtml = Object.entries(p.dates || {})
-                        .filter(([, d]) => d)
-                        .map(([l, d]) => `<span class="pcf-date-item"><span class="pcf-date-label">${l}</span><span class="pcf-date-val">${formatDateWithDay(d)}</span></span>`)
-                        .join('');
+            const activeAll = [...properties, ...preconProperties].filter(p => deriveStatus(p) !== '引渡し');
+            const sortedShikakari = activeAll.filter(p => deriveStatus(p) !== '着工前')
+                .sort((a,b) => new Date(a.dates.引渡 || '9999') - new Date(b.dates.引渡 || '9999'));
+            const sortedPrecon = activeAll.filter(p => deriveStatus(p) === '着工前')
+                .sort((a,b) => new Date(a.dates.着工 || '9999') - new Date(b.dates.着工 || '9999'));
+            const sortedAll = [...sortedPrecon, ...sortedShikakari];
 
-                    // チェックリスト（固定順・Notion同期対応）
-                    const checksHtml = CHECK_ORDER
-                        .filter(key => p.checks && key in p.checks)
-                        .map(key => {
-                            const val = p.checks[key] || false;
-                            return `<div class="check-row">
-                                <div class="toggle-switch ${val ? 'on' : ''}" data-prop-id="${p.id}" data-field="${key}" onclick="togglePropertyCheck(${p.id}, '${key}', this)"></div>
-                                <span class="check-label">${CHECK_LABELS[key] || key}</span>
-                            </div>`;
-                        }).join('');
+            function buildPhaseStrip(p, st) {
+                function isPast(key) {
+                    const d = p.dates && p.dates[key];
+                    if (!d) return false;
+                    const dd = new Date(d); dd.setHours(0,0,0,0);
+                    return today >= dd;
+                }
+                const phases = [
+                    {key:'着工', done: isPast('着工')},
+                    {key:'上棟', done: isPast('上棟')},
+                    {key:'竣工', done: isPast('竣工')},
+                    {key:'引渡', done: isPast('引渡')},
+                ];
+                let nowIdx = phases.findIndex(ph => !ph.done);
+                if (nowIdx < 0) nowIdx = 3;
+                const fillPct = nowIdx > 0 ? (nowIdx / 3) * 100 : 0;
+                const dotsHtml = phases.map((ph, i) => {
+                    let cls = ph.done ? 'done' : (i === nowIdx ? 'now' : '');
+                    return `<div class="phase-dot ${cls}"><div class="phase-dot-circle"></div></div>`;
+                }).join('');
+                const labelsHtml = phases.map((ph, i) => {
+                    let cls = ph.done ? 'done' : (i === nowIdx ? 'now' : '');
+                    return `<div class="lbl ${cls}">${ph.key}</div>`;
+                }).join('');
+                return `<div class="phase-strip">
+                    <div class="phase-bar">
+                        <div class="phase-bar-line"></div>
+                        <div class="phase-bar-fill" style="width:${fillPct}%;"></div>
+                        <div class="phase-dots">${dotsHtml}</div>
+                    </div>
+                    <div class="phase-labels">${labelsHtml}</div>
+                </div>`;
+            }
 
-                    // 進捗バー / カウントダウン（コンパクト）
-                    const progressBlock = isPrecon
-                        ? `<div class="progress-days" style="margin-top:4px;font-size:11px;">
-                                <span>着工まで<strong>${daysUntilStart}</strong>日</span>
-                                <span class="progress-days-left">${p.dates.着工 ? formatDateWithDay(p.dates.着工) : ''}</span>
-                           </div>`
-                        : `<div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
-                                <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">${p.dates.着工 ? formatDateWithDay(p.dates.着工) : '—'}</span>
-                                <div class="property-progress-bar" style="flex:1;"><div class="property-progress-fill" style="width:${prog.pct}%;"></div></div>
-                                <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">${p.dates.引渡 ? formatDateWithDay(p.dates.引渡) : '—'}</span>
-                                <span style="font-size:10px;font-weight:700;color:var(--text1);min-width:40px;text-align:right;">${prog.pct}%</span>
-                           </div>
-                           <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-top:1px;">
-                                <span>${prog.elapsed}日経過</span>
-                                <span>残${prog.remaining}日</span>
-                           </div>`;
+            function buildCard(p) {
+                const st = deriveStatus(p);
+                const stClass = st === '着工前' ? 'st-precon' : st === '工事中' ? 'st-active' : 'st-done';
+                const isPrecon = st === '着工前';
 
-                    return `<div class="property-card-full" style="border-left-color:${bc};" data-notion-id="${p.notionId}">
-                        <div class="pcf-header">
-                            <div class="pcf-name">${p.name}</div>
-                            <button class="pcf-status" onclick="event.stopPropagation();openPropProgressModal(${p.id})">${p.shinchoku}</button>
-                        </div>
-                        ${p.location ? `<div class="pcf-location">${p.location}</div>` : ''}
-                        ${progressBlock}
-                        ${datesHtml ? `<div class="pcf-section"><div class="pcf-dates-inline">${datesHtml}</div></div>` : ''}
-                        ${checksHtml ? `<div class="pcf-section"><div class="pcf-section-title">チェックリスト</div><div class="pcf-checks-inline">${checksHtml}</div></div>` : ''}
+                const hdrHtml = `<div class="prop-hdr">
+                    <div class="prop-name">${p.name}${p.location ? `<span class="prop-name-loc">${p.location}</span>` : ''}</div>
+                    <button class="prop-status-pill" onclick="event.stopPropagation();openPropProgressModal(${p.id})">${st}</button>
+                </div>`;
+
+                let mainHtml;
+                if (isPrecon) {
+                    const daysUntilStart = Math.max(0, Math.ceil((new Date(p.dates.着工) - today) / 86400000));
+                    mainHtml = `<div class="prop-cd">
+                        <span class="prop-cd-lbl">着工まで</span>
+                        <span class="prop-cd-num">${daysUntilStart}</span><span class="prop-cd-unit">日</span>
+                        <span class="prop-cd-date">${p.dates.着工 ? formatDateWithDay(p.dates.着工) : ''}</span>
                     </div>`;
-                }).join('') || '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px;">物件なし</div>';
+                } else {
+                    mainHtml = buildPhaseStrip(p, st);
+                }
+
+                const dateKeys = ['着工','上棟','竣工','引渡'];
+                const datesHtml = dateKeys.filter(k => p.dates && p.dates[k])
+                    .map(k => `<div class="prop-date"><span class="prop-date-lbl">${k}</span><span class="prop-date-val">${formatDateWithDay(p.dates[k])}</span></div>`)
+                    .join('');
+
+                const checksHtml = CHECK_ORDER
+                    .filter(key => p.checks && key in p.checks)
+                    .map(key => {
+                        const val = p.checks[key] || false;
+                        return `<div class="check-row">
+                            <div class="check-toggle ${val ? 'on' : ''}" data-prop-id="${p.id}" data-field="${key}" onclick="togglePropertyCheck(${p.id}, '${key}', this)"></div>
+                            <span class="check-label ${val ? 'on' : ''}">${CHECK_LABELS[key] || key}</span>
+                        </div>`;
+                    }).join('');
+
+                return `<div class="prop-rich-card ${stClass}" data-notion-id="${p.notionId}">
+                    ${hdrHtml}
+                    ${mainHtml}
+                    ${datesHtml ? `<div class="prop-dates">${datesHtml}</div>` : ''}
+                    ${checksHtml ? `<div class="prop-checks">${checksHtml}</div>` : ''}
+                </div>`;
+            }
+
+            function buildList(list) {
+                return list.map(buildCard).join('') || '<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px;">物件なし</div>';
             }
 
             el.innerHTML = `<div class="tab-pane">
-                <!-- スマホ: タブ切り替え（PC では非表示） -->
-                <div class="filter-tabs prop-mobile-tabs" id="propFilterTabs" style="display:flex;align-items:center;">
-                    <div class="filter-tab active" data-pfilter="shikakari">仕掛り <span class="tab-count">${activeShikakari.length}件</span></div>
-                    <div class="filter-tab" data-pfilter="precon">着工前 <span class="tab-count">${preconProperties.length}件</span></div>
-                    <div class="filter-tab" data-pfilter="delivered">引渡し済</div>
+                <div class="prop-rich-tabs" id="propFilterTabs">
+                    <button class="prop-rich-tab active" data-pfilter="all">全て <span class="seg-cnt">${sortedAll.length}</span></button>
+                    <button class="prop-rich-tab" data-pfilter="shikakari">仕掛り <span class="seg-cnt">${sortedShikakari.length}</span></button>
+                    <button class="prop-rich-tab" data-pfilter="precon">着工前 <span class="seg-cnt">${sortedPrecon.length}</span></button>
+                    <button class="prop-rich-tab" data-pfilter="delivered">引渡し済</button>
                 </div>
-                <!-- スマホ: 仕掛り/着工前リスト -->
-                <div id="propTabList" class="prop-mobile-list"></div>
-                <!-- スマホ: 引渡し済みセクション -->
-                <div id="propDeliveredMobile" class="prop-mobile-list" style="display:none">
-                    <div class="filter-tabs" id="propYearTabsMob" style="margin-bottom:10px;"></div>
-                    <div id="propDeliveredListMob"></div>
-                </div>
-                <!-- PC: 左右分割（スマホでは非表示） -->
-                <div class="prop-split-wrap">
-                    <div class="prop-split-col">
-                        <div class="prop-split-head">仕掛り <span class="tab-count">${activeShikakari.length}件</span></div>
-                        <div id="propShikakariList">${buildPropItems(sortedShikakari)}</div>
-                    </div>
-                    <div class="prop-split-col">
-                        <div class="prop-split-head">着工前 <span class="tab-count">${preconProperties.length}件</span></div>
-                        <div id="propPreconList">${buildPropItems(sortedPrecon)}</div>
-                    </div>
-                </div>
-                <!-- PC: 引渡し済みセクション（トグル） -->
-                <div class="prop-delivered-wrap">
-                    <button class="prop-delivered-toggle" id="propDeliveredToggleBtn" onclick="toggleDeliveredSection()">
-                        <span>📦 引渡し済物件</span>
-                        <svg class="arr" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-                    </button>
-                    <div id="propDeliveredPC" style="display:none">
-                        <div class="filter-tabs" id="propYearTabsPC" style="margin-bottom:10px;"></div>
-                        <div id="propDeliveredListPC" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;"></div>
-                    </div>
+                <div id="propRichList"></div>
+                <div id="propRichDelivered" style="display:none">
+                    <div class="filter-tabs" id="propYearTabsRich" style="margin-bottom:10px;"></div>
+                    <div id="propDeliveredListRich"></div>
                 </div>
             </div>`;
 
-            // スマホ用タブ切り替え
-            function renderMobilePropList(filter) {
-                const tabList = document.getElementById('propTabList');
-                const delivMob = document.getElementById('propDeliveredMobile');
+            function setFilter(filter) {
+                const list = document.getElementById('propRichList');
+                const deliv = document.getElementById('propRichDelivered');
                 if (filter === 'delivered') {
-                    if (tabList) tabList.style.display = 'none';
-                    if (delivMob) delivMob.style.display = '';
-                    loadDeliveredProperties('mob');
+                    list.style.display = 'none';
+                    deliv.style.display = '';
+                    loadDeliveredProperties('rich');
                 } else {
-                    if (tabList) tabList.style.display = '';
-                    if (delivMob) delivMob.style.display = 'none';
-                    const list = filter === 'shikakari' ? sortedShikakari : sortedPrecon;
-                    if (tabList) tabList.innerHTML = buildPropItems(list);
+                    deliv.style.display = 'none';
+                    list.style.display = '';
+                    const data = filter === 'shikakari' ? sortedShikakari
+                               : filter === 'precon'    ? sortedPrecon
+                               : sortedAll;
+                    list.innerHTML = buildList(data);
                 }
             }
-            renderMobilePropList('shikakari');
+            setFilter('all');
 
             document.getElementById('propFilterTabs').addEventListener('click', e => {
-                const tab = e.target.closest('.filter-tab');
+                const tab = e.target.closest('.prop-rich-tab');
                 if (!tab) return;
-                document.querySelectorAll('#propFilterTabs .filter-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('#propFilterTabs .prop-rich-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
-                renderMobilePropList(tab.dataset.pfilter);
+                setFilter(tab.dataset.pfilter);
             });
-
-            // 物件データはfetchLiveDataで自動取得済み
         }
 
         // ===== 引渡し済み物件 機能 =====
@@ -6039,8 +6169,10 @@
             // キャッシュがあれば再利用
             if (_deliveredCache) { renderDeliveredGroups(_deliveredCache, view); return; }
 
-            const listId = view === 'mob' ? 'propDeliveredListMob' : 'propDeliveredListPC';
-            const yearId = view === 'mob' ? 'propYearTabsMob' : 'propYearTabsPC';
+            const idMap = { mob: ['propDeliveredListMob','propYearTabsMob'],
+                            pc:  ['propDeliveredListPC','propYearTabsPC'],
+                            rich:['propDeliveredListRich','propYearTabsRich'] };
+            const [listId, yearId] = idMap[view] || idMap.mob;
             const listEl = document.getElementById(listId);
             const yearEl = document.getElementById(yearId);
             if (!listEl) return;
@@ -6052,7 +6184,12 @@
                 const res = await fetch(`${gasUrl}?mode=getProperties`);
                 const json = await res.json();
                 if (!json.ok) throw new Error(json.error);
-                const delivered = (json.data || []).filter(p => p.progress === '引渡し');
+                // 引渡し済のうち、2026年度（2026-04 以降）のみ抽出
+                const FY_START = '2026-04';
+                const delivered = (json.data || []).filter(p =>
+                    p.progress === '引渡し' &&
+                    p.handover && p.handover.substring(0, 7) >= FY_START
+                );
                 // 年月別グループ化（"YYYY-MM"キー）
                 const groups = {};
                 delivered.forEach(p => {
@@ -6070,8 +6207,10 @@
         }
 
         function renderDeliveredGroups(groups, view) {
-            const listId = view === 'mob' ? 'propDeliveredListMob' : 'propDeliveredListPC';
-            const yearId = view === 'mob' ? 'propYearTabsMob' : 'propYearTabsPC';
+            const idMap = { mob: ['propDeliveredListMob','propYearTabsMob'],
+                            pc:  ['propDeliveredListPC','propYearTabsPC'],
+                            rich:['propDeliveredListRich','propYearTabsRich'] };
+            const [listId, yearId] = idMap[view] || idMap.mob;
             const listEl = document.getElementById(listId);
             const yearEl = document.getElementById(yearId);
             if (!listEl) return;
@@ -6092,7 +6231,9 @@
         }
 
         function selectDeliveredYear(yr, view) {
-            const yearId = view === 'mob' ? 'propYearTabsMob' : 'propYearTabsPC';
+            const yearId = view === 'mob' ? 'propYearTabsMob'
+                         : view === 'rich' ? 'propYearTabsRich'
+                         : 'propYearTabsPC';
             const yearEl = document.getElementById(yearId);
             if (yearEl) {
                 yearEl.querySelectorAll('.filter-tab').forEach(t => t.classList.toggle('active', t.dataset.yr === yr));
@@ -6101,7 +6242,9 @@
         }
 
         function renderDeliveredYear(groups, yr, view) {
-            const listId = view === 'mob' ? 'propDeliveredListMob' : 'propDeliveredListPC';
+            const listId = view === 'mob' ? 'propDeliveredListMob'
+                         : view === 'rich' ? 'propDeliveredListRich'
+                         : 'propDeliveredListPC';
             const listEl = document.getElementById(listId);
             if (!listEl) return;
             const props = groups[yr] || [];
