@@ -349,6 +349,7 @@ function handlePortalSubmit(p) {
     var city         = p['市町村'] || '';
     var startDate    = p['本体着工'] || null;
     var frameDate    = p['建て方']   || null;
+    var shunkoDate   = p['竣工']     || null;
     var deliveryDate = p['引渡し']   || null;
     var sakiSoto    = p['先外']    === 'on';
     var kairo       = p['改良']    === 'on';
@@ -363,7 +364,7 @@ function handlePortalSubmit(p) {
 
     var propertyPageId = createPropertyPage(
       propertyName, city,
-      startDate || null, frameDate || null, deliveryDate || null,
+      startDate || null, frameDate || null, shunkoDate || null, deliveryDate || null,
       sakiSoto, kairo, gaiko, shizumono, munefuda,
       tegata, shikyuhin, kansetsuShomei
     );
@@ -441,6 +442,7 @@ function doPost(e) {
     const city         = p['市町村'] || '';
     const startDate    = p['本体着工'] || null;
     const frameDate    = p['建て方']   || null;
+    const shunkoDate   = p['竣工']     || null;
     const deliveryDate = p['引渡し']   || null;
     const sakiSoto      = p['先外']     === 'on';
     const kairo         = p['改良']     === 'on';
@@ -454,7 +456,7 @@ function doPost(e) {
     Logger.log('▶ Web登録開始: ' + propertyName);
 
     const propertyPageId = createPropertyPage(
-      propertyName, city, startDate, frameDate, deliveryDate,
+      propertyName, city, startDate, frameDate, shunkoDate, deliveryDate,
       sakiSoto, kairo, gaiko, shizumono, munefuda,
       tegata, shikyuhin, kansetsuShomei
     );
@@ -481,6 +483,7 @@ function processForm(formData) {
   var city = formData['市町村'] || '';
   var startDate = formData['本体着工'] || null;
   var frameDate = formData['建て方'] || null;
+  var shunkoDate = formData['竣工'] || null;
   var deliveryDate = formData['引渡し'] || null;
   var sakiSoto     = formData['先外']     === true;
   var kairo        = formData['改良']     === true;
@@ -492,7 +495,7 @@ function processForm(formData) {
   var kansetsuShomei = formData['間接照明'] === true;
   Logger.log('▶ Web登録開始: ' + propertyName);
   try {
-    var propertyPageId = createPropertyPage(propertyName, city, startDate, frameDate, deliveryDate, sakiSoto, kairo, gaiko, shizumono, munefuda, tegata, shikyuhin, kansetsuShomei);
+    var propertyPageId = createPropertyPage(propertyName, city, startDate, frameDate, shunkoDate, deliveryDate, sakiSoto, kairo, gaiko, shizumono, munefuda, tegata, shikyuhin, kansetsuShomei);
     return { success: true, name: propertyName };
   } catch (err) {
     Logger.log('✘ エラー: ' + err.message);
@@ -884,7 +887,7 @@ function getResultHtml(success, messageOrName, taskCount) {
 // ============================================================
 // Notion: 物件ページを作成
 // ============================================================
-function createPropertyPage(name, city, startDate, frameDate, deliveryDate,
+function createPropertyPage(name, city, startDate, frameDate, shunkoDate, deliveryDate,
                              sakiSoto, kairo, gaiko, shizumono, munefuda,
                              tegata, shikyuhin, kansetsuShomei) {
   const token = getToken();
@@ -907,6 +910,7 @@ function createPropertyPage(name, city, startDate, frameDate, deliveryDate,
   }
   if (startDate)    properties['本体着工'] = { date: { start: startDate } };
   if (frameDate)    properties['建て方']   = { date: { start: frameDate } };
+  if (shunkoDate)   properties['竣工']     = { date: { start: shunkoDate } };
   if (deliveryDate) properties['引渡し']   = { date: { start: deliveryDate } };
 
   const result = notionPost('/pages', {

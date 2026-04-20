@@ -873,18 +873,16 @@ function calcSchedules(bukkenName, location, chakou, tatemae, shunko, hikiwatash
   var step11Date = skipWedSunHoliday(addDays(tatemae, 16));
   schedules.push({ step: 11, title: n + '雨仕舞い検査', start: setTime(step11Date, 8, 30), end: setTime(step11Date, 10, 0), location: loc, description: '所要1.5h', notification: false, allDay: false, color: COLOR_DEFAULT });
 
-  // --- 工程14: 竣工（基準日③）※v2.0 追加 ---
-  schedules.push({ step: 14, title: '✅' + n + '竣工', start: shunko, end: shunko, location: loc, description: '', notification: false, allDay: true, color: COLOR_SHUNKO });
+  // --- 工程14: 竣工検査（基準日③、竣工日そのまま・時間指定 8:30〜14:00）---
+  // ★ v2.1: 旧step14(竣工 allDay) と旧step15(竣工検査 時間指定) を統合。
+  //         竣工日は入力値をそのまま採用（水日祝スキップなし）、時間指定ルールのみ継承。
+  //         iCalUID(mshub-*-shunko@mshub.jp) はそのまま付く（SSOT維持）。
+  schedules.push({ step: 14, title: n + '竣工検査', start: setTime(shunko, 8, 30), end: setTime(shunko, 14, 0), location: loc, description: '所要5.5h', notification: false, allDay: false, color: COLOR_SHUNKO });
 
-  // --- 工程15: 竣工検査（竣工日基準、水・日・祝なら前倒し）---
-  // ★ v2.0: 基準を「引渡し-14」から「竣工日」に変更
-  var step15Date = skipWedSunHolidayBackward(shunko);
-  schedules.push({ step: 15, title: '✅' + n + '竣工検査', start: setTime(step15Date, 8, 30), end: setTime(step15Date, 14, 0), location: loc, description: '所要5.5h', notification: false, allDay: false, color: COLOR_DEFAULT });
-
-  // --- 工程12: 木完検査（竣工検査14日前・同曜日、水・日・祝除く）---
-  // 14日＝2週間のため同曜日が保たれる
-  var step12Date = skipWedSunHolidayBackward(addDays(step15Date, -14));
-  schedules.push({ step: 12, title: n + '木完検査', start: setTime(step12Date, 8, 30), end: setTime(step12Date, 10, 0), location: loc, description: '所要1.5h（竣工検査14日前）', notification: false, allDay: false, color: COLOR_DEFAULT });
+  // --- 工程12: 木完検査（竣工日14日前、水・日・祝除く）---
+  // ★ v2.1: 旧「竣工検査14日前」→「竣工日14日前」に変更（基準が竣工日そのものに統一されたため）
+  var step12Date = skipWedSunHolidayBackward(addDays(shunko, -14));
+  schedules.push({ step: 12, title: n + '木完検査', start: setTime(step12Date, 8, 30), end: setTime(step12Date, 10, 0), location: loc, description: '所要1.5h（竣工日14日前）', notification: false, allDay: false, color: COLOR_DEFAULT });
 
   // --- 工程13: 木完立会い（木完検査前後の直近土日）---
   var step13Date = nearestSaturdaySunday(step12Date);

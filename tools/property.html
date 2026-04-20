@@ -373,29 +373,29 @@
       margin-top: 4px;
     }
     .schedule-list {
-      padding: 12px 14px 24px;
+      padding: 10px 12px 20px;
       max-width: 620px;
       margin: 0 auto;
     }
     .schedule-item {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 14px 14px;
-      margin-bottom: 10px;
+      border-radius: 10px;
+      padding: 8px 10px 10px;
+      margin-bottom: 7px;
       display: flex;
-      gap: 12px;
+      gap: 10px;
       align-items: flex-start;
       box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
     .schedule-item-num {
       flex-shrink: 0;
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
       background: var(--sfc-light);
       color: var(--sfc-dark);
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 800;
       font-family: 'DM Mono', monospace;
       display: flex;
@@ -406,7 +406,7 @@
     .schedule-item-num.todo {
       background: #fef3c7;
       color: #92400e;
-      font-size: 10px;
+      font-size: 9px;
     }
     .schedule-item-num.base {
       background: var(--sfc-primary);
@@ -420,16 +420,16 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 5px;
     }
     .si-title {
       width: 100%;
-      padding: 10px 12px;
-      font-size: 14px;
+      padding: 6px 10px;
+      font-size: 13px;
       font-weight: 600;
       font-family: 'Noto Sans JP', sans-serif;
       border: 1.5px solid var(--border);
-      border-radius: 10px;
+      border-radius: 8px;
       background: var(--surface);
       color: var(--text1);
       transition: border-color 0.15s, box-shadow 0.15s;
@@ -441,29 +441,33 @@
     }
     .si-datetime {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      align-items: center;
       gap: 6px;
+      flex-wrap: wrap;
     }
     .si-dt-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      flex-shrink: 0;
     }
-    /* 日付ピッカー：ミニマル・フルワイドボタン */
+    /* 日付ピッカー：ミニマル */
     .si-datepick {
       position: relative;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       background: var(--surface2);
-      border-radius: 8px;
-      padding: 10px 12px;
+      border-radius: 7px;
+      padding: 6px 10px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       font-family: 'Noto Sans JP', sans-serif;
       color: var(--text1);
-      width: 100%;
+      flex: 1;
+      min-width: 0;
       transition: background 0.15s;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
@@ -523,14 +527,13 @@
 
     /* 時刻入力：ミニマル・ピル型 */
     .si-time {
-      flex: 1;
-      min-width: 0;
-      padding: 10px 12px;
-      font-size: 14px;
+      min-width: 60px;
+      padding: 6px 8px;
+      font-size: 13px;
       font-weight: 600;
       font-family: 'Noto Sans JP', sans-serif;
       border: none;
-      border-radius: 8px;
+      border-radius: 7px;
       background: var(--surface2);
       color: var(--text1);
       text-align: center;
@@ -557,14 +560,14 @@
       flex-shrink: 0;
     }
     .si-allday {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--sfc-primary);
       background: var(--sfc-light);
-      padding: 10px 14px;
-      border-radius: 8px;
-      flex: 1;
+      padding: 6px 10px;
+      border-radius: 7px;
       text-align: center;
+      flex-shrink: 0;
     }
     @media (prefers-color-scheme: dark) {
       .si-allday { background: var(--sfc-border); color: #86efac; }
