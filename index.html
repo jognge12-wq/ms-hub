@@ -6030,7 +6030,10 @@
                 .sort((a,b) => new Date(a.dates.引渡 || '9999') - new Date(b.dates.引渡 || '9999'));
             const sortedPrecon = activeAll.filter(p => deriveStatus(p) === '着工前')
                 .sort((a,b) => new Date(a.dates.着工 || '9999') - new Date(b.dates.着工 || '9999'));
-            const sortedAll = [...sortedPrecon, ...sortedShikakari];
+            // 全て: 着工日順（早い順）
+            const sortedAll = [...activeAll].sort((a, b) =>
+                new Date(a.dates.着工 || '9999') - new Date(b.dates.着工 || '9999')
+            );
 
             function buildPhaseStrip(p, st) {
                 function isPast(key) {
@@ -6184,8 +6187,8 @@
                 const res = await fetch(`${gasUrl}?mode=getProperties`);
                 const json = await res.json();
                 if (!json.ok) throw new Error(json.error);
-                // 引渡し済のうち、2026年度（2026-04 以降）のみ抽出
-                const FY_START = '2026-04';
+                // 引渡し済のうち、カレンダー年2026（2026-01 以降）のみ抽出
+                const FY_START = '2026-01';
                 const delivered = (json.data || []).filter(p =>
                     p.progress === '引渡し' &&
                     p.handover && p.handover.substring(0, 7) >= FY_START
