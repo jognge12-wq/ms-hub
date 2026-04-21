@@ -1132,17 +1132,17 @@
         /* フェーズ部 */
         .prop-rich-card .phase-strip{padding:7px 12px 9px;background:var(--surface2);
                                      border-top:1px solid var(--border);}
-        .prop-rich-card .phase-bar{position:relative;height:20px;display:flex;align-items:center;}
-        .prop-rich-card .phase-bar-line{position:absolute;left:8px;right:8px;top:50%;height:2px;
+        .prop-rich-card .phase-bar{position:relative;height:20px;}
+        .prop-rich-card .phase-bar-line{position:absolute;left:12.5%;right:12.5%;top:50%;height:2px;
                                         background:var(--border);transform:translateY(-50%);border-radius:1px;}
-        .prop-rich-card .phase-bar-fill{position:absolute;left:8px;top:50%;height:2px;
+        .prop-rich-card .phase-bar-fill{position:absolute;left:12.5%;top:50%;height:2px;
                                         background:var(--primary);transform:translateY(-50%);border-radius:1px;
                                         transition:width .3s ease;}
         .prop-rich-card.st-active .phase-bar-fill{background:#d97706;}
         .prop-rich-card.st-done   .phase-bar-fill{background:#9ca3af;}
-        .prop-rich-card .phase-dots{position:relative;display:flex;justify-content:space-between;
-                                    width:100%;align-items:center;}
-        .prop-rich-card .phase-dot{position:relative;display:flex;align-items:center;justify-content:center;}
+        .prop-rich-card .phase-dots{position:relative;display:grid;grid-template-columns:repeat(4, 1fr);
+                                    width:100%;height:100%;align-items:center;}
+        .prop-rich-card .phase-dot{display:flex;align-items:center;justify-content:center;}
         .prop-rich-card .phase-dot-circle{width:12px;height:12px;border-radius:50%;background:var(--surface);
                                           border:2px solid var(--border);display:flex;align-items:center;justify-content:center;
                                           transition:all .15s;box-shadow:0 0 0 3px var(--surface2);}
@@ -1155,12 +1155,17 @@
             box-shadow:0 0 0 3px var(--surface2), 0 0 0 5px var(--primary-l);}
         .prop-rich-card.st-active .phase-dot.now .phase-dot-circle{
             border-color:#d97706;box-shadow:0 0 0 3px var(--surface2), 0 0 0 5px #fff8e1;}
-        .prop-rich-card .phase-labels{display:flex;justify-content:space-between;margin-top:4px;
+        .prop-rich-card .phase-labels{display:grid;grid-template-columns:repeat(4, 1fr);margin-top:5px;
                                       font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.02em;}
-        .prop-rich-card .phase-labels .lbl{flex:1;text-align:center;}
-        .prop-rich-card .phase-labels .lbl.done{color:var(--text2);}
-        .prop-rich-card .phase-labels .lbl.now{color:var(--primary);font-weight:800;}
-        .prop-rich-card.st-active .phase-labels .lbl.now{color:#92400e;}
+        .prop-rich-card .phase-labels .lbl{text-align:center;display:flex;flex-direction:column;align-items:center;gap:1px;}
+        .prop-rich-card .phase-labels .lbl-name{font-size:9.5px;}
+        .prop-rich-card .phase-labels .lbl-date{font-size:9px;font-family:'DM Mono',monospace;color:var(--text3);font-weight:500;letter-spacing:0;}
+        .prop-rich-card .phase-labels .lbl.done .lbl-name{color:var(--text2);}
+        .prop-rich-card .phase-labels .lbl.done .lbl-date{color:var(--text2);}
+        .prop-rich-card .phase-labels .lbl.now .lbl-name{color:var(--primary);font-weight:800;}
+        .prop-rich-card .phase-labels .lbl.now .lbl-date{color:var(--primary);}
+        .prop-rich-card.st-active .phase-labels .lbl.now .lbl-name{color:#92400e;}
+        .prop-rich-card.st-active .phase-labels .lbl.now .lbl-date{color:#92400e;}
 
         /* カウントダウン（着工前） */
         .prop-rich-card .prop-cd{padding:7px 12px;background:#eff6ff;border-top:1px solid #bfdbfe;
@@ -6036,28 +6041,53 @@
             );
 
             function buildPhaseStrip(p, st) {
-                function isPast(key) {
-                    const d = p.dates && p.dates[key];
-                    if (!d) return false;
-                    const dd = new Date(d); dd.setHours(0,0,0,0);
-                    return today >= dd;
-                }
-                const phases = [
-                    {key:'着工', done: isPast('着工')},
-                    {key:'上棟', done: isPast('上棟')},
-                    {key:'竣工', done: isPast('竣工')},
-                    {key:'引渡', done: isPast('引渡')},
+                // データキーは GAS が返す '建方'（'上棟'ではない）
+                const phaseDefs = [
+                    {key:'着工', label:'着工'},
+                    {key:'建方', label:'建方'},
+                    {key:'竣工', label:'竣工'},
+                    {key:'引渡', label:'引渡'},
                 ];
+                // 各フェーズの日付を Date化
+                const withDate = phaseDefs.map(ph => {
+                    const raw = p.dates && p.dates[ph.key];
+                    let dt = null;
+                    if (raw) { const d = new Date(raw); if (!isNaN(d)) { d.setHours(0,0,0,0); dt = d; } }
+                    return { ...ph, date: dt };
+                });
+                // 累積 done: 自分または後のフェーズが過去 → done（途中欠損を吸収）
+                let lastPastIdx = -1;
+                withDate.forEach((ph, i) => { if (ph.date && today >= ph.date) lastPastIdx = i; });
+                const phases = withDate.map((ph, i) => ({ ...ph, done: i <= lastPastIdx }));
                 let nowIdx = phases.findIndex(ph => !ph.done);
                 if (nowIdx < 0) nowIdx = 3;
-                const fillPct = nowIdx > 0 ? (nowIdx / 3) * 100 : 0;
+                // 時間比例 fill: 日付が入った隣接フェーズ間で today の位置を補間
+                // ドット中心 = 12.5/37.5/62.5/87.5% → 隣接間 25%、最大 fillPct = 75%
+                let fillPct = 0;
+                const dated = phases.map((ph, i) => ({ idx:i, date:ph.date })).filter(d => d.date);
+                if (dated.length > 0) {
+                    const first = dated[0], last = dated[dated.length - 1];
+                    if (today >= last.date) {
+                        fillPct = last.idx * 25;
+                    } else if (today > first.date) {
+                        for (let i = 0; i < dated.length - 1; i++) {
+                            const a = dated[i], b = dated[i + 1];
+                            if (today >= a.date && today < b.date) {
+                                const ratio = (today.getTime() - a.date.getTime()) / (b.date.getTime() - a.date.getTime());
+                                fillPct = a.idx * 25 + ratio * (b.idx - a.idx) * 25;
+                                break;
+                            }
+                        }
+                    }
+                }
                 const dotsHtml = phases.map((ph, i) => {
-                    let cls = ph.done ? 'done' : (i === nowIdx ? 'now' : '');
+                    const cls = ph.done ? 'done' : (i === nowIdx ? 'now' : '');
                     return `<div class="phase-dot ${cls}"><div class="phase-dot-circle"></div></div>`;
                 }).join('');
                 const labelsHtml = phases.map((ph, i) => {
-                    let cls = ph.done ? 'done' : (i === nowIdx ? 'now' : '');
-                    return `<div class="lbl ${cls}">${ph.key}</div>`;
+                    const cls = ph.done ? 'done' : (i === nowIdx ? 'now' : '');
+                    const dateStr = (p.dates && p.dates[ph.key]) ? formatDateShort(p.dates[ph.key]) : '—';
+                    return `<div class="lbl ${cls}"><span class="lbl-name">${ph.label}</span><span class="lbl-date">${dateStr}</span></div>`;
                 }).join('');
                 return `<div class="phase-strip">
                     <div class="phase-bar">
@@ -6067,6 +6097,13 @@
                     </div>
                     <div class="phase-labels">${labelsHtml}</div>
                 </div>`;
+            }
+            // ラベル下用の短い日付表記（M/D）
+            function formatDateShort(s) {
+                if (!s) return '';
+                const d = new Date(s);
+                if (isNaN(d.getTime())) return s;
+                return `${d.getMonth()+1}/${d.getDate()}`;
             }
 
             function buildCard(p) {
@@ -6091,11 +6128,6 @@
                     mainHtml = buildPhaseStrip(p, st);
                 }
 
-                const dateKeys = ['着工','上棟','竣工','引渡'];
-                const datesHtml = dateKeys.filter(k => p.dates && p.dates[k])
-                    .map(k => `<div class="prop-date"><span class="prop-date-lbl">${k}</span><span class="prop-date-val">${formatDateWithDay(p.dates[k])}</span></div>`)
-                    .join('');
-
                 const checksHtml = CHECK_ORDER
                     .filter(key => p.checks && key in p.checks)
                     .map(key => {
@@ -6109,7 +6141,6 @@
                 return `<div class="prop-rich-card ${stClass}" data-notion-id="${p.notionId}">
                     ${hdrHtml}
                     ${mainHtml}
-                    ${datesHtml ? `<div class="prop-dates">${datesHtml}</div>` : ''}
                     ${checksHtml ? `<div class="prop-checks">${checksHtml}</div>` : ''}
                 </div>`;
             }
