@@ -201,6 +201,20 @@ function doGet(e) {
     return handleCompleteGoogleTask(e.parameter);
   }
 
+  // ★ v8追加: チェック項目の動的管理
+  if (e && e.parameter && e.parameter.mode === 'getCheckFields') {
+    return handleGetCheckFields();
+  }
+  if (e && e.parameter && e.parameter.mode === 'addCheckField') {
+    return handleAddCheckField(e.parameter);
+  }
+  if (e && e.parameter && e.parameter.mode === 'deleteCheckField') {
+    return handleDeleteCheckField(e.parameter);
+  }
+  if (e && e.parameter && e.parameter.mode === 'reorderCheckFields') {
+    return handleReorderCheckFields(e.parameter);
+  }
+
   // 通常: フォーム画面を返す（iPhoneから直接アクセスした場合）
   return HtmlService.createHtmlOutput(getFormHtml())
     .setTitle('新規物件登録')
@@ -1092,6 +1106,21 @@ function handleGetDashboardData() {
       return arr;
     }
 
+    // ── チェック項目フィールド一覧（動的: 保存順 + DBスキーマで解決） ──
+    var _checkFieldsForDashboard;
+    try {
+      var _checkSchema = _getCheckFieldsFromSchema(token);
+      var _checkStored = _getStoredCheckOrder();
+      _checkFieldsForDashboard = _resolveCheckOrder(_checkSchema, _checkStored);
+      // スキーマ追加分があれば保存順を更新
+      if (_checkFieldsForDashboard.join('|') !== _checkStored.join('|')) {
+        _setStoredCheckOrder(_checkFieldsForDashboard);
+      }
+    } catch (e) {
+      Logger.log('⚠ チェック項目スキーマ取得エラー（保存順にフォールバック）: ' + e.message);
+      _checkFieldsForDashboard = _getStoredCheckOrder();
+    }
+
     // ── 第1パス: Notion からページ情報収集（集計はまだ） ──
     // ※ 日付の最終確定は GCal スキャン後に行う（GCal優先, Notion fallback）
     var _notionRaw = [];  // [{ pageId, name, displayName, city, shinchoku, checks, notionDates }]
@@ -1114,17 +1143,11 @@ function handleGetDashboardData() {
       // 進捗（select → name を直接取得。未設定は着工前扱い）
       var shinchoku = (pr['進捗'] && pr['進捗'].select) ? pr['進捗'].select.name : '着工前';
 
-      // チェック項目
-      var checks = {
-        '棟札':     pr['棟札']     ? pr['棟札'].checkbox     : false,
-        '鎮物':     pr['鎮物']     ? pr['鎮物'].checkbox     : false,
-        '先外':     pr['先外']     ? pr['先外'].checkbox     : false,
-        '改良':     pr['改良']     ? pr['改良'].checkbox     : false,
-        '外構':     pr['外構']     ? pr['外構'].checkbox     : false,
-        '手形':     pr['手形']     ? pr['手形'].checkbox     : false,
-        '支給品':   pr['支給品']   ? pr['支給品'].checkbox   : false,
-        '間接照明': pr['間接照明'] ? pr['間接照明'].checkbox : false
-      };
+      // チェック項目（動的: スクリプト保存順 + Notion DB スキーマから解決）
+      var checks = {};
+      _checkFieldsForDashboard.forEach(function(f) {
+        checks[f] = pr[f] ? pr[f].checkbox === true : false;
+      });
 
       var displayName = name.replace(/邸$/, '');
       var notionIdHex = page.id.replace(/-/g, '');
@@ -1401,6 +1424,7 @@ function handleGetDashboardData() {
       scheduleEvents: scheduleEvents,
       googleTasks:    gTasks,
       notionProperties: allNotionProperties,
+      checkFields:    _checkFieldsForDashboard,
       calendarData: {
         startedProperties:    startedProperties,
         monthlyStarts:        monthlyStarts,
@@ -1413,6 +1437,166 @@ function handleGetDashboardData() {
 
   } catch(err) {
     Logger.log('❌ getDashboardData エラー: ' + err.message);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false, message: err.message
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+
+// ============================================================
+// ★ v8追加: チェック項目の動的管理
+// ============================================================
+
+// Notion API ヘルパー: GET（DBスキーマ取得用）
+function notionGet(endpoint, token) {
+  var MAX_RETRIES = 3;
+  for (var attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    var res = UrlFetchApp.fetch(NOTION_API_BASE + endpoint, {
+      method:  'get',
+      headers: {
+        'Authorization':  'Bearer ' + token,
+        'Notion-Version': NOTION_API_VERSION
+      },
+      muteHttpExceptions: true
+    });
+    var code = res.getResponseCode();
+    var body = res.getContentText();
+    if (code >= 200 && code < 500) {
+      try { return JSON.parse(body); }
+      catch (e) { return { object: 'error', message: 'JSONパース失敗' }; }
+    }
+    var wait = (code === 429) ? 2000 : 1000 * attempt;
+    Logger.log('⚠ GET HTTP ' + code + ' - リトライ (' + attempt + '/' + MAX_RETRIES + ')');
+    Utilities.sleep(wait);
+  }
+  return { object: 'error', message: 'Notion API が応答しません' };
+}
+
+// チェック項目の保存順（Script Properties）
+var DEFAULT_CHECK_ORDER = ['棟札','鎮物','先外','改良','外構','手形','支給品','間接照明'];
+var CHECK_ORDER_KEY = 'CHECK_ORDER_JSON';
+
+function _getStoredCheckOrder() {
+  var raw = PropertiesService.getScriptProperties().getProperty(CHECK_ORDER_KEY);
+  if (!raw) return DEFAULT_CHECK_ORDER.slice();
+  try {
+    var arr = JSON.parse(raw);
+    if (Array.isArray(arr) && arr.length > 0) return arr;
+  } catch(e) {}
+  return DEFAULT_CHECK_ORDER.slice();
+}
+
+function _setStoredCheckOrder(arr) {
+  PropertiesService.getScriptProperties().setProperty(CHECK_ORDER_KEY, JSON.stringify(arr));
+}
+
+// Notion DB のスキーマからチェックボックスプロパティ一覧を取得
+function _getCheckFieldsFromSchema(token) {
+  var db = notionGet('/databases/' + PROPERTY_DB_ID, token);
+  if (db.object === 'error') throw new Error('DB取得エラー: ' + db.message);
+  var checkboxFields = [];
+  Object.keys(db.properties || {}).forEach(function(key) {
+    var p = db.properties[key];
+    if (p && p.type === 'checkbox') checkboxFields.push(key);
+  });
+  return checkboxFields;
+}
+
+// 順序適用: 保存順にあってスキーマに存在するもの → 先頭、新規（スキーマのみ）→ 末尾
+function _resolveCheckOrder(schemaFields, storedOrder) {
+  var schemaSet = {};
+  schemaFields.forEach(function(f) { schemaSet[f] = true; });
+  var result = [];
+  var used = {};
+  storedOrder.forEach(function(f) {
+    if (schemaSet[f] && !used[f]) { result.push(f); used[f] = true; }
+  });
+  schemaFields.forEach(function(f) {
+    if (!used[f]) { result.push(f); used[f] = true; }
+  });
+  return result;
+}
+
+// ?mode=getCheckFields
+function handleGetCheckFields() {
+  try {
+    var token = getToken();
+    var schema = _getCheckFieldsFromSchema(token);
+    var stored = _getStoredCheckOrder();
+    var ordered = _resolveCheckOrder(schema, stored);
+    if (ordered.join('|') !== stored.join('|')) _setStoredCheckOrder(ordered);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true, fields: ordered
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false, message: err.message
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ?mode=addCheckField&field=NAME
+function handleAddCheckField(params) {
+  try {
+    var field = (params.field || '').trim();
+    if (!field)            throw new Error('項目名が空です');
+    if (field.length > 40) throw new Error('40文字以内で入力してください');
+    var token = getToken();
+    var existing = _getCheckFieldsFromSchema(token);
+    if (existing.indexOf(field) >= 0) throw new Error('既に存在する項目です: ' + field);
+    var payload = { properties: {} };
+    payload.properties[field] = { checkbox: {} };
+    var res = notionPatch('/databases/' + PROPERTY_DB_ID, payload, token);
+    if (res.object === 'error') throw new Error(res.message);
+    var stored = _getStoredCheckOrder();
+    if (stored.indexOf(field) < 0) stored.push(field);
+    _setStoredCheckOrder(stored);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true, fields: stored
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false, message: err.message
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ?mode=deleteCheckField&field=NAME  （DBプロパティごと削除：破壊的）
+function handleDeleteCheckField(params) {
+  try {
+    var field = (params.field || '').trim();
+    if (!field) throw new Error('項目名が空です');
+    var token = getToken();
+    var payload = { properties: {} };
+    payload.properties[field] = null;
+    var res = notionPatch('/databases/' + PROPERTY_DB_ID, payload, token);
+    if (res.object === 'error') throw new Error(res.message);
+    var stored = _getStoredCheckOrder().filter(function(f) { return f !== field; });
+    _setStoredCheckOrder(stored);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true, fields: stored
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false, message: err.message
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ?mode=reorderCheckFields&fieldsJson=URI(JSONエンコード配列)
+function handleReorderCheckFields(params) {
+  try {
+    var raw = params.fieldsJson || '';
+    if (!raw) throw new Error('fieldsJson が空です');
+    var arr = JSON.parse(raw);
+    if (!Array.isArray(arr) || arr.length === 0) throw new Error('fieldsJson は配列である必要があります');
+    arr = arr.map(function(s) { return String(s).trim(); }).filter(function(s) { return s; });
+    _setStoredCheckOrder(arr);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true, fields: arr
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
     return ContentService.createTextOutput(JSON.stringify({
       success: false, message: err.message
     })).setMimeType(ContentService.MimeType.JSON);

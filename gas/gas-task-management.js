@@ -832,9 +832,11 @@ function _apiUpdatePropertyCheck(params) {
   const { pageId, field, value } = params;
   if (!pageId || !field) throw new Error('pageId と field は必須です');
 
-  // セキュリティ: 許可するフィールドのみ
-  const ALLOWED = ['棟札', '鎮物', '先外', '改良', '外構', '手形', '支給品', '間接照明'];
-  if (!ALLOWED.includes(field)) throw new Error('不正なフィールド名: ' + field);
+  // セキュリティ: 危険文字を弾いた上で、Notion 側がチェックボックス以外なら拒否してくれる
+  // （以前の固定 ALLOWED は廃止 — 動的にチェック項目が追加できるようにするため）
+  if (typeof field !== 'string' || field.length === 0 || field.length > 60) {
+    throw new Error('不正なフィールド名: ' + field);
+  }
 
   const boolValue = value === 'true' || value === true;
 
