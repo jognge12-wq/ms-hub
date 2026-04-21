@@ -19,7 +19,7 @@
    - コードを大きく変えたらここのバージョンを上げること
 ================================================================ */
 
-const CACHE_VERSION = 'v2-2026-04-22b';
+const CACHE_VERSION = 'v2-2026-04-22c';
 const CACHE_NAME    = `portal-${CACHE_VERSION}`;
 
 // 初回インストール時にプリキャッシュする最小セット
@@ -29,6 +29,8 @@ const PRECACHE_URLS = [
     './task-management.html',
     './manifest.json',
     './icon.png',
+    './icon-192.png',
+    './apple-touch-icon.png',
     './assets/treeing.png',
     './tools/inspection.html',
     './tools/payment.html',
