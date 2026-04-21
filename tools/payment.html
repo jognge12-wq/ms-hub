@@ -684,6 +684,8 @@ async function callGas(mode, params = {}) {
 // 初期化：全マスタデータ取得
 // ================================================================
 async function init() {
+  // 既存のエラーバナーを除去（再試行時）
+  document.querySelectorAll('.init-error-banner').forEach(el => el.remove());
   const loadingHtml = '<div class="loading-wrap"><div class="spinner"></div>データ取得中...</div>';
   // タブパネルにローディング表示
   document.getElementById('panelRegister').querySelector('.section').insertAdjacentHTML('afterbegin', loadingHtml);
@@ -702,15 +704,20 @@ async function init() {
       ? 'GASの再デプロイが必要です。gas-payment-management.gs を更新してデプロイしてください。'
       : 'データ取得エラー: ' + e.message;
     showToast(msg, true);
-    // エラー表示をメインエリアにも出す
-    document.getElementById('panelRegister').querySelector('.section').innerHTML =
-      `<div class="result-empty" style="color:var(--red);padding:24px 0">
-        ⚠️ データを読み込めませんでした<br>
-        <span style="font-size:12px;color:var(--text3);margin-top:6px;display:block">
+    // エラー表示をフォーム上部に "バナー" として挿入（DOM を破壊しない）
+    const banner = `
+      <div class="init-error-banner" style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:14px 16px;margin-bottom:14px;color:#991b1b;font-size:13px;line-height:1.55;">
+        <div style="display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:4px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          データを読み込めませんでした
+        </div>
+        <div style="font-size:11px;color:#7f1d1d;margin-bottom:10px;word-break:break-word;">
           ${isJsonErr ? 'GAS を最新版に再デプロイしてください' : e.message}
-        </span>
-        <button onclick="init()" style="margin-top:16px;padding:8px 20px;background:var(--sfc-primary);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer">再試行</button>
+        </div>
+        <button onclick="init()" style="padding:6px 14px;background:#dc2626;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">再試行</button>
       </div>`;
+    const panel = document.getElementById('panelRegister');
+    if (panel) panel.insertAdjacentHTML('afterbegin', banner);
   } finally {
     // ローディング要素を削除
     document.querySelectorAll('.loading-wrap').forEach(el => el.remove());
