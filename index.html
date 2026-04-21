@@ -1109,46 +1109,101 @@
         .prop-check-settings-btn:hover{color:var(--primary);}
         .prop-check-settings-btn:active{transform:scale(.95);}
 
-        /* チェック項目編集モーダル */
-        .check-editor-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1000;
-                               display:flex;align-items:center;justify-content:center;padding:16px;}
-        .check-editor-modal{background:var(--surface);border-radius:14px;width:100%;max-width:420px;
-                            max-height:80vh;display:flex;flex-direction:column;overflow:hidden;
-                            box-shadow:0 10px 40px rgba(0,0,0,.2);}
-        .check-editor-head{padding:14px 16px;border-bottom:1px solid var(--border);
-                           display:flex;align-items:center;justify-content:space-between;}
-        .check-editor-title{font-size:14px;font-weight:700;color:var(--text1);}
-        .check-editor-close{background:none;border:none;font-size:20px;color:var(--text3);cursor:pointer;
-                            width:28px;height:28px;display:flex;align-items:center;justify-content:center;}
-        .check-editor-body{padding:12px 16px;overflow-y:auto;flex:1;}
-        .check-editor-list{list-style:none;padding:0;margin:0 0 12px 0;}
-        .check-editor-item{display:flex;align-items:center;gap:8px;padding:8px 10px;
-                           border:1px solid var(--border);border-radius:10px;margin-bottom:6px;background:var(--surface);}
-        .check-editor-item-name{flex:1;font-size:12px;color:var(--text1);font-weight:500;}
-        .check-editor-item-btn{background:none;border:none;cursor:pointer;color:var(--text3);
-                               width:26px;height:26px;display:flex;align-items:center;justify-content:center;
-                               border-radius:6px;font-size:14px;}
-        .check-editor-item-btn:hover{background:var(--surface2);color:var(--text1);}
-        .check-editor-item-btn.del{color:#dc2626;}
-        .check-editor-item-btn.del:hover{background:#fee2e2;color:#991b1b;}
-        .check-editor-add{display:flex;gap:6px;}
-        .check-editor-add input{flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:8px;
-                                font-size:12px;background:var(--surface);color:var(--text1);
-                                font-family:'Noto Sans JP',sans-serif;}
-        .check-editor-add input:focus{outline:none;border-color:var(--primary);}
-        .check-editor-add-btn{padding:8px 14px;background:var(--primary);color:#fff;border:none;border-radius:8px;
-                              font-size:12px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
-        .check-editor-add-btn:disabled{opacity:.5;cursor:not-allowed;}
-        .check-editor-foot{padding:10px 16px;border-top:1px solid var(--border);
-                           display:flex;justify-content:flex-end;gap:8px;}
-        .check-editor-foot button{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;
-                                  font-family:'Noto Sans JP',sans-serif;border:none;}
-        .check-editor-foot .btn-close{background:var(--surface2);color:var(--text1);}
-        .check-editor-foot .btn-save{background:var(--primary);color:#fff;}
-        .check-editor-foot .btn-save:disabled{opacity:.5;cursor:not-allowed;}
-        .check-editor-hint{font-size:10px;color:var(--text3);padding:0 4px 8px;}
-        .check-editor-spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.4);
-                           border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:6px;vertical-align:-2px;}
+        /* ===== チェック項目編集モーダル（リデザイン） ===== */
+        .check-editor-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:1000;
+                               display:flex;align-items:flex-end;justify-content:center;padding:0;
+                               animation:ceFadeIn .2s ease-out;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+        @media (min-width:520px){
+            .check-editor-backdrop{align-items:center;padding:16px;}
+        }
+        @keyframes ceFadeIn{from{opacity:0;}to{opacity:1;}}
+        @keyframes ceSlideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+        .check-editor-modal{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:460px;
+                            max-height:88vh;display:flex;flex-direction:column;overflow:hidden;
+                            box-shadow:0 -8px 40px rgba(0,0,0,.18);animation:ceSlideUp .25s cubic-bezier(.32,.72,0,1);}
+        @media (min-width:520px){
+            .check-editor-modal{border-radius:18px;box-shadow:0 16px 48px rgba(15,23,42,.22);}
+        }
+        /* ヘッダー */
+        .ce-head{padding:18px 20px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+                 border-bottom:1px solid var(--border);}
+        .ce-head-text{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
+        .ce-title{font-size:16px;font-weight:700;color:var(--text1);letter-spacing:.01em;}
+        .ce-subtitle{font-size:11px;color:var(--text3);font-weight:500;}
+        .ce-count-badge{display:inline-flex;align-items:center;gap:4px;background:var(--surface2);
+                        color:var(--text2);font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;
+                        margin-left:6px;}
+        .ce-close{background:var(--surface2);border:none;cursor:pointer;color:var(--text2);
+                  width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+                  border-radius:50%;flex-shrink:0;transition:background .15s, color .15s;}
+        .ce-close:hover{background:#e5e7eb;color:var(--text1);}
+        .ce-close:active{transform:scale(.92);}
+        /* ボディ */
+        .ce-body{padding:16px 20px 12px;overflow-y:auto;flex:1;}
+        /* 新規追加カード */
+        .ce-add-card{display:flex;align-items:stretch;gap:8px;padding:6px;background:var(--surface2);
+                     border-radius:14px;margin-bottom:18px;}
+        .ce-add-card input{flex:1;padding:10px 12px;border:none;border-radius:10px;font-size:13px;
+                           background:var(--surface);color:var(--text1);font-family:'Noto Sans JP',sans-serif;
+                           outline:none;transition:box-shadow .15s;min-width:0;}
+        .ce-add-card input::placeholder{color:var(--text3);font-weight:400;}
+        .ce-add-card input:focus{box-shadow:0 0 0 2px var(--primary);}
+        .ce-add-btn{width:42px;border:none;background:var(--primary);color:#fff;border-radius:10px;
+                    display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+                    transition:transform .1s, background .15s;}
+        .ce-add-btn:hover{background:#005a2f;}
+        .ce-add-btn:active{transform:scale(.94);}
+        .ce-add-btn:disabled{opacity:.5;cursor:not-allowed;}
+        .ce-add-btn svg{display:block;}
+        /* セクションラベル */
+        .ce-section-label{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.08em;
+                          text-transform:uppercase;margin:0 2px 8px;display:flex;align-items:center;
+                          justify-content:space-between;}
+        /* リスト */
+        .ce-list{list-style:none;padding:0;margin:0 0 14px 0;display:flex;flex-direction:column;gap:6px;}
+        .ce-item{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 6px;
+                 background:var(--surface);border:1px solid var(--border);border-radius:12px;
+                 transition:background .15s, transform .1s;}
+        .ce-item:hover{background:var(--surface2);}
+        .ce-arrows{display:flex;flex-direction:column;gap:1px;flex-shrink:0;}
+        .ce-arrow{background:none;border:none;cursor:pointer;color:var(--text3);
+                  width:22px;height:18px;display:flex;align-items:center;justify-content:center;
+                  border-radius:4px;padding:0;transition:background .15s, color .15s;}
+        .ce-arrow:hover{background:var(--surface2);color:var(--primary);}
+        .ce-arrow:active{transform:scale(.9);}
+        .ce-arrow:disabled{opacity:.25;cursor:default;}
+        .ce-arrow:disabled:hover{background:none;color:var(--text3);}
+        .ce-arrow svg{display:block;}
+        .ce-item-num{font-size:10px;font-weight:600;color:var(--text3);width:18px;text-align:center;
+                     flex-shrink:0;font-family:'DM Mono',monospace;}
+        .ce-item-name{flex:1;font-size:13px;color:var(--text1);font-weight:500;
+                      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .ce-item-del{background:none;border:none;cursor:pointer;color:var(--text3);
+                     width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+                     border-radius:8px;flex-shrink:0;transition:background .15s, color .15s;}
+        .ce-item-del:hover{background:#fef2f2;color:#dc2626;}
+        .ce-item-del:active{transform:scale(.92);}
+        .ce-item-del svg{display:block;}
+        /* ヒント */
+        .ce-tip{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:#fef9e7;
+                border:1px solid #fde68a;border-radius:10px;font-size:11px;color:#854d0e;line-height:1.5;}
+        .ce-tip svg{flex-shrink:0;margin-top:1px;color:#ca8a04;}
+        /* フッター */
+        .ce-foot{padding:14px 20px 18px;border-top:1px solid var(--border);
+                 display:flex;gap:10px;background:var(--surface);}
+        .ce-btn{flex:1;padding:12px 16px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;
+                font-family:'Noto Sans JP',sans-serif;border:none;transition:background .15s, transform .1s;}
+        .ce-btn-cancel{background:var(--surface2);color:var(--text2);}
+        .ce-btn-cancel:hover{background:#e5e7eb;}
+        .ce-btn-save{background:var(--primary);color:#fff;flex:1.6;display:inline-flex;align-items:center;
+                     justify-content:center;gap:6px;}
+        .ce-btn-save:hover{background:#005a2f;}
+        .ce-btn-save:active{transform:scale(.98);}
+        .ce-btn-save:disabled{opacity:.5;cursor:not-allowed;}
+        .ce-spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.4);
+                 border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;}
+        /* 空状態 */
+        .ce-empty{text-align:center;padding:24px 12px;color:var(--text3);font-size:12px;}
         .prop-rich-tab{flex:1;padding:6px 4px;text-align:center;font-size:11px;font-weight:600;
                        color:var(--text2);background:transparent;border:none;border-radius:7px;cursor:pointer;
                        display:inline-flex;align-items:center;justify-content:center;gap:3px;
@@ -3261,100 +3316,120 @@
         }
 
 
-        /* ===== パスワード保護オーバーレイ ===== */
+        /* ===== ログイン画面（リデザイン） ===== */
         #pw-overlay {
             position: fixed;
             inset: 0;
-            background: #f4f6f9;
             z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 24px;
+            background:
+                radial-gradient(circle at 20% 10%, rgba(122,154,94,.18), transparent 55%),
+                radial-gradient(circle at 80% 90%, rgba(0,104,55,.12), transparent 55%),
+                linear-gradient(180deg, #f6f8f4 0%, #eef1ea 100%);
         }
         #pw-overlay.hidden { display: none; }
-        .pw-box {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 40px 32px;
-            width: 320px;
-            text-align: center;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        @keyframes pwIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+        @keyframes pwShake { 0%,100%{transform:translateX(0);} 20%{transform:translateX(-7px);} 40%{transform:translateX(6px);} 60%{transform:translateX(-4px);} 80%{transform:translateX(3px);} }
+        .pw-stage {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 0; width: 100%; max-width: 340px; text-align: center;
+            animation: pwIn .35s cubic-bezier(.32,.72,0,1);
         }
-        .pw-logo {
-            width: 48px;
-            height: 48px;
-            background: #006837;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
+        .pw-logo-wrap {
+            width: 88px; height: 88px;
+            border-radius: 22px;
+            box-shadow: 0 18px 36px -10px rgba(0,104,55,.32), 0 4px 12px rgba(0,0,0,.06);
+            overflow: hidden;
+            margin-bottom: 20px;
+            background: #fff;
         }
-        .pw-logo svg { width: 26px; height: 26px; fill: #ffffff; }
+        .pw-logo-wrap img { width: 100%; height: 100%; display: block; object-fit: cover; }
         .pw-title {
-            font-size: 17px;
+            font-size: 22px;
             font-weight: 700;
-            color: #111827;
-            margin-bottom: 6px;
+            color: #0f172a;
+            letter-spacing: .01em;
+            margin: 0 0 4px;
         }
         .pw-sub {
-            font-size: 13px;
-            color: var(--text3);
-            margin-bottom: 24px;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+            margin: 0 0 28px;
         }
+        /* PIN ドット表示 */
+        .pw-pin-wrap { position: relative; width: 100%; }
+        .pw-pin-display {
+            display: flex; justify-content: center; gap: 14px;
+            padding: 4px 0;
+            cursor: text;
+        }
+        .pw-pin-dot {
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: transparent;
+            border: 2px solid #cbd5dd;
+            transition: background .15s, border-color .15s, transform .1s;
+        }
+        .pw-pin-dot.filled {
+            background: var(--primary, #006837);
+            border-color: var(--primary, #006837);
+            transform: scale(1.05);
+        }
+        .pw-pin-display.error .pw-pin-dot {
+            border-color: #ef4444;
+            background: transparent;
+            animation: pwShake .4s;
+        }
+        /* 隠し入力（実際の入力欄。フォーカスで PIN ドットに反映） */
         .pw-input {
-            width: 100%;
-            padding: 12px 16px;
-            font-size: 20px;
-            font-family: 'DM Mono', monospace;
-            letter-spacing: 6px;
-            text-align: center;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            outline: none;
-            color: var(--text1);
-            background: var(--surface2);
-            margin-bottom: 12px;
-            transition: border-color 0.2s;
+            position: absolute; inset: 0;
+            opacity: 0;
+            font-size: 20px; /* iOS でフォーカス時のズーム抑止に16px以上 */
+            border: none; outline: none; background: transparent;
+            cursor: text;
+            -webkit-tap-highlight-color: transparent;
         }
-        .pw-input:focus { border-color: var(--primary); background: var(--surface); }
-        .pw-input.error { border-color: var(--red); background: var(--red-l); }
-        .pw-btn {
-            width: 100%;
-            padding: 12px;
-            background: #006837;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 600;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .pw-btn:hover { background: #005a2f; }
         .pw-error {
             font-size: 12px;
             color: #dc2626;
-            margin-top: 8px;
+            margin-top: 18px;
             min-height: 18px;
+            font-weight: 500;
+        }
+        .pw-foot-hint {
+            margin-top: 36px;
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
 
-    <!-- ===== パスワードオーバーレイ ===== -->
+    <!-- ===== ログインオーバーレイ ===== -->
     <div id="pw-overlay">
-        <div class="pw-box">
-            <div class="pw-logo">
-                <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        <div class="pw-stage">
+            <div class="pw-logo-wrap">
+                <img src="apple-touch-icon.png?v=20260422g" alt="m's hub" />
             </div>
             <div class="pw-title">m's hub</div>
-            <div class="pw-sub">パスワードを入力してください</div>
+            <div class="pw-sub">PIN コードを入力</div>
 
-            <input type="password" id="pw-input" class="pw-input" placeholder="····" maxlength="20" inputmode="numeric" />
-            <button class="pw-btn" onclick="checkPassword()">ログイン</button>
+            <div class="pw-pin-wrap" onclick="document.getElementById('pw-input').focus()">
+                <div class="pw-pin-display" id="pw-pin-display">
+                    <span class="pw-pin-dot"></span>
+                    <span class="pw-pin-dot"></span>
+                    <span class="pw-pin-dot"></span>
+                    <span class="pw-pin-dot"></span>
+                </div>
+                <input type="password" id="pw-input" class="pw-input" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="off" />
+            </div>
             <div class="pw-error" id="pw-error"></div>
+            <div class="pw-foot-hint">m's hub portal</div>
         </div>
     </div>
     <script>
@@ -3380,34 +3455,57 @@
             localStorage.setItem(_AUTH_KEY, Date.now().toString());
         }
 
+        // ── PIN ドット表示の更新 ─────────────────────────────────────
+        function _updatePinDots() {
+            const len = (document.getElementById('pw-input').value || '').length;
+            const dots = document.querySelectorAll('#pw-pin-display .pw-pin-dot');
+            dots.forEach((d, i) => d.classList.toggle('filled', i < len));
+        }
+
         // ── 起動時処理 ─────────────────────────────────────────────────
         (function() {
             if (_isAuthed()) {
                 document.getElementById('pw-overlay').classList.add('hidden');
                 return;
             }
-            document.getElementById('pw-input').addEventListener('keydown', function(e) {
+            const inp = document.getElementById('pw-input');
+            const errEl = document.getElementById('pw-error');
+            const display = document.getElementById('pw-pin-display');
+            // 自動でフォーカス（モバイルでも数字キーパッドを開く）
+            setTimeout(() => inp.focus(), 60);
+            // 入力イベント: ドット反映 + エラー解除 + 4桁で自動送信
+            inp.addEventListener('input', function() {
+                // 数字以外を除去
+                this.value = (this.value || '').replace(/[^0-9]/g, '').slice(0, 4);
+                _updatePinDots();
+                display.classList.remove('error');
+                errEl.textContent = '';
+                if (this.value.length === 4) {
+                    setTimeout(checkPassword, 80); // 最後のドット fill アニメーションを見せる
+                }
+            });
+            inp.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') checkPassword();
-                document.getElementById('pw-input').classList.remove('error');
-                document.getElementById('pw-error').textContent = '';
             });
         })();
 
         // ── パスワード認証 ─────────────────────────────────────────────
         function checkPassword() {
-            const input = document.getElementById('pw-input').value;
-            if (input === _PW_CORRECT) {
+            const inp = document.getElementById('pw-input');
+            const display = document.getElementById('pw-pin-display');
+            const errEl = document.getElementById('pw-error');
+            if (inp.value === _PW_CORRECT) {
                 _setAuthed();
                 sessionStorage.removeItem('dashCurrentTab');
                 localStorage.removeItem('dashCurrentTab');
                 document.getElementById('pw-overlay').classList.add('hidden');
                 if (typeof switchTab === 'function') switchTab('home');
             } else {
-                const el = document.getElementById('pw-input');
-                el.classList.add('error');
-                el.value = '';
-                document.getElementById('pw-error').textContent = 'パスワードが違います';
-                el.focus();
+                display.classList.add('error');
+                inp.value = '';
+                _updatePinDots();
+                errEl.textContent = 'PIN が違います';
+                inp.focus();
             }
         }
 
@@ -6083,21 +6181,35 @@
             const html = `
                 <div class="check-editor-backdrop" id="checkEditorBackdrop">
                     <div class="check-editor-modal" role="dialog" aria-modal="true">
-                        <div class="check-editor-head">
-                            <div class="check-editor-title">チェック項目を編集</div>
-                            <button class="check-editor-close" onclick="closeCheckEditor()" title="閉じる">×</button>
+                        <div class="ce-head">
+                            <div class="ce-head-text">
+                                <div class="ce-title">チェック項目<span class="ce-count-badge" id="checkEditorCount">${fields.length}</span></div>
+                                <div class="ce-subtitle">追加・並び替え・削除ができます</div>
+                            </div>
+                            <button class="ce-close" onclick="closeCheckEditor()" aria-label="閉じる" title="閉じる">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            </button>
                         </div>
-                        <div class="check-editor-body">
-                            <div class="check-editor-hint">↑↓で並び替え、×で削除（Notion DBから完全削除）。下の入力欄から追加。</div>
-                            <ul class="check-editor-list" id="checkEditorList"></ul>
-                            <div class="check-editor-add">
-                                <input type="text" id="checkEditorNewName" placeholder="新しい項目名（例: 先行配管）" maxlength="40" />
-                                <button class="check-editor-add-btn" id="checkEditorAddBtn" onclick="addCheckFieldFromEditor()">追加</button>
+                        <div class="ce-body">
+                            <div class="ce-add-card">
+                                <input type="text" id="checkEditorNewName" placeholder="新しい項目を追加（例：先行配管）" maxlength="40" autocomplete="off" />
+                                <button class="ce-add-btn" id="checkEditorAddBtn" onclick="addCheckFieldFromEditor()" aria-label="追加" title="追加">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                                </button>
+                            </div>
+                            <div class="ce-section-label"><span>現在の項目</span></div>
+                            <ul class="ce-list" id="checkEditorList"></ul>
+                            <div class="ce-tip">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                                <span>削除すると Notion DB のプロパティと既存物件のチェック履歴も完全に消えます。</span>
                             </div>
                         </div>
-                        <div class="check-editor-foot">
-                            <button class="btn-close" onclick="closeCheckEditor()">キャンセル</button>
-                            <button class="btn-save" id="checkEditorSaveBtn" onclick="saveCheckOrderFromEditor()">並び順を保存</button>
+                        <div class="ce-foot">
+                            <button class="ce-btn ce-btn-cancel" onclick="closeCheckEditor()">閉じる</button>
+                            <button class="ce-btn ce-btn-save" id="checkEditorSaveBtn" onclick="saveCheckOrderFromEditor()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                                並び順を保存
+                            </button>
                         </div>
                     </div>
                 </div>`;
@@ -6108,6 +6220,10 @@
             // 背景クリックで閉じる
             document.getElementById('checkEditorBackdrop').addEventListener('click', function(ev) {
                 if (ev.target.id === 'checkEditorBackdrop') closeCheckEditor();
+            });
+            // Enter で追加実行
+            document.getElementById('checkEditorNewName').addEventListener('keydown', function(ev) {
+                if (ev.key === 'Enter') { ev.preventDefault(); addCheckFieldFromEditor(); }
             });
         };
 
@@ -6121,12 +6237,27 @@
             const listEl = document.getElementById('checkEditorList');
             if (!listEl) return;
             const fields = window._checkEditorState.fields;
+            const countEl = document.getElementById('checkEditorCount');
+            if (countEl) countEl.textContent = fields.length;
+            if (fields.length === 0) {
+                listEl.innerHTML = '<li class="ce-empty">項目がありません。上の入力欄から追加してください。</li>';
+                return;
+            }
             listEl.innerHTML = fields.map((f, i) => `
-                <li class="check-editor-item" data-idx="${i}">
-                    <button class="check-editor-item-btn" ${i===0?'disabled style="opacity:.3;cursor:default;"':''} onclick="moveCheckField(${i}, -1)" title="上へ">↑</button>
-                    <button class="check-editor-item-btn" ${i===fields.length-1?'disabled style="opacity:.3;cursor:default;"':''} onclick="moveCheckField(${i}, 1)" title="下へ">↓</button>
-                    <span class="check-editor-item-name">${escapeHtml(f)}</span>
-                    <button class="check-editor-item-btn del" onclick="deleteCheckFieldFromEditor('${encodeURIComponent(f)}')" title="削除（Notion DBから削除）">×</button>
+                <li class="ce-item" data-idx="${i}">
+                    <div class="ce-arrows">
+                        <button class="ce-arrow" ${i===0?'disabled':''} onclick="moveCheckField(${i}, -1)" aria-label="上へ" title="上へ">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+                        </button>
+                        <button class="ce-arrow" ${i===fields.length-1?'disabled':''} onclick="moveCheckField(${i}, 1)" aria-label="下へ" title="下へ">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                        </button>
+                    </div>
+                    <span class="ce-item-num">${i + 1}</span>
+                    <span class="ce-item-name">${escapeHtml(f)}</span>
+                    <button class="ce-item-del" onclick="deleteCheckFieldFromEditor('${encodeURIComponent(f)}')" aria-label="削除" title="削除（Notion DBから完全削除）">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+                    </button>
                 </li>`).join('');
         }
 
@@ -6148,7 +6279,9 @@
                 alert('既に存在する項目です: ' + name);
                 return;
             }
-            btn.disabled = true; btn.innerHTML = '<span class="check-editor-spin"></span>追加中';
+            btn.disabled = true;
+            const _origHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="ce-spin"></span>';
             try {
                 const url = GAS_WEBAPP_URL + '?mode=addCheckField&field=' + encodeURIComponent(name);
                 const res = await fetch(url);
@@ -6163,7 +6296,7 @@
             } catch(err) {
                 alert('追加失敗: ' + err.message);
             } finally {
-                btn.disabled = false; btn.textContent = '追加';
+                btn.disabled = false; btn.innerHTML = _origHtml;
             }
         };
 
@@ -6186,7 +6319,8 @@
         window.saveCheckOrderFromEditor = async function() {
             const btn = document.getElementById('checkEditorSaveBtn');
             const fields = window._checkEditorState.fields;
-            btn.disabled = true; btn.innerHTML = '<span class="check-editor-spin"></span>保存中';
+            const _origHtml = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<span class="ce-spin"></span>保存中';
             try {
                 const url = GAS_WEBAPP_URL + '?mode=reorderCheckFields&fieldsJson=' + encodeURIComponent(JSON.stringify(fields));
                 const res = await fetch(url);
@@ -6199,7 +6333,7 @@
                 showToast && showToast('チェック項目を更新しました', 'ok');
             } catch(err) {
                 alert('保存失敗: ' + err.message);
-                btn.disabled = false; btn.textContent = '並び順を保存';
+                btn.disabled = false; btn.innerHTML = _origHtml;
             }
         };
 
