@@ -5,8 +5,17 @@
 //    タスク管理はスプレッドシートで完結・Notionとのタスク連携なし
 // ═══════════════════════════════════════════════════════════════
 
-// ── ① Notion API キー（デプロイ済みと同じ値）──────────────────
-const NOTION_API_KEY      = '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';
+// ── ① Notion API キー設定 ─────────────────────────────────────
+// セキュリティのため、Notion トークンは GAS の「スクリプトプロパティ」から
+// 読み込みます。GitHub に push する .js ファイルにはトークンを書きません。
+//
+// 【初回設定 / トークン更新時】
+//   GAS エディタ → 左サイドバー「⚙ プロジェクト設定」
+//     → スクリプトプロパティ → 「+ プロパティを追加」
+//     → プロパティ名: NOTION_TOKEN  /  値: ntn_xxxxxxxxxxxx...
+//   既に設定済みなら鉛筆アイコンで値を書き換え、保存後は GAS 再デプロイ不要で反映。
+//
+// 他の GAS（ダッシュボード/支払い/検査）と同じ NOTION_TOKEN を共有できます。
 const NOTION_PROPS_DB_ID  = '2f56ad84622180a9891bef7e5514fa78'; // 担当物件一覧DB
 
 // ── ② Notion「担当物件一覧」DBのプロパティ名 ─────────────────
@@ -848,13 +857,21 @@ function _apiUpdatePropertyCheck(params) {
   return { pageId, field, value: boolValue };
 }
 
+// ── Notion トークン取得（共通ヘルパー）────────────────────────
+// スクリプトプロパティ「NOTION_TOKEN」から読み込み。
+// 4 つの GAS（タスク/ダッシュボード/支払い/検査）すべて同じキー名で統一。
+function _getNotionToken() {
+  const token = PropertiesService.getScriptProperties().getProperty('NOTION_TOKEN');
+  if (!token) {
+    throw new Error('スクリプトプロパティ「NOTION_TOKEN」が未設定です。GAS の「プロジェクト設定 → スクリプトプロパティ」で追加してください。');
+  }
+  return token;
+}
+
 // ── Notion 進捗selectオプション一覧取得 ──────────────────────
 // ?mode=getProgressOptions
 function _apiGetProgressOptions() {
-  const token = (typeof NOTION_API_KEY === 'string' && NOTION_API_KEY.indexOf('xxxx') === -1)
-    ? NOTION_API_KEY
-    : PropertiesService.getScriptProperties().getProperty('NOTION_TOKEN');
-  if (!token) throw new Error('NOTION_API_KEY を設定してください');
+  const token = _getNotionToken();
 
   const res = UrlFetchApp.fetch(
     'https://api.notion.com/v1/databases/' + NOTION_PROPS_DB_ID,
@@ -891,10 +908,7 @@ function _apiUpdatePropertyProgress(params) {
 }
 
 function _notionPatch(url, body) {
-  const token = (typeof NOTION_API_KEY === 'string' && NOTION_API_KEY.indexOf('xxxx') === -1)
-    ? NOTION_API_KEY
-    : PropertiesService.getScriptProperties().getProperty('NOTION_TOKEN');
-  if (!token) throw new Error('NOTION_API_KEY を設定してください（ファイル先頭の①）');
+  const token = _getNotionToken();
   const res = UrlFetchApp.fetch(url, {
     method: 'patch',
     headers: {
@@ -911,12 +925,7 @@ function _notionPatch(url, body) {
 }
 
 function _notionPost(url, body) {
-  // APIキーは①のNOTION_API_KEY定数から読み取る
-  // （セキュリティ強化したい場合はスクリプトプロパティ NOTION_TOKEN も自動で使える）
-  const token = (typeof NOTION_API_KEY === 'string' && NOTION_API_KEY.indexOf('xxxx') === -1)
-    ? NOTION_API_KEY
-    : PropertiesService.getScriptProperties().getProperty('NOTION_TOKEN');
-  if (!token) throw new Error('NOTION_API_KEY を設定してください（ファイル先頭の①）');
+  const token = _getNotionToken();
   const res = UrlFetchApp.fetch(url, {
     method: 'post',
     headers: {
