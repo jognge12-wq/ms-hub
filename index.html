@@ -270,12 +270,12 @@
         }
 
         .bottom-nav-inner {
-            background: oklch(0.20 0.025 155);
+            background: var(--card);
             border-radius: 28px;
             display: flex;
             justify-content: space-around;
             padding: 6px;
-            box-shadow: 0 8px 28px oklch(0.1 0.05 155 / 0.30);
+            box-shadow: 0 4px 24px rgba(15,25,20,0.13), 0 1px 4px rgba(15,25,20,0.07);
             width: calc(100% - 32px);
             max-width: 480px;
             margin-bottom: 6px;
@@ -288,7 +288,7 @@
             justify-content: center;
             gap: 3px;
             cursor: pointer;
-            color: oklch(0.68 0.06 155);
+            color: var(--text3, oklch(0.55 0.008 95));
             transition: background 0.18s ease, color 0.18s ease;
             flex: 1;
             padding: 8px 4px 6px;

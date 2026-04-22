@@ -367,6 +367,16 @@
     .m-row.drag-insert { border-top: 2.5px solid var(--green); background: var(--green-light); }
     .m-row[draggable="true"] { user-select: none; }
 
+    /* Phase drag and drop */
+    .m-phase-drag-handle { width: 26px; height: 36px; display: flex; align-items: center;
+      justify-content: center; cursor: grab; color: var(--t3);
+      flex-shrink: 0; user-select: none; touch-action: none; opacity: 0.5; }
+    .m-phase-drag-handle:active { cursor: grabbing; opacity: 0.9; }
+    .m-group[draggable="true"] { user-select: none; }
+    .m-group.phase-dragging { opacity: 0.4; }
+    .m-group.phase-drag-over-top { border-top: 2.5px solid var(--green); }
+    .m-group.phase-drag-over-bottom { border-bottom: 2.5px solid var(--green); }
+
     /* ─ Add task button (top toolbar) ────────────────────── */
     .add-task-btn { display: flex; align-items: center; gap: 5px; padding: 6px 12px;
                     background: var(--card); border: 1px solid var(--border); border-radius: 7px;
@@ -1944,8 +1954,20 @@ function renderMaster(tasks) {
     const pts = (phaseMap[ph] || []).sort((a,b) => a.order - b.order);
     const gid = 'mg-' + slug(ph);
     return `
-<div class="m-group${openGroups.has(gid) ? ' open' : ''}" id="${gid}">
+<div class="m-group${openGroups.has(gid) ? ' open' : ''}" id="${gid}" data-phase="${esc(ph)}"
+  ondragstart="phaseDragStart(event)" ondragend="phaseDragEnd(event)"
+  ondragover="phaseDragOver(event)" ondrop="phaseDrop(event)"
+  ondragleave="phaseDragLeave(event)">
   <div class="m-ghdr-new" onclick="toggleMGroup('${gid}')">
+    <div class="m-phase-drag-handle" title="ドラッグで工程を並び替え"
+      onclick="event.stopPropagation()"
+      onmousedown="phaseHandleMousedown(event)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/>
+        <circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/>
+        <circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/>
+      </svg>
+    </div>
     <span class="m-gname-new">${esc(ph)}</span>
     <span class="m-gcnt-new">${pts.filter(t=>t.active).length}件</span>
     <button class="m-ghedit" onclick="event.stopPropagation();openEditPhase('${esc(ph)}')" title="工程名を編集">
@@ -2107,6 +2129,105 @@ async function moveTaskToPhase(taskToMove, newPhase) {
     taskToMove.phase = oldPhase;
     taskToMove.order = oldOrder;
     showToast('エラー: ' + e.message);
+  }
+}
+
+// ─ Phase Drag & Drop ──────────────────────────────────────────
+let draggedPhaseEl   = null;
+let draggedPhaseName = null;
+
+function phaseHandleMousedown(e) {
+  e.stopPropagation();
+  const ph = e.currentTarget.closest('.m-group');
+  if (!ph) return;
+  ph.setAttribute('draggable', 'true');
+  const cleanup = () => {
+    ph.removeAttribute('draggable');
+    document.removeEventListener('mouseup', cleanup);
+  };
+  document.addEventListener('mouseup', cleanup);
+}
+
+function phaseDragStart(e) {
+  // Only handle the .m-group element itself, not bubbled events from child .m-row
+  if (e.target !== e.currentTarget) return;
+  draggedPhaseEl   = e.currentTarget;
+  draggedPhaseName = e.currentTarget.dataset.phase;
+  e.currentTarget.classList.add('phase-dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', draggedPhaseName);
+}
+
+function phaseDragEnd(e) {
+  if (e.target !== e.currentTarget) return;
+  if (draggedPhaseEl) draggedPhaseEl.classList.remove('phase-dragging');
+  document.querySelectorAll('.m-group').forEach(g => {
+    g.classList.remove('phase-drag-over-top', 'phase-drag-over-bottom');
+    g.removeAttribute('draggable');
+  });
+  draggedPhaseEl   = null;
+  draggedPhaseName = null;
+}
+
+function phaseDragOver(e) {
+  if (!draggedPhaseEl) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const target = e.currentTarget;
+  if (target === draggedPhaseEl) return;
+  document.querySelectorAll('.m-group').forEach(g =>
+    g.classList.remove('phase-drag-over-top', 'phase-drag-over-bottom')
+  );
+  const hdr  = target.querySelector('.m-ghdr-new');
+  const rect = (hdr || target).getBoundingClientRect();
+  if (e.clientY < rect.top + rect.height / 2) {
+    target.classList.add('phase-drag-over-top');
+  } else {
+    target.classList.add('phase-drag-over-bottom');
+  }
+}
+
+function phaseDragLeave(e) {
+  if (!draggedPhaseEl) return;
+  const rt = e.relatedTarget;
+  if (rt && e.currentTarget.contains(rt)) return;
+  e.currentTarget.classList.remove('phase-drag-over-top', 'phase-drag-over-bottom');
+}
+
+async function phaseDrop(e) {
+  if (!draggedPhaseEl) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const target = e.currentTarget;
+  target.classList.remove('phase-drag-over-top', 'phase-drag-over-bottom');
+  if (target === draggedPhaseEl) return;
+
+  const fromName = draggedPhaseName;
+  const toName   = target.dataset.phase;
+  const hdr      = target.querySelector('.m-ghdr-new');
+  const rect     = (hdr || target).getBoundingClientRect();
+  const insertAfter = e.clientY >= rect.top + rect.height / 2;
+
+  // Build new order
+  const savedList = [...phaseList];
+  const newList   = [...phaseList];
+  newList.splice(newList.indexOf(fromName), 1);
+  const toIdx = newList.indexOf(toName);
+  newList.splice(insertAfter ? toIdx + 1 : toIdx, 0, fromName);
+
+  // Optimistic update
+  phaseList.length = 0;
+  newList.forEach(p => phaseList.push(p));
+  renderMaster(masterData);
+
+  try {
+    await api({ mode: 'reorderPhases', phases: newList.join('|') });
+    showToast('工程の順序を変更しました');
+  } catch (err) {
+    phaseList.length = 0;
+    savedList.forEach(p => phaseList.push(p));
+    renderMaster(masterData);
+    showToast('エラー: ' + err.message);
   }
 }
 
