@@ -1161,19 +1161,17 @@
                           justify-content:space-between;}
         /* リスト */
         .ce-list{list-style:none;padding:0;margin:0 0 14px 0;display:flex;flex-direction:column;gap:6px;}
-        .ce-item{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 6px;
+        .ce-item{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 4px;
                  background:var(--surface);border:1px solid var(--border);border-radius:12px;
                  transition:background .15s, transform .1s;}
         .ce-item:hover{background:var(--surface2);}
-        .ce-arrows{display:flex;flex-direction:column;gap:1px;flex-shrink:0;}
-        .ce-arrow{background:none;border:none;cursor:pointer;color:var(--text3);
-                  width:22px;height:18px;display:flex;align-items:center;justify-content:center;
-                  border-radius:4px;padding:0;transition:background .15s, color .15s;}
-        .ce-arrow:hover{background:var(--surface2);color:var(--primary);}
-        .ce-arrow:active{transform:scale(.9);}
-        .ce-arrow:disabled{opacity:.25;cursor:default;}
-        .ce-arrow:disabled:hover{background:none;color:var(--text3);}
-        .ce-arrow svg{display:block;}
+        .ce-item.ce-dragging{opacity:0.4;background:var(--surface2);}
+        .ce-item.ce-drag-over{border-top:2px solid var(--primary);}
+        .ce-item.ce-drag-over-below{border-bottom:2px solid var(--primary);}
+        .ce-drag-handle{width:24px;height:32px;display:flex;align-items:center;justify-content:center;
+                        cursor:grab;color:var(--text3);flex-shrink:0;opacity:0.5;touch-action:none;}
+        .ce-drag-handle:hover{opacity:1;color:var(--primary);}
+        .ce-drag-handle:active{cursor:grabbing;}
         .ce-item-num{font-size:10px;font-weight:600;color:var(--text3);width:18px;text-align:center;
                      flex-shrink:0;font-family:'DM Mono',monospace;}
         .ce-item-name{flex:1;font-size:13px;color:var(--text1);font-weight:500;
@@ -2968,6 +2966,17 @@
             padding: 12px; margin-top: 10px;
             border-top: 1px dashed var(--border, #d8e4dd);
         }
+        .mt-phase.phase-dragging { opacity: 0.4; }
+        .mt-phase.phase-drag-over { border-top: 2px solid var(--primary, #006837); }
+        .mt-phase.phase-drag-over-below { border-bottom: 2px solid var(--primary, #006837); }
+        .mt-phase-drag-handle {
+            width: 20px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: grab; color: var(--text3, #888);
+            flex-shrink: 0; opacity: 0.5; touch-action: none;
+        }
+        .mt-phase-drag-handle:hover { opacity: 1; color: var(--primary, #006837); }
+        .mt-phase-drag-handle:active { cursor: grabbing; }
         .mt-drag-handle {
             width: 24px; height: 32px;
             display: flex; align-items: center; justify-content: center;
@@ -6244,14 +6253,9 @@
                 return;
             }
             listEl.innerHTML = fields.map((f, i) => `
-                <li class="ce-item" data-idx="${i}">
-                    <div class="ce-arrows">
-                        <button class="ce-arrow" ${i===0?'disabled':''} onclick="moveCheckField(${i}, -1)" aria-label="上へ" title="上へ">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
-                        </button>
-                        <button class="ce-arrow" ${i===fields.length-1?'disabled':''} onclick="moveCheckField(${i}, 1)" aria-label="下へ" title="下へ">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-                        </button>
+                <li class="ce-item" data-idx="${i}" draggable="true">
+                    <div class="ce-drag-handle" title="ドラッグで並び替え">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>
                     </div>
                     <span class="ce-item-num">${i + 1}</span>
                     <span class="ce-item-name">${escapeHtml(f)}</span>
@@ -6259,16 +6263,110 @@
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
                     </button>
                 </li>`).join('');
+            initCeDragDrop();
         }
 
-        window.moveCheckField = function(idx, dir) {
+        // ── チェックエディター ドラッグ＆ドロップ ──
+        let ceDragEl = null;
+        function initCeDragDrop() {
+            document.querySelectorAll('.ce-item[draggable]').forEach(item => {
+                item.addEventListener('dragstart', ceDragStart);
+                item.addEventListener('dragend', ceDragEnd);
+                item.addEventListener('dragover', ceDragOver);
+                item.addEventListener('dragleave', ceDragLeave);
+                item.addEventListener('drop', ceDrop);
+                const handle = item.querySelector('.ce-drag-handle');
+                if (handle) handle.addEventListener('touchstart', ceTouchStart, {passive: false});
+            });
+        }
+        function ceDragStart(e) {
+            ceDragEl = this;
+            this.classList.add('ce-dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+        function ceDragEnd() {
+            this.classList.remove('ce-dragging');
+            document.querySelectorAll('.ce-item').forEach(r => r.classList.remove('ce-drag-over', 'ce-drag-over-below'));
+            ceDragEl = null;
+        }
+        function ceDragOver(e) {
+            e.preventDefault();
+            if (!ceDragEl || ceDragEl === this) return;
+            document.querySelectorAll('.ce-item').forEach(r => r.classList.remove('ce-drag-over', 'ce-drag-over-below'));
+            const rect = this.getBoundingClientRect();
+            this.classList.add(e.clientY < rect.top + rect.height / 2 ? 'ce-drag-over' : 'ce-drag-over-below');
+        }
+        function ceDragLeave() {
+            this.classList.remove('ce-drag-over', 'ce-drag-over-below');
+        }
+        function ceDrop(e) {
+            e.preventDefault();
+            if (!ceDragEl || ceDragEl === this) return;
             const s = window._checkEditorState;
-            const j = idx + dir;
-            if (j < 0 || j >= s.fields.length) return;
-            [s.fields[idx], s.fields[j]] = [s.fields[j], s.fields[idx]];
+            const fromIdx = parseInt(ceDragEl.dataset.idx, 10);
+            const toIdx   = parseInt(this.dataset.idx, 10);
+            const rect = this.getBoundingClientRect();
+            const insertAfter = e.clientY >= rect.top + rect.height / 2;
+            document.querySelectorAll('.ce-item').forEach(r => r.classList.remove('ce-drag-over', 'ce-drag-over-below'));
+            const moved = s.fields.splice(fromIdx, 1)[0];
+            const adjTo = fromIdx < toIdx ? toIdx - 1 : toIdx;
+            s.fields.splice(Math.min(s.fields.length, insertAfter ? adjTo + 1 : adjTo), 0, moved);
             s.dirty = true;
             renderCheckEditorList();
-        };
+        }
+        // タッチ対応
+        let ceTouchDragEl = null, ceTouchClone = null, ceTouchStartY = 0;
+        function ceTouchStart(e) {
+            const item = this.closest('.ce-item');
+            if (!item) return;
+            e.preventDefault();
+            ceTouchDragEl = item;
+            ceTouchStartY = e.touches[0].clientY;
+            item.classList.add('ce-dragging');
+            ceTouchClone = item.cloneNode(true);
+            ceTouchClone.style.cssText = 'position:fixed;left:8px;right:8px;opacity:0.85;z-index:10000;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,0.2);border-radius:12px;background:white;';
+            ceTouchClone.style.top = item.getBoundingClientRect().top + 'px';
+            document.body.appendChild(ceTouchClone);
+            document.addEventListener('touchmove', ceTouchMove, {passive: false});
+            document.addEventListener('touchend', ceTouchEnd);
+        }
+        function ceTouchMove(e) {
+            e.preventDefault();
+            if (!ceTouchDragEl || !ceTouchClone) return;
+            const dy = e.touches[0].clientY - ceTouchStartY;
+            ceTouchClone.style.transform = `translateY(${dy}px)`;
+            document.querySelectorAll('.ce-item').forEach(r => r.classList.remove('ce-drag-over', 'ce-drag-over-below'));
+            const el = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+            const rowBelow = el ? el.closest('.ce-item') : null;
+            if (rowBelow && rowBelow !== ceTouchDragEl) {
+                const rect = rowBelow.getBoundingClientRect();
+                rowBelow.classList.add(e.touches[0].clientY < rect.top + rect.height / 2 ? 'ce-drag-over' : 'ce-drag-over-below');
+            }
+        }
+        function ceTouchEnd(e) {
+            document.removeEventListener('touchmove', ceTouchMove);
+            document.removeEventListener('touchend', ceTouchEnd);
+            if (ceTouchClone) { ceTouchClone.remove(); ceTouchClone = null; }
+            if (!ceTouchDragEl) return;
+            const touch = e.changedTouches[0];
+            const el = document.elementFromPoint(touch.clientX, touch.clientY);
+            const rowBelow = el ? el.closest('.ce-item') : null;
+            ceTouchDragEl.classList.remove('ce-dragging');
+            document.querySelectorAll('.ce-item').forEach(r => r.classList.remove('ce-drag-over', 'ce-drag-over-below'));
+            if (rowBelow && rowBelow !== ceTouchDragEl) {
+                const s = window._checkEditorState;
+                const fromIdx = parseInt(ceTouchDragEl.dataset.idx, 10);
+                const toIdx   = parseInt(rowBelow.dataset.idx, 10);
+                const rect = rowBelow.getBoundingClientRect();
+                const insertAfter = touch.clientY >= rect.top + rect.height / 2;
+                const moved = s.fields.splice(fromIdx, 1)[0];
+                const adjTo = fromIdx < toIdx ? toIdx - 1 : toIdx;
+                s.fields.splice(Math.min(s.fields.length, insertAfter ? adjTo + 1 : adjTo), 0, moved);
+                s.dirty = true;
+                renderCheckEditorList();
+            }
+            ceTouchDragEl = null;
+        }
 
         window.addCheckFieldFromEditor = async function() {
             const input = document.getElementById('checkEditorNewName');
@@ -7047,8 +7145,11 @@
             Object.entries(grouped).forEach(([phase, items]) => {
                 const phaseKey = 'mtCollapsed_' + phase;
                 const isCollapsed = mtCollapsedPhases[phase] || false;
-                html += `<div class="mt-phase">
+                html += `<div class="mt-phase" data-phase="${esc2(phase)}" draggable="true">
                     <div class="mt-phase-hdr" onclick="toggleMtPhase('${esc2(phase)}', this)">
+                        <span class="mt-phase-drag-handle" onclick="event.stopPropagation()" title="ドラッグで工程を並び替え">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>
+                        </span>
                         <span class="mt-phase-toggle ${isCollapsed ? 'collapsed' : ''}">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
                         </span>
@@ -7098,6 +7199,7 @@
         // ドラッグ＆ドロップ（マスタータスク並び替え）
         let mtDragEl = null;
         function initMasterTaskDragDrop() {
+            // タスク行
             const rows = document.querySelectorAll('.mt-task-row[draggable]');
             rows.forEach(row => {
                 row.addEventListener('dragstart', mtDragStart);
@@ -7105,12 +7207,136 @@
                 row.addEventListener('dragover', mtDragOver);
                 row.addEventListener('dragleave', mtDragLeave);
                 row.addEventListener('drop', mtDrop);
-                // タッチ対応
                 const handle = row.querySelector('.mt-drag-handle');
-                if (handle) {
-                    handle.addEventListener('touchstart', mtTouchStart, {passive: false});
-                }
+                if (handle) handle.addEventListener('touchstart', mtTouchStart, {passive: false});
             });
+            // 工程セクション
+            const phases = document.querySelectorAll('.mt-phase[draggable]');
+            phases.forEach(ph => {
+                ph.addEventListener('dragstart', mtPhaseDragStart);
+                ph.addEventListener('dragend', mtPhaseDragEnd);
+                ph.addEventListener('dragover', mtPhaseDragOver);
+                ph.addEventListener('dragleave', mtPhaseDragLeave);
+                ph.addEventListener('drop', mtPhaseDrop);
+                const handle = ph.querySelector('.mt-phase-drag-handle');
+                if (handle) handle.addEventListener('touchstart', mtPhaseTouchStart, {passive: false});
+            });
+        }
+
+        // ── 工程セクション D&D ──
+        let mtPhaseDragEl = null;
+        function mtPhaseDragStart(e) {
+            // タスク行のドラッグと干渉しないようにチェック
+            if (e.target.closest('.mt-task-row')) return;
+            mtPhaseDragEl = this;
+            this.classList.add('phase-dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.dataset.phase);
+        }
+        function mtPhaseDragEnd() {
+            this.classList.remove('phase-dragging');
+            document.querySelectorAll('.mt-phase').forEach(p => p.classList.remove('phase-drag-over', 'phase-drag-over-below'));
+            mtPhaseDragEl = null;
+        }
+        function mtPhaseDragOver(e) {
+            if (!mtPhaseDragEl || mtPhaseDragEl === this) return;
+            if (e.target.closest('.mt-task-row')) return; // タスク行内は無視
+            e.preventDefault();
+            e.stopPropagation();
+            document.querySelectorAll('.mt-phase').forEach(p => p.classList.remove('phase-drag-over', 'phase-drag-over-below'));
+            const rect = this.getBoundingClientRect();
+            this.classList.add(e.clientY < rect.top + rect.height / 2 ? 'phase-drag-over' : 'phase-drag-over-below');
+        }
+        function mtPhaseDragLeave() {
+            this.classList.remove('phase-drag-over', 'phase-drag-over-below');
+        }
+        async function mtPhaseDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!mtPhaseDragEl || mtPhaseDragEl === this) return;
+            mtSaveSnapshot();
+            const fromPhase = mtPhaseDragEl.dataset.phase;
+            const toPhase   = this.dataset.phase;
+            const rect = this.getBoundingClientRect();
+            const insertAfter = e.clientY >= rect.top + rect.height / 2;
+            document.querySelectorAll('.mt-phase').forEach(p => p.classList.remove('phase-drag-over', 'phase-drag-over-below'));
+
+            // ローカルキャッシュ更新
+            const phases = masterPhaseCache || [];
+            const fromIdx = phases.indexOf(fromPhase);
+            const toIdx   = phases.indexOf(toPhase);
+            if (fromIdx < 0 || toIdx < 0) return;
+            phases.splice(fromIdx, 1);
+            const adjTo = fromIdx < toIdx ? toIdx - 1 : toIdx;
+            phases.splice(insertAfter ? adjTo + 1 : adjTo, 0, fromPhase);
+            renderMasterTaskModal();
+
+            // API: 工程順序を保存
+            const url = getGasTaskUrl();
+            try {
+                await fetch(`${url}?mode=reorderPhases&phases=${encodeURIComponent(phases.join('|'))}`);
+            } catch(err) { console.error('phase reorder error:', err); }
+        }
+        // 工程タッチ対応
+        let mtPhaseTouchDragEl = null, mtPhaseTouchClone = null, mtPhaseTouchStartY = 0;
+        function mtPhaseTouchStart(e) {
+            const ph = this.closest('.mt-phase');
+            if (!ph) return;
+            e.preventDefault();
+            e.stopPropagation();
+            mtPhaseTouchDragEl = ph;
+            mtPhaseTouchStartY = e.touches[0].clientY;
+            ph.classList.add('phase-dragging');
+            mtPhaseTouchClone = ph.cloneNode(true);
+            mtPhaseTouchClone.style.cssText = 'position:fixed;left:8px;right:8px;opacity:0.85;z-index:10000;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,0.2);border-radius:10px;background:var(--bg,#f0f4f2);';
+            mtPhaseTouchClone.style.top = ph.getBoundingClientRect().top + 'px';
+            document.body.appendChild(mtPhaseTouchClone);
+            document.addEventListener('touchmove', mtPhaseTouchMove, {passive: false});
+            document.addEventListener('touchend', mtPhaseTouchEnd);
+        }
+        function mtPhaseTouchMove(e) {
+            e.preventDefault();
+            if (!mtPhaseTouchDragEl || !mtPhaseTouchClone) return;
+            const dy = e.touches[0].clientY - mtPhaseTouchStartY;
+            mtPhaseTouchClone.style.transform = `translateY(${dy}px)`;
+            document.querySelectorAll('.mt-phase').forEach(p => p.classList.remove('phase-drag-over', 'phase-drag-over-below'));
+            const el = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+            const phBelow = el ? el.closest('.mt-phase') : null;
+            if (phBelow && phBelow !== mtPhaseTouchDragEl) {
+                const rect = phBelow.getBoundingClientRect();
+                phBelow.classList.add(e.touches[0].clientY < rect.top + rect.height / 2 ? 'phase-drag-over' : 'phase-drag-over-below');
+            }
+        }
+        async function mtPhaseTouchEnd(e) {
+            document.removeEventListener('touchmove', mtPhaseTouchMove);
+            document.removeEventListener('touchend', mtPhaseTouchEnd);
+            if (mtPhaseTouchClone) { mtPhaseTouchClone.remove(); mtPhaseTouchClone = null; }
+            if (!mtPhaseTouchDragEl) return;
+            const touch = e.changedTouches[0];
+            const el = document.elementFromPoint(touch.clientX, touch.clientY);
+            const phBelow = el ? el.closest('.mt-phase') : null;
+            mtPhaseTouchDragEl.classList.remove('phase-dragging');
+            document.querySelectorAll('.mt-phase').forEach(p => p.classList.remove('phase-drag-over', 'phase-drag-over-below'));
+            if (phBelow && phBelow !== mtPhaseTouchDragEl) {
+                mtSaveSnapshot();
+                const fromPhase = mtPhaseTouchDragEl.dataset.phase;
+                const toPhase   = phBelow.dataset.phase;
+                const rect = phBelow.getBoundingClientRect();
+                const insertAfter = touch.clientY >= rect.top + rect.height / 2;
+                const phases = masterPhaseCache || [];
+                const fromIdx = phases.indexOf(fromPhase);
+                const toIdx   = phases.indexOf(toPhase);
+                if (fromIdx >= 0 && toIdx >= 0) {
+                    phases.splice(fromIdx, 1);
+                    const adjTo = fromIdx < toIdx ? toIdx - 1 : toIdx;
+                    phases.splice(insertAfter ? adjTo + 1 : adjTo, 0, fromPhase);
+                    renderMasterTaskModal();
+                    const url = getGasTaskUrl();
+                    try { await fetch(`${url}?mode=reorderPhases&phases=${encodeURIComponent(phases.join('|'))}`); }
+                    catch(err) { console.error('phase reorder touch error:', err); }
+                }
+            }
+            mtPhaseTouchDragEl = null;
         }
 
         function mtDragStart(e) {

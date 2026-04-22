@@ -420,6 +420,7 @@ function doGet(e) {
       case 'getPhases'            : result = _apiGetPhases();                       break;
       case 'addPhase'             : result = _apiAddPhase(e.parameter);             break;
       case 'renamePhase'          : result = _apiRenamePhase(e.parameter);          break;
+      case 'reorderPhases'        : result = _apiReorderPhases(e.parameter);        break;
       case 'updatePropertyCheck'    : result = _apiUpdatePropertyCheck(e.parameter);    break;
       case 'getProgressOptions'     : result = _apiGetProgressOptions();                break;
       case 'updatePropertyProgress' : result = _apiUpdatePropertyProgress(e.parameter); break;
@@ -764,6 +765,31 @@ function _apiRenamePhase(params) {
 
   _writeHistory('', '', 'マスター', '工程名変更', oldName, newName);
   return { renamed: true, oldName, newName, masterCount, taskCount };
+}
+
+// 工程順序変更（設定シートのD列を新しい順序で上書き）
+// ?mode=reorderPhases&phases=工程1|工程2|工程3
+function _apiReorderPhases(params) {
+  const { phases } = params;
+  if (!phases) throw new Error('phases は必須');
+  const phaseList = phases.split('|').map(function(p) { return p.trim(); }).filter(function(p) { return p; });
+  if (!phaseList.length) throw new Error('工程が空です');
+
+  const sh = _getSS().getSheetByName(SH.CONFIG);
+  const lastRow = sh.getLastRow();
+
+  // D列の工程データをすべてクリア
+  if (lastRow >= 2) {
+    sh.getRange(2, 4, lastRow - 1, 1).clearContent();
+  }
+
+  // 新しい順序で書き直し
+  phaseList.forEach(function(phase, i) {
+    sh.getRange(2 + i, 4).setValue(phase);
+  });
+
+  _writeHistory('', '', 'マスター', '工程順序変更', phases, '');
+  return { reordered: true, phases: phaseList };
 }
 
 

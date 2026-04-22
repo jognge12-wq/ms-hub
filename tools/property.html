@@ -94,6 +94,24 @@
     }
     .app-header-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--text1); }
     .app-header-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+    .btn-back {
+      margin-left: auto;
+      display: flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+    .btn-back:active { background: var(--border); }
+    .btn-back svg {
+      width: 18px; height: 18px;
+      stroke: var(--text2); fill: none;
+      stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+    }
 
     /* フォーム本体：透明（各セクションがカードになる） */
     .form-body {
@@ -412,24 +430,41 @@
     }
     .schedule-screen.show { display: block; }
     .schedule-header {
-      background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
-      color: #fff;
-      padding: 16px 20px;
+      background: var(--surface);
+      border-bottom: 1.5px solid var(--border);
+      border-left: 4px solid var(--sfc-primary);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
       position: sticky;
       top: 0;
       z-index: 2;
-      padding-top: calc(16px + env(safe-area-inset-top, 0px));
+      box-shadow: 0 2px 8px rgba(15,25,20,0.06);
+      padding-top: calc(14px + env(safe-area-inset-top, 0px));
+    }
+    .sched-head-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: var(--sfc-light);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .sched-head-icon svg {
+      width: 18px; height: 18px;
+      stroke: var(--sfc-primary); fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
     }
     .schedule-header-title {
       font-size: 15px;
       font-weight: 700;
-      letter-spacing: 0.03em;
-      line-height: 1.35;
+      letter-spacing: -0.01em;
+      color: var(--text1);
     }
     .schedule-header-sub {
       font-size: 11px;
-      opacity: 0.85;
-      margin-top: 4px;
+      color: var(--text2);
+      margin-top: 2px;
     }
     .schedule-list {
       padding: 10px 12px 20px;
@@ -438,15 +473,17 @@
     }
     .schedule-item {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px 10px 10px;
-      margin-bottom: 7px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px 12px;
+      margin-bottom: 8px;
       display: flex;
       gap: 10px;
       align-items: flex-start;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      box-shadow: var(--shadow-sm);
     }
+    .schedule-item.is-base { border-left: 4px solid var(--sfc-primary); }
+    .schedule-item.is-todo { border-left: 4px solid #f59e0b; }
     .schedule-item-num {
       flex-shrink: 0;
       width: 30px;
@@ -716,6 +753,9 @@
       <div class="app-header-title">新規物件登録</div>
       <div class="app-header-sub">Notion 担当物件一覧へ登録</div>
     </div>
+    <button class="btn-back" onclick="history.back()" aria-label="戻る">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
   </div>
 
   <!-- ===== フォーム本体 ===== -->
@@ -824,8 +864,13 @@
   <!-- ===== 工程確認・編集画面 ===== -->
   <div class="schedule-screen" id="scheduleScreen">
     <div class="schedule-header">
-      <div class="schedule-header-title" id="schedHeaderTitle">工程確認・編集</div>
-      <div class="schedule-header-sub" id="schedHeaderSub">内容を確認し、必要なら編集してください</div>
+      <div class="sched-head-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="2" x2="9" y2="6"/><line x1="15" y1="2" x2="15" y2="6"/></svg>
+      </div>
+      <div>
+        <div class="schedule-header-title" id="schedHeaderTitle">工程確認・編集</div>
+        <div class="schedule-header-sub" id="schedHeaderSub">内容を確認し、必要なら編集してください</div>
+      </div>
     </div>
     <div class="schedule-list" id="scheduleList"></div>
     <div class="schedule-actions">
@@ -1060,8 +1105,9 @@ function buildItemHtml(s, idx) {
         ? `<div class="si-warn">${escapeHtml(s.description)}</div>`
         : '';
 
+    const itemCls = s.isTodo ? 'is-todo' : (numCls === 'base' ? 'is-base' : '');
     return `
-        <div class="schedule-item" data-idx="${idx}">
+        <div class="schedule-item ${itemCls}" data-idx="${idx}">
             <div class="schedule-item-num ${numCls}">${numLabel}</div>
             <div class="schedule-item-body">
                 <input type="text" class="si-title" value="${escapeHtml(s.title)}" />

@@ -92,6 +92,24 @@
     }
     .app-header-title { font-size: 16px; font-weight: 700; color: var(--text1); letter-spacing: 0.02em; }
     .app-header-sub   { font-size: 11px; color: var(--text3); margin-top: 2px; }
+    .btn-back {
+      margin-left: auto;
+      display: flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+    .btn-back:active { background: var(--border); }
+    .btn-back svg {
+      width: 18px; height: 18px;
+      stroke: var(--text2); fill: none;
+      stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+    }
 
     /* ===== セグメントコントロール（タブ） ===== */
     .seg-ctrl {
@@ -453,6 +471,9 @@
       <div class="app-header-title">支払い管理</div>
       <div class="app-header-sub">個人専用 支払い台帳</div>
     </div>
+    <button class="btn-back" onclick="history.back()" aria-label="戻る">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
   </div>
 
   <!-- ===== セグメントコントロール（タブ） ===== -->
