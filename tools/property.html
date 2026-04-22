@@ -1289,11 +1289,7 @@ function showToast(msg, isError) {
     t._tid = setTimeout(() => { t.className = 'toast'; }, 3500);
 }
 
-// ---- ネイティブ戻る（スワイプ含む）→ ダッシュボードへ ----
-history.pushState(null, '', window.location.href);
-window.addEventListener('popstate', function() {
-    window.location.replace('../index.html?tab=tools');
-});
+// 戻るボタンは btn-back (history.back()) で処理
 </script>
 
 <!-- ===== 簡易サイドドロワー（CSS は _tool-common.css） ===== -->

@@ -7145,7 +7145,7 @@
             Object.entries(grouped).forEach(([phase, items]) => {
                 const phaseKey = 'mtCollapsed_' + phase;
                 const isCollapsed = mtCollapsedPhases[phase] || false;
-                html += `<div class="mt-phase" data-phase="${esc2(phase)}" draggable="true">
+                html += `<div class="mt-phase" data-phase="${esc2(phase)}">
                     <div class="mt-phase-hdr" onclick="toggleMtPhase('${esc2(phase)}', this)">
                         <span class="mt-phase-drag-handle" onclick="event.stopPropagation()" title="ドラッグで工程を並び替え">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>
@@ -7210,16 +7210,20 @@
                 const handle = row.querySelector('.mt-drag-handle');
                 if (handle) handle.addEventListener('touchstart', mtTouchStart, {passive: false});
             });
-            // 工程セクション
-            const phases = document.querySelectorAll('.mt-phase[draggable]');
-            phases.forEach(ph => {
+            // 工程セクション（mousedown でのみ draggable=true にして競合回避）
+            document.querySelectorAll('.mt-phase').forEach(ph => {
                 ph.addEventListener('dragstart', mtPhaseDragStart);
                 ph.addEventListener('dragend', mtPhaseDragEnd);
                 ph.addEventListener('dragover', mtPhaseDragOver);
                 ph.addEventListener('dragleave', mtPhaseDragLeave);
                 ph.addEventListener('drop', mtPhaseDrop);
                 const handle = ph.querySelector('.mt-phase-drag-handle');
-                if (handle) handle.addEventListener('touchstart', mtPhaseTouchStart, {passive: false});
+                if (handle) {
+                    handle.addEventListener('mousedown', () => ph.setAttribute('draggable', 'true'));
+                    handle.addEventListener('mouseup',   () => ph.setAttribute('draggable', 'false'));
+                    handle.addEventListener('touchstart', mtPhaseTouchStart, {passive: false});
+                }
+                ph.addEventListener('dragend', () => ph.setAttribute('draggable', 'false'));
             });
         }
 
@@ -7227,7 +7231,6 @@
         let mtPhaseDragEl = null;
         function mtPhaseDragStart(e) {
             if (mtDragEl) return; // タスクD&D中は無視
-            if (e.target.closest('.mt-task-row')) return; // タスク行からのドラッグは無視
             mtPhaseDragEl = this;
             this.classList.add('phase-dragging');
             e.dataTransfer.effectAllowed = 'move';
