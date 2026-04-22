@@ -7226,8 +7226,8 @@
         // ── 工程セクション D&D ──
         let mtPhaseDragEl = null;
         function mtPhaseDragStart(e) {
-            // タスク行のドラッグと干渉しないようにチェック
-            if (e.target.closest('.mt-task-row')) return;
+            if (mtDragEl) return; // タスクD&D中は無視
+            if (e.target.closest('.mt-task-row')) return; // タスク行からのドラッグは無視
             mtPhaseDragEl = this;
             this.classList.add('phase-dragging');
             e.dataTransfer.effectAllowed = 'move';
@@ -7240,7 +7240,7 @@
         }
         function mtPhaseDragOver(e) {
             if (!mtPhaseDragEl || mtPhaseDragEl === this) return;
-            if (e.target.closest('.mt-task-row')) return; // タスク行内は無視
+            if (mtDragEl) return; // タスクD&D中は無視
             e.preventDefault();
             e.stopPropagation();
             document.querySelectorAll('.mt-phase').forEach(p => p.classList.remove('phase-drag-over', 'phase-drag-over-below'));
@@ -7254,6 +7254,7 @@
             e.preventDefault();
             e.stopPropagation();
             if (!mtPhaseDragEl || mtPhaseDragEl === this) return;
+            if (mtDragEl) return; // タスクD&D中は無視
             mtSaveSnapshot();
             const fromPhase = mtPhaseDragEl.dataset.phase;
             const toPhase   = this.dataset.phase;
