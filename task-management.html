@@ -217,6 +217,10 @@
                      font-variant-numeric: tabular-nums; }
     .prop-dates { display: flex; gap: 6px; margin-top: 4px; flex-wrap: nowrap; overflow: hidden; }
     .prop-date { font-size: 10px; color: var(--t2); display: flex; align-items: center; gap: 3px; }
+    .prop-date.phase-chakko      { color: #2563eb; }
+    .prop-date.phase-tatemae     { color: var(--green); }
+    .prop-date.phase-shunko      { color: #7c3aed; }
+    .prop-date.phase-hikiwatashi { color: #d97706; }
     .prop-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
     .prop-progress-badge { font-size: 11px; padding: 4px 12px; border-radius: 100px;
                            background: var(--green-light); color: var(--green); font-weight: 700;
@@ -1173,10 +1177,10 @@ function propCardHTML(p) {
       </div>
       ${(startFmt || frameFmt || completionFmt || handoverFmt) ? `
       <div class="prop-dates">
-        ${startFmt      ? `<span class="prop-date">${cal}着工 ${startFmt}</span>`      : ''}
-        ${frameFmt      ? `<span class="prop-date">${cal}建方 ${frameFmt}</span>`      : ''}
-        ${completionFmt ? `<span class="prop-date">${cal}竣工 ${completionFmt}</span>` : ''}
-        ${handoverFmt   ? `<span class="prop-date">${cal}引渡 ${handoverFmt}</span>`   : ''}
+        ${startFmt      ? `<span class="prop-date phase-chakko">${cal}着工 ${startFmt}</span>`      : ''}
+        ${frameFmt      ? `<span class="prop-date phase-tatemae">${cal}建方 ${frameFmt}</span>`      : ''}
+        ${completionFmt ? `<span class="prop-date phase-shunko">${cal}竣工 ${completionFmt}</span>` : ''}
+        ${handoverFmt   ? `<span class="prop-date phase-hikiwatashi">${cal}引渡 ${handoverFmt}</span>`   : ''}
       </div>` : ''}
     </div>
     <div class="prop-right">

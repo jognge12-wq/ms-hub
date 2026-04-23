@@ -1253,36 +1253,28 @@
         .prop-rich-card .phase-bar-line{position:absolute;left:12.5%;right:12.5%;top:50%;height:2px;
                                         background:var(--border);transform:translateY(-50%);border-radius:1px;}
         .prop-rich-card .phase-bar-fill{position:absolute;left:12.5%;top:50%;height:2px;
-                                        background:var(--primary);transform:translateY(-50%);border-radius:1px;
+                                        background:linear-gradient(90deg,#2563eb 0%,var(--brand) 33%,#7c3aed 66%,#d97706 100%);transform:translateY(-50%);border-radius:1px;
                                         transition:width .3s ease;}
-        .prop-rich-card.st-active .phase-bar-fill{background:#d97706;}
-        .prop-rich-card.st-done   .phase-bar-fill{background:#9ca3af;}
         .prop-rich-card .phase-dots{position:relative;display:grid;grid-template-columns:repeat(4, 1fr);
                                     width:100%;height:100%;align-items:center;}
         .prop-rich-card .phase-dot{display:flex;align-items:center;justify-content:center;}
         .prop-rich-card .phase-dot-circle{width:12px;height:12px;border-radius:50%;background:var(--surface);
                                           border:2px solid var(--border);display:flex;align-items:center;justify-content:center;
                                           transition:all .15s;box-shadow:0 0 0 3px var(--surface2);}
-        .prop-rich-card .phase-dot.done .phase-dot-circle{background:var(--primary);border-color:var(--primary);}
+        .prop-rich-card .phase-dot.done .phase-dot-circle{background:var(--pc);border-color:var(--pc);}
         .prop-rich-card .phase-dot.done .phase-dot-circle::after{content:'';width:5px;height:4px;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 12 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 5l3 4L11 1' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;}
-        .prop-rich-card.st-active .phase-dot.done .phase-dot-circle{background:#d97706;border-color:#d97706;}
-        .prop-rich-card.st-done .phase-dot.done .phase-dot-circle{background:#9ca3af;border-color:#9ca3af;}
         .prop-rich-card .phase-dot.now .phase-dot-circle{
-            background:var(--surface);border:2px solid var(--primary);
-            box-shadow:0 0 0 3px var(--surface2), 0 0 0 5px var(--primary-l);}
-        .prop-rich-card.st-active .phase-dot.now .phase-dot-circle{
-            border-color:#d97706;box-shadow:0 0 0 3px var(--surface2), 0 0 0 5px #fff8e1;}
+            background:var(--surface);border:2px solid var(--pc);
+            box-shadow:0 0 0 3px var(--surface2), 0 0 0 5px color-mix(in oklch, var(--pc) 25%, transparent);}
         .prop-rich-card .phase-labels{display:grid;grid-template-columns:repeat(4, 1fr);margin-top:5px;
                                       font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.02em;}
         .prop-rich-card .phase-labels .lbl{text-align:center;display:flex;flex-direction:column;align-items:center;gap:1px;}
         .prop-rich-card .phase-labels .lbl-name{font-size:9.5px;}
         .prop-rich-card .phase-labels .lbl-date{font-size:9px;font-family:'DM Mono',monospace;color:var(--text3);font-weight:500;letter-spacing:0;}
-        .prop-rich-card .phase-labels .lbl.done .lbl-name{color:var(--text2);}
+        .prop-rich-card .phase-labels .lbl.done .lbl-name{color:var(--pc);opacity:.7;}
         .prop-rich-card .phase-labels .lbl.done .lbl-date{color:var(--text2);}
-        .prop-rich-card .phase-labels .lbl.now .lbl-name{color:var(--primary);font-weight:800;}
-        .prop-rich-card .phase-labels .lbl.now .lbl-date{color:var(--primary);}
-        .prop-rich-card.st-active .phase-labels .lbl.now .lbl-name{color:#92400e;}
-        .prop-rich-card.st-active .phase-labels .lbl.now .lbl-date{color:#92400e;}
+        .prop-rich-card .phase-labels .lbl.now .lbl-name{color:var(--pc);font-weight:800;}
+        .prop-rich-card .phase-labels .lbl.now .lbl-date{color:var(--pc);}
 
         /* カウントダウン（着工前） */
         .prop-rich-card .prop-cd{padding:10px 14px 12px;background:#eff6ff;border-top:2px solid #3b82f6;
@@ -6522,14 +6514,15 @@
                         }
                     }
                 }
+                const _phaseColors = ['#2563eb', 'var(--brand)', '#7c3aed', '#d97706'];
                 const dotsHtml = phases.map((ph, i) => {
                     const cls = ph.done ? 'done' : (i === nowIdx ? 'now' : '');
-                    return `<div class="phase-dot ${cls}"><div class="phase-dot-circle"></div></div>`;
+                    return `<div class="phase-dot ${cls}" style="--pc:${_phaseColors[i]}"><div class="phase-dot-circle"></div></div>`;
                 }).join('');
                 const labelsHtml = phases.map((ph, i) => {
                     const cls = ph.done ? 'done' : (i === nowIdx ? 'now' : '');
                     const dateStr = (p.dates && p.dates[ph.key]) ? formatDateShort(p.dates[ph.key]) : '—';
-                    return `<div class="lbl ${cls}"><span class="lbl-name">${ph.label}</span><span class="lbl-date">${dateStr}</span></div>`;
+                    return `<div class="lbl ${cls}" style="--pc:${_phaseColors[i]}"><span class="lbl-name">${ph.label}</span><span class="lbl-date">${dateStr}</span></div>`;
                 }).join('');
                 return `<div class="phase-strip">
                     <div class="phase-bar">
