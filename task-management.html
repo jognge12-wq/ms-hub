@@ -215,7 +215,7 @@
                       transition: width .35s ease; }
     .prop-mini-lbl { font-size: 10px; font-weight: 700; color: var(--green);
                      font-variant-numeric: tabular-nums; }
-    .prop-dates { display: flex; gap: 6px; margin-top: 4px; flex-wrap: nowrap; overflow: hidden; }
+    .prop-dates { display: flex; gap: 4px 10px; margin-top: 4px; flex-wrap: wrap; }
     .prop-date { font-size: 10px; color: var(--t2); display: flex; align-items: center; gap: 3px; }
     .prop-date.phase-chakko      { color: #2563eb; }
     .prop-date.phase-tatemae     { color: var(--green); }
@@ -1399,7 +1399,7 @@ function updatePhaseDoneToggle(cid, propName) {
   btn.style.display = count > 0 ? 'block' : 'none';
   if (lbl && count > 0) {
     const isHidden = wrap && wrap.classList.contains('hide-done-phases');
-    lbl.textContent = isHidden ? `完了工程${count}件を表示` : `完了工程${count}件を非表示`;
+    lbl.textContent = isHidden ? `✓${count} 表示` : `✓${count} 非表示`;
   }
 }
 
