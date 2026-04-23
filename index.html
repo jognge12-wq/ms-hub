@@ -1223,31 +1223,32 @@
                                 padding:0 5px;font-weight:600;}
         .prop-rich-tab.active .seg-cnt{background:var(--primary);}
 
-        .prop-rich-card{background:var(--surface);border-radius:14px;
+        .prop-rich-card{background:var(--surface);border-radius:18px;
                         border:1.5px solid var(--border);
-                        margin-bottom:8px;overflow:hidden;
-                        box-shadow:0 2px 6px rgba(15,25,20,0.05), 0 1px 2px rgba(15,25,20,0.03);}
+                        margin-bottom:12px;overflow:hidden;
+                        box-shadow:var(--shadow-lg);}
         .prop-rich-card.st-precon{--status:#3b82f6;}
         .prop-rich-card.st-active{--status:#d97706;}
         .prop-rich-card.st-done  {--status:#9ca3af;}
-        .prop-rich-card .prop-hdr{display:flex;align-items:center;gap:8px;padding:9px 12px;
-                                  border-left:3px solid var(--status,var(--border2));}
-        .prop-rich-card .prop-name{font-size:13px;font-weight:700;color:var(--text1);
+        .prop-rich-card .prop-hdr{display:flex;align-items:center;gap:8px;padding:13px 14px;
+                                  border-left:4px solid var(--status,var(--border2));}
+        .prop-rich-card .prop-name{font-size:14px;font-weight:700;color:var(--text1);
                                    flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
                                    letter-spacing:-.01em;}
-        .prop-rich-card .prop-name-loc{font-size:9.5px;color:var(--text3);font-weight:400;
-                                       margin-left:5px;letter-spacing:.02em;}
-        .prop-rich-card .prop-status-pill{font-size:9.5px;font-weight:700;color:#fff;
-                                          padding:1.5px 8px;border-radius:100px;
+        .prop-rich-card .prop-name-loc{font-size:10px;color:var(--text3);font-weight:400;
+                                       margin-left:6px;letter-spacing:.02em;}
+        .prop-rich-card .prop-status-pill{font-size:10px;font-weight:700;color:#fff;
+                                          padding:3px 10px;border-radius:100px;
                                           background:var(--status,var(--text3));flex-shrink:0;cursor:pointer;
                                           font-family:'Noto Sans JP',sans-serif;letter-spacing:.02em;
                                           display:inline-flex;align-items:center;gap:4px;border:none;
-                                          -webkit-tap-highlight-color:transparent;}
+                                          -webkit-tap-highlight-color:transparent;
+                                          box-shadow:0 1px 4px rgba(0,0,0,0.15);}
         .prop-rich-card .prop-status-pill::after{content:'▾';font-size:8px;opacity:.7;}
 
         /* フェーズ部 */
-        .prop-rich-card .phase-strip{padding:7px 12px 9px;background:var(--surface2);
-                                     border-top:1px solid var(--border);}
+        .prop-rich-card .phase-strip{padding:10px 14px 13px;background:var(--surface2);
+                                     border-top:2px solid var(--status,var(--border));}
         .prop-rich-card .phase-bar{position:relative;height:20px;}
         .prop-rich-card .phase-bar-line{position:absolute;left:12.5%;right:12.5%;top:50%;height:2px;
                                         background:var(--border);transform:translateY(-50%);border-radius:1px;}
@@ -1284,10 +1285,10 @@
         .prop-rich-card.st-active .phase-labels .lbl.now .lbl-date{color:#92400e;}
 
         /* カウントダウン（着工前） */
-        .prop-rich-card .prop-cd{padding:7px 12px;background:#eff6ff;border-top:1px solid #bfdbfe;
+        .prop-rich-card .prop-cd{padding:10px 14px 12px;background:#eff6ff;border-top:2px solid #3b82f6;
                                  display:flex;align-items:center;gap:8px;}
         .prop-rich-card .prop-cd-lbl{font-size:10px;font-weight:700;color:#1e3a8a;letter-spacing:.04em;}
-        .prop-rich-card .prop-cd-num{font-size:16px;font-weight:800;color:#1e40af;font-family:'DM Mono',monospace;letter-spacing:-.02em;}
+        .prop-rich-card .prop-cd-num{font-size:18px;font-weight:800;color:#1e40af;font-family:'DM Mono',monospace;letter-spacing:-.02em;}
         .prop-rich-card .prop-cd-unit{font-size:11px;color:#1e40af;margin-left:-4px;}
         .prop-rich-card .prop-cd-date{margin-left:auto;font-size:10px;color:#1e40af;font-family:'DM Mono',monospace;}
 
@@ -1300,7 +1301,7 @@
         .prop-rich-card .prop-date-val{font-family:'DM Mono',monospace;color:var(--text1);}
 
         /* チェック */
-        .prop-rich-card .prop-checks{padding:7px 12px;border-top:1px solid var(--border);
+        .prop-rich-card .prop-checks{padding:9px 14px 10px;border-top:1px solid var(--border);
                                      display:grid;grid-template-columns:repeat(5, 1fr);gap:7px 8px;background:var(--bg);}
         .prop-rich-card .prop-checks .check-row{display:inline-flex;align-items:center;gap:6px;}
         .prop-rich-card .prop-checks .check-toggle{width:22px;height:12px;border-radius:6px;background:var(--border2);
@@ -4152,8 +4153,13 @@
                     tabToRestore = hashTab;
                 } else {
                     // 3. sessionStorage → localStorage（PWA再起動対応）
+                    // localStorage は2時間以内のみ復元（長時間ぶりの起動はホームへ）
                     try {
-                        const stored = sessionStorage.getItem('dashCurrentTab') || localStorage.getItem('dashCurrentTab');
+                        const ssTab = sessionStorage.getItem('dashCurrentTab');
+                        const lsTab = localStorage.getItem('dashCurrentTab');
+                        const lsAt = parseInt(localStorage.getItem('dashCurrentTabAt') || '0', 10);
+                        const expired = Date.now() - lsAt > 2 * 60 * 60 * 1000;
+                        const stored = ssTab || (!expired ? lsTab : null);
                         if (stored && nonHomeTabs.includes(stored)) tabToRestore = stored;
                     } catch(e) {}
                 }
@@ -5401,6 +5407,7 @@
             // リロード後もタブを復元: URL hash + localStorage + sessionStorage の3重保存
             try {
                 localStorage.setItem('dashCurrentTab', tab);
+                localStorage.setItem('dashCurrentTabAt', Date.now());
                 sessionStorage.setItem('dashCurrentTab', tab);
             } catch(e) {}
             // URL hash に記録（ブラウザリロード時に最も確実）
