@@ -1086,6 +1086,7 @@ function renderResults(items) {
 
     const itemRows = g.items.map(item => {
       const subParts = [];
+      if (_activeFilterTab !== 'property' && item.propertyName) subParts.push(item.propertyName);
       if (_activeFilterTab !== 'vendor'   && item.vendorName)   subParts.push(item.vendorName);
       if (_activeFilterTab !== 'contact'  && item.contactLabel) subParts.push(item.contactLabel);
       if (item.memo) subParts.push(item.memo);
