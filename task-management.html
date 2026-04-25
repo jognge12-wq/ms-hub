@@ -580,8 +580,14 @@
     .prio-group.open .prio-group-arr { transform: rotate(90deg); }
     .prio-group-body { display: none; background: #fffafa; }
     .prio-group.open .prio-group-body { display: block; }
-    /* ─ 優先タスク：物件カードのsticky位置を上書き ─ */
-    .prio-prop-card.open .prop-hdr { top: 84px; }
+    /* ─ 優先タスク：物件カードの色・sticky位置を上書き ─ */
+    .prio-prop-card { border-color: #fecaca; }
+    .prio-prop-card.open { border-color: #f87171; }
+    .prio-prop-card .prop-icon { background: #fff1f1; color: #dc2626; }
+    .prio-prop-card.open .prop-icon { background: #dc2626; color: #fff; }
+    .prio-prop-card .prop-hdr:active { background: #fff1f1; }
+    .prio-prop-card .prop-progress-badge { background: #fff1f1; color: #b91c1c; }
+    .prio-prop-card.open .prop-hdr { top: 84px; background: #fff8f8; }
     /* ─ 工程セクション ─ */
     .prio-phase-sec { border-top: 1px solid var(--border); }
     .prio-phase-hdr { display: flex; align-items: center; gap: 7px;
