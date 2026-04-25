@@ -5290,13 +5290,24 @@
                 }).join('');
             }
 
+            function countCurrentYear(items) {
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                return items.filter(d => {
+                    const parts = d.date.split('/');
+                    let date = new Date(now.getFullYear(), parseInt(parts[0]) - 1, parseInt(parts[1]));
+                    if (date > today) date = new Date(now.getFullYear() - 1, parseInt(parts[0]) - 1, parseInt(parts[1]));
+                    return date.getFullYear() === now.getFullYear();
+                }).length;
+            }
+
             document.getElementById('statusCards').innerHTML = `
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                     <div class="status-card has-list" id="startedCard">
                         <div class="status-card-header collapsible" id="startedToggle">
                             <span class="status-card-title">着工済み</span>
                             <span style="display:flex;align-items:center;">
-                                <span class="status-card-count">${startedProperties.length}件</span>
+                                <span class="status-card-count">${countCurrentYear(startedProperties)}件</span>
                                 ${chevronSvg}
                             </span>
                         </div>
@@ -5306,7 +5317,7 @@
                         <div class="status-card-header collapsible" id="deliveredToggle">
                             <span class="status-card-title">引渡し済</span>
                             <span style="display:flex;align-items:center;">
-                                <span class="status-card-count">${deliveredProperties.length}件</span>
+                                <span class="status-card-count">${countCurrentYear(deliveredProperties)}件</span>
                                 ${chevronSvg}
                             </span>
                         </div>
