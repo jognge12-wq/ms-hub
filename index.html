@@ -4856,10 +4856,11 @@
             }
         }, 60 * 60 * 1000);
 
-        function getDayOfWeek(dateStr) {
+        function getDayOfWeek(dateStr, year) {
             const now = new Date();
             const parts = dateStr.split('/');
-            const d = new Date(now.getFullYear(), parseInt(parts[0]) - 1, parseInt(parts[1]));
+            const y = year || now.getFullYear();
+            const d = new Date(y, parseInt(parts[0]) - 1, parseInt(parts[1]));
             return WEEKDAYS_JP[d.getDay()];
         }
 
@@ -5264,16 +5265,24 @@
                 if (items.length === 0) return `<div class="status-card-empty">${emptyText}</div>`;
                 const now = new Date();
                 const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                // 翌日から「済」表示にする（当日は「予定」として表示）
-                const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1);
-                return items.map(d => {
-                    const parts = d.date.split('/');
-                    const itemDate = new Date(now.getFullYear(), parseInt(parts[0]) - 1, parseInt(parts[1]));
+                // "M/D" → 正しい年付きDateに解決。未来になる場合は前年とみなす（着工済み・引渡し済みは過去のはず）
+                function resolveDate(dateStr) {
+                    const parts = dateStr.split('/');
+                    const m = parseInt(parts[0]) - 1;
+                    const d = parseInt(parts[1]);
+                    let date = new Date(now.getFullYear(), m, d);
+                    if (date > today) date = new Date(now.getFullYear() - 1, m, d);
+                    return date;
+                }
+                // 新しい順（降順）にソート
+                const sorted = [...items].sort((a, b) => resolveDate(b.date) - resolveDate(a.date));
+                return sorted.map(d => {
+                    const itemDate = resolveDate(d.date);
                     const isPast = markDone && itemDate < today;
                     return `
                         <div class="status-card-item${isPast ? ' done' : ''}">
                             <span class="status-card-name">${d.name}${isPast ? ' <span class="status-done-badge">済</span>' : ''}</span>
-                            <span class="status-card-date">${d.date}（${getDayOfWeek(d.date)}）</span>
+                            <span class="status-card-date">${d.date}（${getDayOfWeek(d.date, itemDate.getFullYear())}）</span>
                         </div>
                     `;
                 }).join('');
