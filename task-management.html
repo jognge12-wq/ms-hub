@@ -1712,7 +1712,7 @@ function refreshPrioPanel() {
     propPhaseMap[propName] = {};
     prioPhases.forEach(phase => {
       propPhaseMap[propName][phase] = tasks
-        .filter(t => (t.phase || '未分類') === phase)
+        .filter(t => (t.phase || '未分類') === phase && !t.done)
         .map(t => ({ ...t, propName }));
     });
   });
