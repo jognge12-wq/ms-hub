@@ -580,22 +580,24 @@
     .prio-group.open .prio-group-arr { transform: rotate(90deg); }
     .prio-group-body { display: none; background: #fffafa; }
     .prio-group.open .prio-group-body { display: block; }
+    /* ─ 優先タスク：物件カードのsticky位置を上書き ─ */
+    .prio-prop-card.open .prop-hdr { top: 84px; }
     /* ─ 工程セクション ─ */
-    .prio-phase-sec { border-top: 1px solid #fecaca; }
+    .prio-phase-sec { border-top: 1px solid var(--border); }
     .prio-phase-hdr { display: flex; align-items: center; gap: 7px;
-                      padding: 7px 14px; background: #fff5f5; cursor: pointer;
+                      padding: 7px 14px; background: var(--bg); cursor: pointer;
                       -webkit-tap-highlight-color: transparent; }
-    .prio-phase-hdr:active { background: #fee2e2; }
+    .prio-phase-hdr:active { background: var(--green-light); }
     .prio-phase-name { flex: 1; font-size: 11px; font-weight: 700;
-                       color: #b91c1c; letter-spacing: 0.02em; }
-    .prio-phase-progress { font-size: 10px; color: #b91c1c; font-family: var(--fm); flex-shrink: 0; }
-    .prio-phase-arr { transition: transform .2s; color: #fca5a5; flex-shrink: 0; }
+                       color: var(--t2); letter-spacing: 0.02em; }
+    .prio-phase-progress { font-size: 10px; color: var(--t3); font-family: var(--fm); flex-shrink: 0; }
+    .prio-phase-arr { transition: transform .2s; color: var(--t3); flex-shrink: 0; }
     .prio-phase-sec.open .prio-phase-arr { transform: rotate(90deg); }
-    .prio-phase-body { display: none; background: #fffafa; }
+    .prio-phase-body { display: none; }
     .prio-phase-sec.open .prio-phase-body { display: block; }
     /* ─ タスク行 ─ */
     .prio-row { display: flex; align-items: flex-start; gap: 10px;
-                padding: 8px 14px 8px 20px; border-bottom: 1px solid #fee2e2; }
+                padding: 8px 14px 8px 20px; border-bottom: 1px solid var(--border); }
     .prio-row:last-child { border-bottom: none; }
     .prio-row.done { opacity: 0.45; }
     .prio-row.done .prio-task-name { text-decoration: line-through; }
@@ -1675,24 +1677,28 @@ function prioPanelPhaseHTML(propName, phaseName, tasks) {
 </div>`;
 }
 
-// 物件ごとグループHTML
+// 物件ごとグループHTML（物件一覧と同じ prop-card デザイン）
 function prioPanelGroupHTML(propName, phaseMap) {
   const gid    = 'pg-' + slug(propName);
   const saved  = (() => { try { return JSON.parse(localStorage.getItem('prioGroupState') || '{}'); } catch(e) { return {}; } })();
   const isOpen = saved[gid] !== false;
   const phaseCount = Object.keys(phaseMap).length;
-  return `<div class="prio-group${isOpen?' open':''}" id="${gid}">
-  <div class="prio-group-hdr" onclick="togglePrioGroup('${esc(gid)}')">
-    <svg width="9" height="9" viewBox="0 0 24 24" fill="#dc2626" stroke="none" style="flex-shrink:0">
-      <polygon points="12,2 22,12 12,22 2,12"/>
-    </svg>
-    <span class="prio-group-name">${esc(propName)}</span>
-    <span class="prio-group-cnt">工程 ${phaseCount}件</span>
-    <svg class="prio-group-arr" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <polyline points="9,18 15,12 9,6"/>
-    </svg>
+  return `<div class="prop-card prio-prop-card${isOpen?' open':''}" id="${gid}">
+  <div class="prop-hdr" onclick="togglePrioGroup('${esc(gid)}')">
+    <div class="prop-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+        <polygon points="12,2 22,12 12,22 2,12"/>
+      </svg>
+    </div>
+    <div class="prop-info">
+      <div class="prop-name">${esc(propName)}</div>
+    </div>
+    <div class="prop-right">
+      <span class="prop-progress-badge">工程 ${phaseCount}件</span>
+      <svg class="prop-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
   </div>
-  <div class="prio-group-body">
+  <div class="phases-wrap">
     ${Object.entries(phaseMap).map(([ph, ts]) => prioPanelPhaseHTML(propName, ph, ts)).join('')}
   </div>
 </div>`;
