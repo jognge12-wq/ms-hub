@@ -5274,8 +5274,10 @@
                     if (date > today) date = new Date(now.getFullYear() - 1, m, d);
                     return date;
                 }
-                // 新しい順（降順）にソート
-                const sorted = [...items].sort((a, b) => resolveDate(b.date) - resolveDate(a.date));
+                // 当年分のみ表示、新しい順（降順）にソート
+                const sorted = [...items]
+                    .filter(d => resolveDate(d.date).getFullYear() === now.getFullYear())
+                    .sort((a, b) => resolveDate(b.date) - resolveDate(a.date));
                 return sorted.map(d => {
                     const itemDate = resolveDate(d.date);
                     const isPast = markDone && itemDate < today;
