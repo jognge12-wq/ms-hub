@@ -577,14 +577,28 @@
     .prio-group.open .prio-group-arr { transform: rotate(90deg); }
     .prio-group-body { display: none; background: #fffafa; }
     .prio-group.open .prio-group-body { display: block; }
+    /* ─ 工程セクション ─ */
+    .prio-phase-sec { border-top: 1px solid #fecaca; }
+    .prio-phase-hdr { display: flex; align-items: center; gap: 7px;
+                      padding: 7px 14px; background: #fff5f5; cursor: pointer;
+                      -webkit-tap-highlight-color: transparent; }
+    .prio-phase-hdr:active { background: #fee2e2; }
+    .prio-phase-name { flex: 1; font-size: 11px; font-weight: 700;
+                       color: #b91c1c; letter-spacing: 0.02em; }
+    .prio-phase-progress { font-size: 10px; color: #b91c1c; font-family: var(--fm); flex-shrink: 0; }
+    .prio-phase-arr { transition: transform .2s; color: #fca5a5; flex-shrink: 0; }
+    .prio-phase-sec.open .prio-phase-arr { transform: rotate(90deg); }
+    .prio-phase-body { display: none; background: #fffafa; }
+    .prio-phase-sec.open .prio-phase-body { display: block; }
+    /* ─ タスク行 ─ */
     .prio-row { display: flex; align-items: flex-start; gap: 10px;
-                padding: 9px 14px 9px 22px; border-bottom: 1px solid #fee2e2; }
+                padding: 8px 14px 8px 20px; border-bottom: 1px solid #fee2e2; }
     .prio-row:last-child { border-bottom: none; }
-    .prio-row.done .prio-task-name { color: var(--t3); text-decoration: line-through; }
-    .prio-prop { font-size: 10px; color: #b91c1c; font-family: var(--fm);
-                 white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-                 max-width: 90px; flex-shrink: 0; }
+    .prio-row.done { opacity: 0.45; }
+    .prio-row.done .prio-task-name { text-decoration: line-through; }
     .prio-task-name { flex: 1; font-size: 12px; min-width: 0; word-break: break-all; line-height: 1.5; }
+    .prio-task-name.prio-marked { font-weight: 600; color: var(--t1); }
+    .prio-task-name.not-prio    { color: var(--t2); }
     .prio-phase-tag { font-size: 10px; color: var(--t3); white-space: nowrap; flex-shrink: 0; }
     /* ─ Diamond priority button ─────────────────────────────── */
     .star-btn { width: 24px; height: 24px; background: none; border: none;
@@ -1620,8 +1634,12 @@ function refreshProgBar(propName, cid) {
 // ─ 優先タスク パネル ──────────────────────────────────────────
 const PRIO_CACHE_KEY = 'prioTasksCache';
 
-// prio行HTML（グループ表示用：物件名は非表示、工程タグのみ）
+// タスク行HTML（◆あり=太字、◆なし=細字、完了=薄く）
 function prioPanelRowHTML(t) {
+  const nameClass = t.priority ? 'prio-marked' : 'not-prio';
+  const diamond = t.priority
+    ? `<svg style="flex-shrink:0;margin-top:3px" width="8" height="8" viewBox="0 0 24 24" fill="#dc2626" stroke="none"><polygon points="12,2 22,12 12,22 2,12"/></svg>`
+    : `<div style="width:8px;flex-shrink:0;"></div>`;
   return `
 <div class="prio-row${t.done?' done':''}" id="prio-${t.id}">
   <div class="chk${t.done?' on':''}" style="width:17px;height:17px;border-radius:4px;flex-shrink:0;margin-top:2px"
@@ -1630,29 +1648,46 @@ function prioPanelRowHTML(t) {
       <polyline points="20,6 9,17 4,12"/>
     </svg>
   </div>
-  <div class="prio-task-name">${esc(t.name)}</div>
-  <span class="prio-phase-tag">${esc(t.phase)}</span>
+  ${diamond}
+  <div class="prio-task-name ${nameClass}">${esc(t.name)}</div>
+</div>`;
+}
+
+// 工程セクションHTML
+function prioPanelPhaseHTML(propName, phaseName, tasks) {
+  const phid = 'pph-' + slug(propName) + '-' + slug(phaseName);
+  const done  = tasks.filter(t => t.done).length;
+  return `<div class="prio-phase-sec open" id="${phid}">
+  <div class="prio-phase-hdr" onclick="togglePrioPhase('${esc(phid)}')">
+    <span class="prio-phase-name">${esc(phaseName)}</span>
+    <span class="prio-phase-progress">${done} / ${tasks.length}</span>
+    <svg class="prio-phase-arr" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9,18 15,12 9,6"/></svg>
+  </div>
+  <div class="prio-phase-body">
+    ${tasks.map(t => prioPanelRowHTML({...t, propName})).join('')}
+  </div>
 </div>`;
 }
 
 // 物件ごとグループHTML
-function prioPanelGroupHTML(propName, tasks) {
-  const gid   = 'pg-' + slug(propName);
-  const saved = (() => { try { return JSON.parse(localStorage.getItem('prioGroupState') || '{}'); } catch(e) { return {}; } })();
-  const isOpen = saved[gid] !== false; // デフォルト展開
+function prioPanelGroupHTML(propName, phaseMap) {
+  const gid    = 'pg-' + slug(propName);
+  const saved  = (() => { try { return JSON.parse(localStorage.getItem('prioGroupState') || '{}'); } catch(e) { return {}; } })();
+  const isOpen = saved[gid] !== false;
+  const phaseCount = Object.keys(phaseMap).length;
   return `<div class="prio-group${isOpen?' open':''}" id="${gid}">
   <div class="prio-group-hdr" onclick="togglePrioGroup('${esc(gid)}')">
     <svg width="9" height="9" viewBox="0 0 24 24" fill="#dc2626" stroke="none" style="flex-shrink:0">
       <polygon points="12,2 22,12 12,22 2,12"/>
     </svg>
     <span class="prio-group-name">${esc(propName)}</span>
-    <span class="prio-group-cnt">${tasks.length}</span>
+    <span class="prio-group-cnt">工程 ${phaseCount}件</span>
     <svg class="prio-group-arr" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <polyline points="9,18 15,12 9,6"/>
     </svg>
   </div>
   <div class="prio-group-body">
-    ${tasks.map(prioPanelRowHTML).join('')}
+    ${Object.entries(phaseMap).map(([ph, ts]) => prioPanelPhaseHTML(propName, ph, ts)).join('')}
   </div>
 </div>`;
 }
@@ -1661,34 +1696,45 @@ function refreshPrioPanel() {
   const body = document.getElementById('prio-body');
   if (!body) return;
 
-  // taskCacheから全物件の優先タスクを集約
-  const rows = [];
+  // ◆がついたタスクが存在する工程をすべて収集
+  // 構造: { propName: { phaseName: [その工程の全タスク] } }
+  const propPhaseMap = {};
   Object.entries(taskCache).forEach(([propName, tasks]) => {
-    (tasks || []).forEach(t => {
-      if (t.priority && !t.done) rows.push({ ...t, propName });
+    if (!tasks) return;
+    const prioPhases = new Set(
+      tasks.filter(t => t.priority).map(t => t.phase || '未分類')
+    );
+    if (prioPhases.size === 0) return;
+    propPhaseMap[propName] = {};
+    prioPhases.forEach(phase => {
+      propPhaseMap[propName][phase] = tasks
+        .filter(t => (t.phase || '未分類') === phase)
+        .map(t => ({ ...t, propName }));
     });
   });
 
-  // 後方互換のため PRIO_CACHE_KEY にも保存
-  try { localStorage.setItem(PRIO_CACHE_KEY, JSON.stringify(rows)); } catch(e) {}
+  // バッジは◆未完了タスク数
+  const prioCount = Object.values(taskCache)
+    .flatMap(tasks => tasks || [])
+    .filter(t => t.priority && !t.done).length;
 
-  // タブバッジ更新
-  _updatePrioTabBadge(rows.length);
+  // 後方互換キャッシュ保存
+  const flatRows = Object.entries(taskCache).flatMap(([propName, tasks]) =>
+    (tasks || []).filter(t => t.priority && !t.done).map(t => ({...t, propName}))
+  );
+  try { localStorage.setItem(PRIO_CACHE_KEY, JSON.stringify(flatRows)); } catch(e) {}
 
-  if (rows.length === 0) {
+  _updatePrioTabBadge(prioCount);
+
+  if (Object.keys(propPhaseMap).length === 0) {
     body.innerHTML = '<div class="prio-empty-state">優先タスクはありません<br><span style="font-size:11px">各物件カードの ◆ ボタンでマークします</span></div>';
     return;
   }
 
-  // 物件ごとにグループ化し、引渡し日順（propDataと同順）でソート
-  const groups = {};
-  rows.forEach(t => {
-    if (!groups[t.propName]) groups[t.propName] = [];
-    groups[t.propName].push(t);
-  });
   const handoverOf = name => (propData.find(p => p.name === name) || {}).handover || '9999';
-  const sortedEntries = Object.entries(groups).sort((a, b) => handoverOf(a[0]).localeCompare(handoverOf(b[0])));
-  body.innerHTML = sortedEntries.map(([pn, ts]) => prioPanelGroupHTML(pn, ts)).join('');
+  const sortedEntries = Object.entries(propPhaseMap)
+    .sort((a, b) => handoverOf(a[0]).localeCompare(handoverOf(b[0])));
+  body.innerHTML = sortedEntries.map(([pn, pm]) => prioPanelGroupHTML(pn, pm)).join('');
 }
 
 function _updatePrioTabBadge(cnt) {
@@ -1725,12 +1771,17 @@ function togglePrioGroup(gid) {
   const el = document.getElementById(gid);
   if (!el) return;
   el.classList.toggle('open');
-  // 状態を保存
   try {
     const saved = JSON.parse(localStorage.getItem('prioGroupState') || '{}');
     saved[gid] = el.classList.contains('open');
     localStorage.setItem('prioGroupState', JSON.stringify(saved));
   } catch(e) {}
+}
+
+// 工程セクションの開閉
+function togglePrioPhase(phid) {
+  const el = document.getElementById(phid);
+  if (el) el.classList.toggle('open');
 }
 
 // ─ 優先トグル ─────────────────────────────────────────────────
