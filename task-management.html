@@ -603,6 +603,11 @@
     .prio-task-name.prio-marked { font-weight: 600; color: var(--t1); }
     .prio-task-name.not-prio    { color: var(--t2); }
     .prio-phase-tag { font-size: 10px; color: var(--t3); white-space: nowrap; flex-shrink: 0; }
+    .prio-add-btn { width: 18px; height: 18px; background: none; border: none; padding: 0;
+                    flex-shrink: 0; cursor: pointer; display: flex; align-items: center;
+                    justify-content: center; margin-top: 1px;
+                    -webkit-tap-highlight-color: transparent; }
+    .prio-add-btn:active svg { stroke: #dc2626; }
     /* ─ Diamond priority button ─────────────────────────────── */
     .star-btn { width: 24px; height: 24px; background: none; border: none;
                 flex-shrink: 0; cursor: pointer; display: flex; align-items: center;
@@ -1637,12 +1642,14 @@ function refreshProgBar(propName, cid) {
 // ─ 優先タスク パネル ──────────────────────────────────────────
 const PRIO_CACHE_KEY = 'prioTasksCache';
 
-// タスク行HTML（◆あり=太字、◆なし=細字、完了=薄く）
+// タスク行HTML（◆あり=太字、◆なし=細字+◆ボタン）
 function prioPanelRowHTML(t) {
   const nameClass = t.priority ? 'prio-marked' : 'not-prio';
   const diamond = t.priority
     ? `<svg style="flex-shrink:0;margin-top:3px" width="8" height="8" viewBox="0 0 24 24" fill="#dc2626" stroke="none"><polygon points="12,2 22,12 12,22 2,12"/></svg>`
-    : `<div style="width:8px;flex-shrink:0;"></div>`;
+    : `<button class="prio-add-btn" onclick="togglePriorityFromPanel('${esc(t.id)}','${esc(t.propName)}')" title="優先に追加">
+         <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="2"><polygon points="12,2 22,12 12,22 2,12"/></svg>
+       </button>`;
   return `
 <div class="prio-row${t.done?' done':''}" id="prio-${t.id}">
   <div class="chk${t.done?' on':''}" style="width:17px;height:17px;border-radius:4px;flex-shrink:0;margin-top:2px"
@@ -1789,6 +1796,25 @@ function togglePrioGroup(gid) {
 function togglePrioPhase(phid) {
   const el = document.getElementById(phid);
   if (el) el.classList.toggle('open');
+}
+
+// 優先パネルから直接◆をつける（物件カードが開いていなくても動作）
+async function togglePriorityFromPanel(id, propName) {
+  const cached = taskCache[propName];
+  const t = cached && cached.find(x => x.id === id);
+  if (!t) return;
+  const was = t.priority;
+  t.priority = true;
+  refreshPrioPanel();
+  saveTaskCache();
+  try {
+    await api({ mode: 'updateTask', id, field: 'priority', value: 'true' });
+    showToast('◆ 優先タスクに追加しました');
+  } catch(e) {
+    t.priority = was;
+    refreshPrioPanel();
+    showToast('エラー: ' + e.message);
+  }
 }
 
 // ─ 優先トグル ─────────────────────────────────────────────────
