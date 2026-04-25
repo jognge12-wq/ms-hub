@@ -567,7 +567,10 @@
     .prio-group:last-child { border-bottom: none; }
     .prio-group-hdr { display: flex; align-items: center; gap: 8px;
                       padding: 10px 14px; cursor: pointer; user-select: none;
-                      -webkit-tap-highlight-color: transparent; }
+                      -webkit-tap-highlight-color: transparent;
+                      position: sticky; top: 84px; z-index: 10;
+                      background: #fff8f8;
+                      border-bottom: 1px solid #fecaca; }
     .prio-group-hdr:active { background: #fff1f1; }
     .prio-group-name { flex: 1; font-size: 12px; font-weight: 700; color: #991b1b;
                        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
