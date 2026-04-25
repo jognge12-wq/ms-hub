@@ -1696,13 +1696,17 @@ function refreshPrioPanel() {
   const body = document.getElementById('prio-body');
   if (!body) return;
 
-  // ◆がついたタスクが存在する工程をすべて収集
+  // ◆がついた未完了タスクが存在する工程をすべて収集
   // 構造: { propName: { phaseName: [その工程の全タスク] } }
+  // ※ propData にない物件（引渡し済み等）は除外
+  const activePropNames = new Set((propData || []).map(p => p.name));
   const propPhaseMap = {};
   Object.entries(taskCache).forEach(([propName, tasks]) => {
     if (!tasks) return;
+    if (activePropNames.size > 0 && !activePropNames.has(propName)) return;
+    // ◆かつ未完了のタスクがある工程のみ対象
     const prioPhases = new Set(
-      tasks.filter(t => t.priority).map(t => t.phase || '未分類')
+      tasks.filter(t => t.priority && !t.done).map(t => t.phase || '未分類')
     );
     if (prioPhases.size === 0) return;
     propPhaseMap[propName] = {};
