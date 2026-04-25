@@ -362,6 +362,48 @@
     }
     .btn-edit:active { background: var(--sfc-border); }
 
+    /* --- 個別明細行 --- */
+    .payment-card-header { cursor: pointer; position: relative; }
+    .payment-card-header .payment-card-title { margin-bottom: 4px; }
+    .payment-card-chevron {
+      position: absolute; top: 2px; right: 0;
+      width: 18px; height: 18px; color: var(--text3);
+      transition: transform 0.2s;
+      pointer-events: none;
+    }
+    .payment-card.expanded .payment-card-chevron { transform: rotate(180deg); }
+    .payment-item-list {
+      display: none;
+      margin: 10px -16px -14px;
+      border-top: 1px solid var(--border);
+    }
+    .payment-card.expanded .payment-item-list { display: block; }
+    .payment-item-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .payment-item-row:last-child { border-bottom: none; }
+    .payment-item-info { flex: 1; min-width: 0; }
+    .payment-item-sub {
+      font-size: 11px; color: var(--text3);
+      margin-bottom: 3px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .payment-item-amounts { font-size: 12px; color: var(--text1); font-variant-numeric: tabular-nums; }
+    .payment-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .btn-item-edit, .btn-item-delete {
+      padding: 4px 10px; font-size: 11px; font-weight: 600;
+      border-radius: 8px; cursor: pointer; border: 1.5px solid;
+      font-family: 'Noto Sans JP', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+    .btn-item-edit { background: var(--sfc-light); color: var(--sfc-primary); border-color: var(--sfc-border); }
+    .btn-item-edit:active { background: var(--sfc-border); }
+    .btn-item-delete { background: #fff5f5; color: #e53e3e; border-color: #fed7d7; }
+    .btn-item-delete:active { background: #fed7d7; }
+
     /* ===== ボトムシート共通 ===== */
     .sheet-overlay {
       display: none; position: fixed; inset: 0;
@@ -1000,12 +1042,13 @@ function renderResults(items) {
   items.forEach(item => {
     const key = itemGroupKey(item);
     if (!groupMap[key]) {
-      groupMap[key] = { label: itemGroupLabel(item), count: 0, estimate: 0, payment: 0 };
+      groupMap[key] = { label: itemGroupLabel(item), count: 0, estimate: 0, payment: 0, items: [] };
       groupOrder.push(key);
     }
     groupMap[key].count++;
     groupMap[key].estimate += Number(item.estimate) || 0;
     groupMap[key].payment  += Number(item.payment)  || 0;
+    groupMap[key].items.push(item);
   });
   const groups = groupOrder.map(k => groupMap[k]);
 
@@ -1035,14 +1078,37 @@ function renderResults(items) {
   const fmtYen  = v => '¥' + v.toLocaleString();
   const fmtDiff = v => (v >= 0 ? '+' : '') + '¥' + v.toLocaleString();
 
+  const fmtY = v => (v != null && v !== '') ? '¥' + Number(v).toLocaleString() : '—';
+
   resultList.innerHTML = groups.map(g => {
     const diff = g.payment - g.estimate;
-    // プラス（支払い > 見積）→緑、マイナス（支払い < 見積）→赤
     const diffColor = diff > 0 ? 'var(--check-on)' : diff < 0 ? 'var(--red)' : 'var(--text1)';
+
+    const itemRows = g.items.map(item => {
+      const subParts = [];
+      if (_activeFilterTab !== 'vendor'   && item.vendorName)   subParts.push(item.vendorName);
+      if (_activeFilterTab !== 'contact'  && item.contactLabel) subParts.push(item.contactLabel);
+      if (item.memo) subParts.push(item.memo);
+      const sub = subParts.join(' · ') || '—';
+      return `<div class="payment-item-row" data-item="${escAttr(JSON.stringify(item))}">
+  <div class="payment-item-info">
+    <div class="payment-item-sub">${escHtml(sub)}</div>
+    <div class="payment-item-amounts">見積 ${fmtY(item.estimate)} / 支払 ${fmtY(item.payment)}</div>
+  </div>
+  <div class="payment-item-actions">
+    <button class="btn-item-edit" onclick="openEditSheet(event,this)">編集</button>
+    <button class="btn-item-delete" onclick="deletePaymentItem(event,this)">削除</button>
+  </div>
+</div>`;
+    }).join('');
+
     return `
 <div class="payment-card">
-  <div class="payment-card-title">${escHtml(g.label)}</div>
-  <div class="payment-card-count">${g.count}件</div>
+  <div class="payment-card-header" onclick="toggleGroup(this.parentElement)">
+    <div class="payment-card-title">${escHtml(g.label)}</div>
+    <div class="payment-card-count">${g.count}件</div>
+    <svg class="payment-card-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
   <div class="payment-card-meta">
     <div class="payment-card-meta-item">
       <span class="payment-card-meta-label">見積合計</span>
@@ -1057,21 +1123,50 @@ function renderResults(items) {
       <span class="payment-card-meta-value" style="color:${diffColor}">${fmtDiff(diff)}</span>
     </div>
   </div>
+  <div class="payment-item-list">${itemRows}</div>
 </div>`;
   }).join('');
 }
 
 // ================================================================
+// グループ展開/折りたたみ
+// ================================================================
+function toggleGroup(card) {
+  card.classList.toggle('expanded');
+}
+
+// ================================================================
 // 支払い編集
 // ================================================================
-function openEditSheet(btn) {
-  const card = btn.closest('.payment-card');
-  const item = JSON.parse(card.dataset.item);
+function openEditSheet(e, btn) {
+  e.stopPropagation();
+  const row  = btn.closest('.payment-item-row');
+  const item = JSON.parse(row.dataset.item);
   document.getElementById('editPageId').value   = item.id       || '';
   document.getElementById('editEstimate').value = item.estimate != null ? item.estimate : '';
   document.getElementById('editPayment').value  = item.payment  != null ? item.payment  : '';
   document.getElementById('editMemo').value     = item.memo     || '';
   openSheet('editSheet');
+}
+
+// ================================================================
+// 支払い削除
+// ================================================================
+async function deletePaymentItem(e, btn) {
+  e.stopPropagation();
+  const row  = btn.closest('.payment-item-row');
+  const item = JSON.parse(row.dataset.item);
+  if (!confirm('この支払い記録を削除しますか？\nこの操作は元に戻せません。')) return;
+  btn.disabled = true;
+  try {
+    const r = await callGas('deletePayment', { pageId: item.id });
+    if (!r.ok) throw new Error(r.error || '削除失敗');
+    showToast('削除しました');
+    await searchPayments();
+  } catch (err) {
+    showToast('エラー: ' + err.message, true);
+    btn.disabled = false;
+  }
 }
 
 async function updatePayment() {
