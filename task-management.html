@@ -619,6 +619,20 @@
     .star-btn.on { color: #dc2626; }
     .star-btn:active { transform: scale(1.3); }
 
+    .del-task-btn { width: 24px; height: 24px; background: none; border: none;
+                    flex-shrink: 0; cursor: pointer; display: flex; align-items: center;
+                    justify-content: center; color: transparent; margin-top: 1px;
+                    -webkit-tap-highlight-color: transparent; transition: color .15s; }
+    .task-row:hover .del-task-btn,
+    .task-row:active .del-task-btn { color: #fca5a5; }
+    .del-task-btn:active { color: #dc2626 !important; transform: scale(1.2); }
+
+    .prop-del-btn { width: 30px; height: 30px; background: none; border: none;
+                    flex-shrink: 0; cursor: pointer; display: flex; align-items: center;
+                    justify-content: center; color: var(--border); border-radius: 8px;
+                    -webkit-tap-highlight-color: transparent; transition: all .15s; }
+    .prop-del-btn:active { background: #fee2e2; color: #dc2626; }
+
     /* ─ Toast ───────────────────────────────────────────────── */
     .toast { position: fixed; bottom: 24px; left: 50%;
              transform: translateX(-50%) translateY(80px);
@@ -1214,6 +1228,12 @@ function propCardHTML(p) {
         onclick="event.stopPropagation();toggleDonePhases('${cid}')">
         <span id="${cid}-pdtlbl"></span>
       </button>
+      <button class="prop-del-btn" title="物件を削除" onclick="event.stopPropagation();deleteProperty('${cid}')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/>
+          <path d="M10,11v6"/><path d="M14,11v6"/><path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1V6"/>
+        </svg>
+      </button>
       <svg class="prop-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <polyline points="6,9 12,15 18,9"/>
       </svg>
@@ -1530,6 +1550,13 @@ function taskRowHTML(task, propName, cid) {
     <svg width="13" height="13" viewBox="0 0 24 24"
       fill="${task.priority?'#dc2626':'none'}" stroke="${task.priority?'#dc2626':'currentColor'}" stroke-width="2.5">
       <polygon points="12,2 22,12 12,22 2,12"/>
+    </svg>
+  </button>
+  <button class="del-task-btn" title="タスクを削除"
+    onclick="deleteTask('${esc(task.id)}','${esc(task.name)}','${esc(propName)}','${cid}')">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/>
+      <path d="M10,11v6"/><path d="M14,11v6"/><path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1V6"/>
     </svg>
   </button>
 </div>`;
@@ -2315,7 +2342,54 @@ async function phasePtrUp(e) {
   }
 }
 
-// ─ タスク削除 ─────────────────────────────────────────────────
+// ─ 物件タスク削除 ──────────────────────────────────────────────
+async function deleteTask(id, name, propName, cid) {
+  if (!confirm(`「${name}」を削除しますか？\nこの操作は元に戻せません。`)) return;
+  try {
+    await api({ mode: 'deleteTask', id });
+    // キャッシュから除去
+    if (taskCache[propName]) {
+      taskCache[propName] = taskCache[propName].filter(t => t.id !== id);
+      saveTaskCache();
+    }
+    // DOMから行を除去
+    const row = document.getElementById('tk-' + id);
+    if (row) row.remove();
+    // 進捗バー・優先パネル更新
+    refreshProgBar(propName, cid);
+    checkAllDone(propName, cid);
+    refreshPrioPanel();
+    showToast('タスクを削除しました');
+  } catch(e) {
+    showToast('エラー: ' + e.message);
+  }
+}
+
+// ─ 物件削除 ────────────────────────────────────────────────────
+async function deleteProperty(cid) {
+  const card = document.getElementById(cid);
+  if (!card) return;
+  const propName  = card.dataset.prop;
+  const notionId  = card.dataset.notionId;
+  if (!notionId) { showToast('物件IDが取得できません'); return; }
+  if (!confirm(`「${propName}」を削除しますか？\nNotionからも削除されます。この操作は元に戻せません。`)) return;
+  try {
+    await api({ mode: 'deleteProperty', pageId: notionId });
+    // キャッシュ・DOMから除去
+    delete taskCache[propName];
+    delete taskCacheTs[propName];
+    saveTaskCache();
+    card.remove();
+    // ジャンプピル除去
+    document.querySelector(`.jump-pill[data-jump="${cid}"]`)?.remove();
+    refreshPrioPanel();
+    showToast(`「${propName}」を削除しました`);
+  } catch(e) {
+    showToast('エラー: ' + e.message);
+  }
+}
+
+// ─ マスタータスク削除 ─────────────────────────────────────────
 async function deleteMasterTask(id, name) {
   if (!confirm(`「${name}」を削除しますか？\nこの操作は元に戻せません。`)) return;
   try {

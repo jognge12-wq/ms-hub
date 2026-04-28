@@ -417,6 +417,8 @@ function doGet(e) {
       case 'initProperty'     : result = _apiInitProperty(e.parameter);     break;
       case 'getHistory'       : result = _apiGetHistory(e.parameter);       break;
       case 'deleteMasterTask'     : result = _apiDeleteMasterTask(e.parameter);     break;
+      case 'deleteTask'           : result = _apiDeleteTask(e.parameter);           break;
+      case 'deleteProperty'       : result = _apiDeleteProperty(e.parameter);       break;
       case 'getPhases'            : result = _apiGetPhases();                       break;
       case 'addPhase'             : result = _apiAddPhase(e.parameter);             break;
       case 'renamePhase'          : result = _apiRenamePhase(e.parameter);          break;
@@ -700,6 +702,31 @@ function _apiDeleteMasterTask(params) {
   sh.deleteRow(rowIdx + 1);
   _writeHistory('', data[rowIdx][MC.NAME - 1], 'マスター', 'マスタータスク削除', data[rowIdx][MC.NAME - 1], '');
   return { deleted: true, id };
+}
+
+// 物件タスク削除（スプレッドシートから行削除）
+// ?mode=deleteTask&id=T-0001
+function _apiDeleteTask(params) {
+  const { id } = params;
+  if (!id) throw new Error('id は必須');
+  const sh = _getSS().getSheetByName(SH.TASKS);
+  const data = sh.getDataRange().getValues();
+  const rowIdx = data.findIndex((r, i) => i > 0 && r[C.ID - 1] === id);
+  if (rowIdx < 0) throw new Error('タスクが見つかりません: ' + id);
+  const taskName = data[rowIdx][C.NAME - 1];
+  const propName = data[rowIdx][C.PROPERTY - 1];
+  sh.deleteRow(rowIdx + 1);
+  _writeHistory(propName, taskName, data[rowIdx][C.PHASE - 1], '削除', taskName, '');
+  return { deleted: true, id };
+}
+
+// 物件削除（Notion をアーカイブ）
+// ?mode=deleteProperty&pageId=NOTION_PAGE_ID
+function _apiDeleteProperty(params) {
+  const { pageId } = params;
+  if (!pageId) throw new Error('pageId は必須');
+  _notionPatch('https://api.notion.com/v1/pages/' + pageId, { archived: true });
+  return { deleted: true, pageId };
 }
 
 // 工程一覧取得（設定シートのD列から）
