@@ -547,78 +547,6 @@
     }
     .more-menu-item:active { background: var(--bg); }
     .more-menu-item.on { color: var(--green); font-weight: 700; background: rgba(0,104,55,0.07); }
-    /* タブに件数バッジ */
-    .tab-prio-badge {
-      display: none; background: #dc2626; color: white;
-      font-size: 9px; font-weight: 700; border-radius: 10px;
-      padding: 1px 5px; margin-left: 4px; font-family: var(--fm);
-      vertical-align: middle;
-    }
-    .tab-prio-badge.show { display: inline-block; }
-
-    /* ─ 優先タスク ペイン ───────────────────────────────────── */
-    .prio-empty-state { text-align: center; padding: 40px 20px;
-                        color: var(--t3); font-size: 13px; line-height: 1.8; }
-    /* 旧 prio-panel のコンテナは廃止 — グループスタイルは継承 */
-    .prio-body { display: block; }
-    .prio-cnt-badge { display: none; } /* 不使用だが JS 参照が残るため残す */
-    /* ─ 優先タスク グループ ──────────────────────────────────── */
-    .prio-group { border-bottom: 1px solid #fecaca; }
-    .prio-group:last-child { border-bottom: none; }
-    .prio-group-hdr { display: flex; align-items: center; gap: 8px;
-                      padding: 10px 14px; cursor: pointer; user-select: none;
-                      -webkit-tap-highlight-color: transparent;
-                      position: sticky; top: 84px; z-index: 10;
-                      background: #fff8f8;
-                      border-bottom: 1px solid #fecaca; }
-    .prio-group-hdr:active { background: #fff1f1; }
-    .prio-group-name { flex: 1; font-size: 12px; font-weight: 700; color: #991b1b;
-                       overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .prio-group-cnt { font-size: 10px; background: #dc2626; color: #fff;
-                      border-radius: 10px; padding: 1px 6px; font-weight: 600; flex-shrink: 0; }
-    .prio-group-arr { transition: transform .2s; color: #9ca3af; flex-shrink: 0; }
-    .prio-group.open .prio-group-arr { transform: rotate(90deg); }
-    .prio-group-body { display: none; background: #fffafa; }
-    .prio-group.open .prio-group-body { display: block; }
-    /* ─ 優先タスク：物件カードの色・sticky位置を上書き ─ */
-    .prio-prop-card { border-color: #fecaca; }
-    .prio-prop-card.open { border-color: #f87171; }
-    .prio-prop-card .prop-icon { background: #fff1f1; color: #dc2626; }
-    .prio-prop-card.open .prop-icon { background: #dc2626; color: #fff; }
-    .prio-prop-card .prop-hdr:active { background: #fff1f1; }
-    .prio-prop-card .prop-progress-badge { background: #fff1f1; color: #b91c1c; }
-    .prio-prop-card.open .prop-hdr { top: 84px; background: #fff8f8; }
-    /* ─ 工程セクション ─ */
-    .prio-phase-sec { border-top: 1px solid var(--border); }
-    .prio-phase-hdr { display: flex; align-items: center; gap: 7px;
-                      padding: 7px 14px; background: var(--bg); cursor: pointer;
-                      -webkit-tap-highlight-color: transparent; }
-    .prio-phase-hdr:active { background: var(--green-light); }
-    .prio-phase-name { flex: 1; font-size: 11px; font-weight: 700;
-                       color: var(--t2); letter-spacing: 0.02em; }
-    .prio-phase-progress { font-size: 10px; color: var(--t3); font-family: var(--fm); flex-shrink: 0; }
-    .prio-phase-arr { transition: transform .2s; color: var(--t3); flex-shrink: 0; }
-    .prio-phase-sec.open .prio-phase-arr { transform: rotate(90deg); }
-    .prio-phase-body { display: none; }
-    .prio-phase-sec.open .prio-phase-body { display: block; }
-    /* ─ タスク行 ─ */
-    .prio-row { display: flex; align-items: flex-start; gap: 10px;
-                padding: 8px 14px 8px 20px; border-bottom: 1px solid var(--border); }
-    .prio-row:last-child { border-bottom: none; }
-    .prio-row.done { opacity: 0.45; }
-    .prio-row.done .prio-task-name { text-decoration: line-through; }
-    .prio-task-name { flex: 1; font-size: 12px; min-width: 0; word-break: break-all; line-height: 1.5; }
-    .prio-task-name.prio-marked { font-weight: 600; color: var(--t1); }
-    .prio-task-name.not-prio    { color: var(--t2); }
-    .prio-phase-tag { font-size: 10px; color: var(--t3); white-space: nowrap; flex-shrink: 0; }
-    /* ─ Diamond priority button ─────────────────────────────── */
-    .star-btn { width: 24px; height: 24px; background: none; border: none;
-                flex-shrink: 0; cursor: pointer; display: flex; align-items: center;
-                justify-content: center; color: #9ca3af; margin-top: 1px;
-                -webkit-tap-highlight-color: transparent; transition: color .15s; }
-    .star-btn.on { color: #dc2626; }
-    .star-btn:active { transform: scale(1.3); }
-
     .del-task-btn { width: 24px; height: 24px; background: none; border: none;
                     flex-shrink: 0; cursor: pointer; display: flex; align-items: center;
                     justify-content: center; color: #d1d5db; margin-top: 1px;
@@ -644,7 +572,6 @@
       <div class="hdr-title">現場タスク</div>
     </div>
     <!-- 更新時刻ラベル（タブに応じて切り替え） -->
-    <span class="tbar-meta" id="lbl-upd-prio">同期前</span>
     <span class="tbar-meta" id="lbl-upd" style="display:none">読み込み中…</span>
     <!-- 優先タスク / 物件一覧 の更新ボタン（他タブでは非表示） -->
     <button class="btn-refresh" id="btn-sync-prio" onclick="_doRefresh()" title="更新">
@@ -655,8 +582,7 @@
     </button>
   </div>
   <nav class="tabs">
-    <button class="tab on" id="tab-btn-prio"  onclick="switchTab('prio',this)">優先タスク<span id="prio-tab-badge" class="tab-prio-badge"></span></button>
-    <button class="tab"    id="tab-btn-props" onclick="switchTab('props',this)">物件一覧</button>
+    <button class="tab on" id="tab-btn-props" onclick="switchTab('props',this)">物件一覧</button>
     <div class="tab-more-wrap">
       <button class="tab tab-more" id="btn-more" onclick="toggleMoreMenu(event)" aria-label="その他">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
@@ -680,17 +606,8 @@
   </div>
 </header>
 
-<!-- ─── 優先タスク ───────────────────────────────────────────── -->
-<section id="pane-prio" class="pane on">
-  <!-- prio-body / prio-cnt は JS から直接参照 -->
-  <div id="prio-body">
-    <div class="prio-empty-state">同期ボタンで優先タスクを取得します</div>
-  </div>
-  <span id="prio-cnt" style="display:none">0</span>
-</section>
-
 <!-- ─── 物件一覧 ─────────────────────────────────────────────── -->
-<section id="pane-props" class="pane">
+<section id="pane-props" class="pane on">
   <div class="sort-bar">
     <span class="sort-lbl">並び順：</span>
     <div class="sort-btns">
@@ -803,6 +720,7 @@ const TASK_CACHE_KEY   = 'taskCacheV2';
 const TASK_CACHE_TS_KEY = 'taskCacheTsV2';   // キャッシュ取得時刻 { propName: timestamp }
 const DISPLAY_STATE_KEY = 'displayStateV2';  // 表示状態 { cid: { hideDonePhases, phases:{phid:{hideDone,open}} } }
 const CACHE_TTL = 15 * 60 * 1000;           // 15分でキャッシュ期限切れ
+const PROP_DATA_CACHE_KEY = 'propDataCacheV1';
 
 let taskCacheTs = {};   // { propName: Date.now() }
 let displayState = {};  // 表示状態（localStorage と同期）
@@ -824,6 +742,12 @@ function restoreTaskCache() {
     const savedTs = JSON.parse(localStorage.getItem(TASK_CACHE_TS_KEY) || 'null');
     if (savedTs && typeof savedTs === 'object') Object.assign(taskCacheTs, savedTs);
   } catch(e) {}
+}
+function savePropDataCache(data) {
+  try { localStorage.setItem(PROP_DATA_CACHE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+function loadPropDataFromCache() {
+  try { return JSON.parse(localStorage.getItem(PROP_DATA_CACHE_KEY) || 'null'); } catch(e) { return null; }
 }
 
 // ─ 表示状態の保存・復元 ────────────────────────────────────────
@@ -886,7 +810,6 @@ function restoreTaskCacheToUI() {
     }
     updatePhaseDoneToggle(cid, propName);
   });
-  refreshPrioPanel();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -913,20 +836,18 @@ async function api(params, timeoutMs = 20000) {
 // ═══════════════════════════════════════════════════════
 //  Tab switch
 // ═══════════════════════════════════════════════════════
-let _curTab = 'prio'; // 現在アクティブなタブ
+let _curTab = 'props'; // 現在アクティブなタブ
 
 // ヘッダー更新ボタンのディスパッチ
 function _doRefresh() {
-  if (_curTab === 'prio')  refreshAllTasks();
-  else if (_curTab === 'props') loadProperties();
+  if (_curTab === 'props') loadProperties();
 }
 
 function switchTab(name, btn) {
   _curTab = name;
-  // ヘッダー更新ボタン: 優先タスク・物件一覧のみ表示
+  // ヘッダー更新ボタン: 物件一覧のみ表示
   const refreshBtn = document.getElementById('btn-sync-prio');
-  if (refreshBtn) refreshBtn.style.display =
-    (name === 'prio' || name === 'props') ? '' : 'none';
+  if (refreshBtn) refreshBtn.style.display = name === 'props' ? '' : 'none';
   // 通常タブ（···以外）のon状態をリセット
   document.querySelectorAll('.tab:not(.tab-more)').forEach(b => b.classList.remove('on'));
   document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
@@ -950,10 +871,8 @@ function switchTab(name, btn) {
   // ジャンプバーは物件一覧タブのみ表示
   const jumpBar = document.getElementById('prop-jump-bar');
   if (jumpBar) jumpBar.classList.toggle('visible', name === 'props');
-  // ヘッダー更新ラベル: 優先タスク=lbl-upd-prio / 物件一覧=lbl-upd / 他=非表示
-  const lblPrio = document.getElementById('lbl-upd-prio');
+  // ヘッダー更新ラベル: 物件一覧=lbl-upd / 他=非表示
   const lblUpd  = document.getElementById('lbl-upd');
-  if (lblPrio) lblPrio.style.display = name === 'prio'  ? '' : 'none';
   if (lblUpd)  lblUpd.style.display  = name === 'props' ? '' : 'none';
   if (name === 'master'  && !masterInit)  loadMaster();
   if (name === 'history' && !historyInit) loadHistory();
@@ -975,79 +894,57 @@ document.addEventListener('click', function(e) {
 
 
 // ═══════════════════════════════════════════════════════
-//  全物件タスク同期
-// ═══════════════════════════════════════════════════════
-async function refreshAllTasks() {
-  const btn  = document.getElementById('btn-sync-prio');
-  const icon = document.getElementById('sync-icon');
-  if (btn) btn.disabled = true;
-  if (icon) icon.classList.add('icon-spin');
-
-  const cards = [...document.querySelectorAll('#props-list .prop-card')];
-  if (!cards.length) {
-    showToast('先に物件を読み込んでください');
-    if (btn) btn.disabled = false;
-    if (icon) icon.classList.remove('icon-spin');
-    return;
-  }
-
-  let done = 0;
-  await Promise.all(cards.map(async card => {
-    const propName = card.dataset.prop;
-    const cid = card.id;
-    try {
-      const tasks = await api({ mode: 'getTasks', property: propName });
-      taskCache[propName]   = tasks;
-      taskCacheTs[propName] = Date.now();
-      // 展開中のカードは再レンダリング
-      if (card.classList.contains('open')) {
-        const wrap = document.getElementById(cid + '-pw');
-        if (wrap) renderPropTasks(propName, cid, tasks, wrap);
-      }
-    } catch(e) { /* 個別エラーは無視して続行 */ }
-    done++;
-  }));
-
-  saveTaskCache();
-  refreshPrioPanel();
-  if (btn) btn.disabled = false;
-  if (icon) icon.classList.remove('icon-spin');
-  const lblPrio = document.getElementById('lbl-upd-prio');
-  if (lblPrio) lblPrio.textContent = '更新: ' + now();
-  showToast(`✓ 優先タスクを同期しました（${done}件）`);
-}
-
-// ═══════════════════════════════════════════════════════
 //  物件一覧
 // ═══════════════════════════════════════════════════════
 let _loadingProperties = false; // 二重呼び出し防止フラグ
 async function loadProperties() {
-  if (_loadingProperties) return; // 既にロード中なら無視
+  if (_loadingProperties) return;
   _loadingProperties = true;
   const btn  = document.getElementById('btn-sync-prio');
   const icon = document.getElementById('sync-icon');
+  const el   = document.getElementById('props-list');
+  const lbl  = document.getElementById('lbl-upd');
   if (btn)  btn.disabled = true;
   if (icon) icon.classList.add('icon-spin');
-  const el = document.getElementById('props-list');
-  el.innerHTML = '<div class="center"><div class="spin"></div></div>';
-  document.getElementById('lbl-upd').textContent = '読み込み中…';
-  try {
-    propData = await api({ mode: 'getProperties' });
+
+  // キャッシュがあれば即座に表示（スピナーなし）
+  const cached = loadPropDataFromCache();
+  if (cached && cached.length > 0) {
+    propData = cached;
     propDataLoadedAt = Date.now();
     renderProps(propData);
-    restoreTaskCacheToUI();  // キャッシュからミニバー・優先パネルを復元
-    document.getElementById('lbl-upd').textContent = '更新: ' + now();
+    restoreTaskCacheToUI();
+    if (lbl) lbl.textContent = '更新中…';
+  } else {
+    el.innerHTML = '<div class="center"><div class="spin"></div></div>';
+    if (lbl) lbl.textContent = '読み込み中…';
+  }
+
+  try {
+    const fresh = await api({ mode: 'getProperties' });
+    // データが変わった時だけ再レンダリング
+    if (JSON.stringify(fresh) !== JSON.stringify(propData)) {
+      propData = fresh;
+      renderProps(propData);
+      restoreTaskCacheToUI();
+    } else {
+      propData = fresh;
+    }
+    propDataLoadedAt = Date.now();
+    savePropDataCache(fresh);
+    if (lbl) lbl.textContent = '更新: ' + now();
   } catch(e) {
-    el.innerHTML = `<div class="err" style="padding:16px;line-height:1.7">
-      ⚠ 物件の読み込みに失敗しました<br>
-      <span style="font-size:11px;color:var(--t3)">${esc(e.message)}</span><br>
-      <button onclick="loadProperties()" style="margin-top:10px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:12px;cursor:pointer;">
-        再読み込み
-      </button>
-      <br><span style="font-size:10px;color:var(--t3);margin-top:6px;display:block">
-        ※ GASを再デプロイした場合はURLが変わっていないか確認してください
-      </span>
-    </div>`;
+    if (!cached || cached.length === 0) {
+      el.innerHTML = `<div class="err" style="padding:16px;line-height:1.7">
+        ⚠ 物件の読み込みに失敗しました<br>
+        <span style="font-size:11px;color:var(--t3)">${esc(e.message)}</span><br>
+        <button onclick="loadProperties()" style="margin-top:10px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:12px;cursor:pointer;">
+          再読み込み
+        </button>
+      </div>`;
+    } else {
+      if (lbl) lbl.textContent = 'オフライン';
+    }
   } finally {
     _loadingProperties = false;
     if (btn)  btn.disabled = false;
@@ -1325,8 +1222,6 @@ ${phases.map(ph => phaseSecHTML(propName, cid, ph, phaseMap[ph])).join('')}`;
   // 前回の表示状態（非表示フィルタ・工程開閉）を復元
   restoreDisplayStateToCard(cid, propName);
   updatePhaseDoneToggle(cid, propName); // hide-done-phases 復元後に再計算
-
-  refreshPrioPanel();
 }
 
 function phaseSecHTML(propName, cid, phase, tasks) {
@@ -1467,7 +1362,6 @@ async function checkAllPhase(phid, propName, cid) {
   refreshPhaseHdr(rows[0]);
   refreshProgBar(propName, cid);
   checkAllDone(propName, cid);
-  refreshPrioPanel();
   updatePhaseDoneToggle(cid, propName);
   saveTaskCache();
 
@@ -1531,13 +1425,6 @@ function taskRowHTML(task, propName, cid) {
         </svg>${esc(task.due)}</span>` : ''}
     </div>
   </div>
-  <button class="star-btn${task.priority?' on':''}" title="優先タスクに設定"
-    onclick="togglePriority('${esc(task.id)}','${esc(propName)}','${cid}')">
-    <svg width="13" height="13" viewBox="0 0 24 24"
-      fill="${task.priority?'#dc2626':'none'}" stroke="${task.priority?'#dc2626':'currentColor'}" stroke-width="2.5">
-      <polygon points="12,2 22,12 12,22 2,12"/>
-    </svg>
-  </button>
   <button class="del-task-btn" title="タスクを削除"
     onclick="deleteTask('${esc(task.id)}','${esc(task.name)}','${esc(propName)}','${cid}')">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1552,24 +1439,8 @@ function taskRowHTML(task, propName, cid) {
 async function toggleTask(id, propName, cid) {
   const row = document.getElementById('tk-' + id);
 
-  // 優先パネルから呼び出し時など、カードが開いていない場合
-  if (!row) {
-    const cached = taskCache[propName];
-    const t = cached && cached.find(x => x.id === id);
-    const was = t ? t.done : false;
-    const next = !was;
-    if (t) t.done = next;
-    refreshPrioPanel();
-    try {
-      await api({ mode:'updateTask', id, field:'done', value:String(next) });
-      showToast(next ? '✓ 完了にしました' : '未完了に戻しました');
-    } catch(e) {
-      if (t) t.done = was;
-      refreshPrioPanel();
-      showToast('エラー: 更新できませんでした');
-    }
-    return;
-  }
+  // カードが開いていない場合は何もしない
+  if (!row) return;
 
   const chk  = row.querySelector('.chk');
   const was  = chk.classList.contains('on');
@@ -1585,7 +1456,6 @@ async function toggleTask(id, propName, cid) {
   refreshPhaseHdr(row);
   refreshProgBar(propName, cid);
   checkAllDone(propName, cid);
-  refreshPrioPanel();
   saveTaskCache();
 
   try {
@@ -1653,226 +1523,6 @@ function refreshProgBar(propName, cid) {
   if (mpb) mpb.style.width = pct + '%';
   // タスク0件の場合はミニバーも「―」で統一
   if (mpl) mpl.textContent = total > 0 ? `${pct}%` : '―';
-}
-
-// ─ 優先タスク パネル ──────────────────────────────────────────
-const PRIO_CACHE_KEY = 'prioTasksCache';
-
-// タスク行HTML（物件一覧と同じ star-btn でON/OFFトグル可）
-function prioPanelRowHTML(t) {
-  const nameClass = t.priority ? 'prio-marked' : 'not-prio';
-  return `
-<div class="prio-row${t.done?' done':''}" id="prio-${t.id}">
-  <div class="chk${t.done?' on':''}" style="width:17px;height:17px;border-radius:4px;flex-shrink:0;margin-top:2px"
-    onclick="toggleTask('${esc(t.id)}','${esc(t.propName)}','pc-${slug(t.propName)}')">
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5">
-      <polyline points="20,6 9,17 4,12"/>
-    </svg>
-  </div>
-  <div class="prio-task-name ${nameClass}">${esc(t.name)}</div>
-  <button class="star-btn${t.priority?' on':''}" title="${t.priority?'優先を解除':'優先に追加'}"
-    onclick="togglePriorityFromPanel('${esc(t.id)}','${esc(t.propName)}')">
-    <svg width="13" height="13" viewBox="0 0 24 24"
-      fill="${t.priority?'#dc2626':'none'}" stroke="${t.priority?'#dc2626':'currentColor'}" stroke-width="2.5">
-      <polygon points="12,2 22,12 12,22 2,12"/>
-    </svg>
-  </button>
-</div>`;
-}
-
-// 工程セクションHTML
-function prioPanelPhaseHTML(propName, phaseName, tasks) {
-  const phid = 'pph-' + slug(propName) + '-' + slug(phaseName);
-  const done  = tasks.filter(t => t.done).length;
-  return `<div class="prio-phase-sec open" id="${phid}">
-  <div class="prio-phase-hdr" onclick="togglePrioPhase('${esc(phid)}')">
-    <span class="prio-phase-name">${esc(phaseName)}</span>
-    <span class="prio-phase-progress">${done} / ${tasks.length}</span>
-    <svg class="prio-phase-arr" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9,18 15,12 9,6"/></svg>
-  </div>
-  <div class="prio-phase-body">
-    ${tasks.map(t => prioPanelRowHTML({...t, propName})).join('')}
-  </div>
-</div>`;
-}
-
-// 物件ごとグループHTML（物件一覧と同じ prop-card デザイン）
-function prioPanelGroupHTML(propName, phaseMap) {
-  const gid    = 'pg-' + slug(propName);
-  const saved  = (() => { try { return JSON.parse(localStorage.getItem('prioGroupState') || '{}'); } catch(e) { return {}; } })();
-  const isOpen = saved[gid] !== false;
-  const phaseCount = Object.keys(phaseMap).length;
-  return `<div class="prop-card prio-prop-card${isOpen?' open':''}" id="${gid}">
-  <div class="prop-hdr" onclick="togglePrioGroup('${esc(gid)}')">
-    <div class="prop-icon">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-        <polygon points="12,2 22,12 12,22 2,12"/>
-      </svg>
-    </div>
-    <div class="prop-info">
-      <div class="prop-name">${esc(propName)}</div>
-    </div>
-    <div class="prop-right">
-      <span class="prop-progress-badge">工程 ${phaseCount}件</span>
-      <svg class="prop-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-    </div>
-  </div>
-  <div class="phases-wrap">
-    ${Object.entries(phaseMap).map(([ph, ts]) => prioPanelPhaseHTML(propName, ph, ts)).join('')}
-  </div>
-</div>`;
-}
-
-function refreshPrioPanel() {
-  const body = document.getElementById('prio-body');
-  if (!body) return;
-
-  // ◆がついた未完了タスクが存在する工程をすべて収集
-  // 構造: { propName: { phaseName: [その工程の全タスク] } }
-  // ※ propData にない物件（引渡し済み等）は除外
-  const activePropNames = new Set((propData || []).map(p => p.name));
-  const propPhaseMap = {};
-  Object.entries(taskCache).forEach(([propName, tasks]) => {
-    if (!tasks) return;
-    if (activePropNames.size > 0 && !activePropNames.has(propName)) return;
-    // ◆かつ未完了のタスクがある工程のみ対象
-    const prioPhases = new Set(
-      tasks.filter(t => t.priority && !t.done).map(t => t.phase || '未分類')
-    );
-    if (prioPhases.size === 0) return;
-    propPhaseMap[propName] = {};
-    prioPhases.forEach(phase => {
-      propPhaseMap[propName][phase] = tasks
-        .filter(t => (t.phase || '未分類') === phase && !t.done)
-        .map(t => ({ ...t, propName }));
-    });
-  });
-
-  // バッジは◆未完了タスク数
-  const prioCount = Object.values(taskCache)
-    .flatMap(tasks => tasks || [])
-    .filter(t => t.priority && !t.done).length;
-
-  // 後方互換キャッシュ保存
-  const flatRows = Object.entries(taskCache).flatMap(([propName, tasks]) =>
-    (tasks || []).filter(t => t.priority && !t.done).map(t => ({...t, propName}))
-  );
-  try { localStorage.setItem(PRIO_CACHE_KEY, JSON.stringify(flatRows)); } catch(e) {}
-
-  _updatePrioTabBadge(prioCount);
-
-  if (Object.keys(propPhaseMap).length === 0) {
-    body.innerHTML = '<div class="prio-empty-state">優先タスクはありません<br><span style="font-size:11px">各物件カードの ◆ ボタンでマークします</span></div>';
-    return;
-  }
-
-  const handoverOf = name => (propData.find(p => p.name === name) || {}).handover || '9999';
-  const sortedEntries = Object.entries(propPhaseMap)
-    .sort((a, b) => handoverOf(a[0]).localeCompare(handoverOf(b[0])));
-  body.innerHTML = sortedEntries.map(([pn, pm]) => prioPanelGroupHTML(pn, pm)).join('');
-}
-
-function _updatePrioTabBadge(cnt) {
-  const badge = document.getElementById('prio-tab-badge');
-  if (!badge) return;
-  badge.textContent = cnt;
-  badge.classList.toggle('show', cnt > 0);
-}
-
-function restorePrioPanelFromCache() {
-  try {
-    const cached = JSON.parse(localStorage.getItem(PRIO_CACHE_KEY) || '[]');
-    if (cached.length === 0) return;
-    const body = document.getElementById('prio-body');
-    if (!body) return;
-    _updatePrioTabBadge(cached.length);
-    const groups = {};
-    cached.forEach(t => {
-      if (!groups[t.propName]) groups[t.propName] = [];
-      groups[t.propName].push(t);
-    });
-    const handoverOf = name => (propData.find(p => p.name === name) || {}).handover || '9999';
-    const sortedEntries = Object.entries(groups).sort((a, b) => handoverOf(a[0]).localeCompare(handoverOf(b[0])));
-    body.innerHTML = sortedEntries.map(([pn, ts]) => prioPanelGroupHTML(pn, ts)).join('');
-  } catch(e) {}
-}
-
-function togglePrioPanel() {
-  document.getElementById('prio-panel').classList.toggle('open');
-}
-
-// 物件グループの開閉
-function togglePrioGroup(gid) {
-  const el = document.getElementById(gid);
-  if (!el) return;
-  el.classList.toggle('open');
-  try {
-    const saved = JSON.parse(localStorage.getItem('prioGroupState') || '{}');
-    saved[gid] = el.classList.contains('open');
-    localStorage.setItem('prioGroupState', JSON.stringify(saved));
-  } catch(e) {}
-}
-
-// 工程セクションの開閉
-function togglePrioPhase(phid) {
-  const el = document.getElementById(phid);
-  if (el) el.classList.toggle('open');
-}
-
-// 優先パネルから◆をトグル（物件カードが開いていなくても動作）
-async function togglePriorityFromPanel(id, propName) {
-  const cached = taskCache[propName];
-  const t = cached && cached.find(x => x.id === id);
-  if (!t) return;
-  const was  = t.priority;
-  const next = !was;
-  t.priority = next;
-  refreshPrioPanel();
-  saveTaskCache();
-  try {
-    await api({ mode: 'updateTask', id, field: 'priority', value: String(next) });
-    showToast(next ? '◆ 優先タスクに追加しました' : '優先を解除しました');
-  } catch(e) {
-    t.priority = was;
-    refreshPrioPanel();
-    showToast('エラー: ' + e.message);
-  }
-}
-
-// ─ 優先トグル ─────────────────────────────────────────────────
-async function togglePriority(id, propName, cid) {
-  const row   = document.getElementById('tk-' + id);
-  if (!row) return;
-  const btn   = row.querySelector('.star-btn');
-  const was   = btn.classList.contains('on');
-  const next  = !was;
-
-  // UIを即座に更新
-  btn.classList.toggle('on', next);
-  const svg = btn.querySelector('svg');
-  svg.setAttribute('fill', next ? '#f59e0b' : 'none');
-  svg.setAttribute('stroke', next ? '#f59e0b' : 'currentColor');
-  row.dataset.priority = String(next);
-
-  const cached = taskCache[propName];
-  const t = cached && cached.find(x => x.id === id);
-  if (t) t.priority = next;
-
-  refreshPrioPanel();
-  saveTaskCache();
-
-  try {
-    await api({ mode:'updateTask', id, field:'priority', value:String(next) });
-    showToast(next ? '◆ 優先タスクに設定しました' : '優先を解除しました');
-  } catch(e) {
-    // ロールバック
-    btn.classList.toggle('on', was);
-    svg.setAttribute('fill', was ? '#f59e0b' : 'none');
-    svg.setAttribute('stroke', was ? '#f59e0b' : 'currentColor');
-    if (t) t.priority = was;
-    refreshPrioPanel();
-    showToast('エラー: ' + e.message);
-  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2341,10 +1991,9 @@ async function deleteTask(id, name, propName, cid) {
     // DOMから行を除去
     const row = document.getElementById('tk-' + id);
     if (row) row.remove();
-    // 進捗バー・優先パネル更新
+    // 進捗バー更新
     refreshProgBar(propName, cid);
     checkAllDone(propName, cid);
-    refreshPrioPanel();
     showToast('タスクを削除しました');
   } catch(e) {
     showToast('エラー: ' + e.message);
@@ -2368,7 +2017,6 @@ async function deleteProperty(cid) {
     card.remove();
     // ジャンプピル除去
     document.querySelector(`.jump-pill[data-jump="${cid}"]`)?.remove();
-    refreshPrioPanel();
     showToast(`「${propName}」を削除しました`);
   } catch(e) {
     showToast('エラー: ' + e.message);
@@ -2653,7 +2301,6 @@ function showToast(msg) {
 // ═══════════════════════════════════════════════════════
 restoreTaskCache();          // タスクキャッシュをlocalStorageから復元
 loadDisplayState();          // 表示状態（非表示フィルタ・工程開閉）を復元
-restorePrioPanelFromCache(); // 優先パネルを即時表示（物件読み込み前）
 setSortOrder('handover');
 loadProperties();
 
