@@ -121,6 +121,19 @@
                 -webkit-tap-highlight-color: transparent; }
     .btn-back:active { color: var(--green); }
     .hdr-settings-wrap { position: relative; }
+
+    /* ─ 物件ジャンプバー ─────────────────────────────────────────── */
+    .prop-jump-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+                     display: flex; padding: 7px 12px; gap: 6px;
+                     background: var(--card); border-top: 1px solid var(--border); }
+    .prop-jump-bar::-webkit-scrollbar { display: none; }
+    .jump-pill { display: inline-flex; align-items: center; flex-shrink: 0;
+                 padding: 5px 12px; border-radius: 20px;
+                 background: var(--bg); border: 1px solid var(--border);
+                 font-size: 11px; font-weight: 600; color: var(--t2);
+                 cursor: pointer; white-space: nowrap;
+                 -webkit-tap-highlight-color: transparent; transition: all .15s; }
+    .jump-pill:active { background: var(--green-light); color: var(--green); border-color: var(--green-mid); }
     .more-menu { display: none; position: absolute; right: 0; top: 38px; z-index: 300;
                  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
                  box-shadow: 0 4px 16px rgba(0,0,0,0.12); min-width: 160px; overflow: hidden; }
@@ -521,6 +534,7 @@
       </div>
     </div>
   </div>
+  <div id="prop-jump-bar" class="prop-jump-bar"></div>
 </header>
 
 <!-- ─── 物件一覧 ─────────────────────────────────────────────── -->
@@ -766,6 +780,8 @@ function switchTab(name) {
   if (refreshBtn) refreshBtn.style.display = isMain ? '' : 'none';
   if (settingsBtn) settingsBtn.style.display = isMain ? '' : 'none';
   if (lblUpd)     lblUpd.style.display     = isMain ? '' : 'none';
+  const jumpBar = document.getElementById('prop-jump-bar');
+  if (jumpBar)    jumpBar.style.display    = isMain ? '' : 'none';
   if (titleEl) {
     if (name === 'master')  titleEl.textContent = 'マスタータスク';
     else if (name === 'history') titleEl.textContent = '変更履歴';
@@ -849,6 +865,24 @@ async function loadProperties() {
   }
 }
 
+function _buildJumpBar(props) {
+  const bar = document.getElementById('prop-jump-bar');
+  if (!bar) return;
+  bar.innerHTML = (props || []).map(p => {
+    const cid = 'pc-' + slug(p.name);
+    return `<span class="jump-pill" onclick="_scrollToProp('${cid}')">${esc(p.name)}</span>`;
+  }).join('');
+}
+
+function _scrollToProp(cid) {
+  const card = document.getElementById(cid);
+  if (!card) return;
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (!card.classList.contains('open')) {
+    card.querySelector('.prop-hdr')?.click();
+  }
+}
+
 function renderProps(props) {
   const el = document.getElementById('props-list');
   if (!props || props.length === 0) {
@@ -874,6 +908,7 @@ function renderProps(props) {
     return a.handover.localeCompare(b.handover);
   });
   el.innerHTML = sorted.map(p => propCardHTML(p)).join('');
+  _buildJumpBar(sorted);
   // 非表示件数の表示（進捗「引渡し」+ 引渡し日超過の合計）
   const note = document.getElementById('hidden-props-note');
   if (note) {
