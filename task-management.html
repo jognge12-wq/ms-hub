@@ -799,8 +799,8 @@ let masterInit  = false;
 let historyInit = false;
 let propSortOrder = 'handover'; // 'handover' | 'start' | 'name'
 
-const TASK_CACHE_KEY   = 'taskCacheV1';
-const TASK_CACHE_TS_KEY = 'taskCacheTsV1';   // キャッシュ取得時刻 { propName: timestamp }
+const TASK_CACHE_KEY   = 'taskCacheV2';
+const TASK_CACHE_TS_KEY = 'taskCacheTsV2';   // キャッシュ取得時刻 { propName: timestamp }
 const DISPLAY_STATE_KEY = 'displayStateV2';  // 表示状態 { cid: { hideDonePhases, phases:{phid:{hideDone,open}} } }
 const CACHE_TTL = 15 * 60 * 1000;           // 15分でキャッシュ期限切れ
 
