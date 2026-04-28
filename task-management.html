@@ -91,6 +91,15 @@
     .hdr-info { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 0; }
     .hdr-title { font-size: 15px; font-weight: 700; letter-spacing: -0.01em;
                  color: var(--ink); line-height: 1.15; }
+    .tabs { display: flex; border-top: 1px solid var(--border); }
+    .tab { flex: 1; padding: 11px 4px 11px; background: none; border: none;
+           color: var(--t3); font-family: var(--fp); font-size: 12.5px; font-weight: 600;
+           cursor: pointer; position: relative; transition: color .15s;
+           -webkit-tap-highlight-color: transparent; }
+    .tab.on { color: var(--green); font-weight: 700; }
+    .tab.on::after { content: ''; position: absolute; bottom: -1px; left: 20%; right: 20%;
+                     height: 2.5px; background: var(--green); border-radius: 2px 2px 0 0; }
+
     /* ─ Panes ───────────────────────────────────────────────── */
     .pane { display: none; padding: 12px 12px 100px; max-width: 640px; margin: 0 auto; }
     .pane.on { display: block; }
@@ -115,34 +124,55 @@
                    -webkit-tap-highlight-color: transparent; transition: color .15s; }
     .btn-refresh:active { color: var(--green); }
     .btn-back { display: flex; align-items: center; justify-content: center;
-                width: 30px; height: 30px; border-radius: 50%;
-                background: none; border: none; padding: 0;
-                color: var(--t2); cursor: pointer; flex-shrink: 0;
-                -webkit-tap-highlight-color: transparent; }
+                width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+                background: none; border: none; padding: 0; color: var(--t2);
+                cursor: pointer; -webkit-tap-highlight-color: transparent; }
     .btn-back:active { color: var(--green); }
-    .hdr-settings-wrap { position: relative; }
 
-    /* ─ 物件ジャンプバー ─────────────────────────────────────────── */
-    .prop-jump-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
-                     display: flex; padding: 7px 12px; gap: 6px;
-                     background: var(--card); border-top: 1px solid var(--border); }
+    /* ─ Sort toggle ─────────────────────────────────────────── */
+    .sort-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+    .sort-lbl { font-size: 11px; color: var(--t3); flex-shrink: 0; }
+    .sort-btns { display: flex; gap: 4px; }
+    .sort-btn { padding: 4px 10px; border-radius: 14px; font-size: 11px; font-family: var(--fp);
+                border: 1px solid var(--border); background: var(--card); color: var(--t2);
+                cursor: pointer; -webkit-tap-highlight-color: transparent; transition: all .15s; }
+    .sort-btn:active { background: var(--bg); }
+    .sort-btn.on { background: var(--green); color: white; border-color: var(--green); font-weight: 600; }
+
+    /* ─ 物件ジャンプバー ─────────────────────────────────────── */
+    .prop-jump-bar {
+      display: none;
+      overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+      white-space: nowrap; padding: 6px 12px;
+      background: var(--card); border-top: 1px solid var(--border);
+      border-radius: 0 0 14px 14px; gap: 5px;
+    }
+    .prop-jump-bar.visible { display: flex; }
     .prop-jump-bar::-webkit-scrollbar { display: none; }
-    .jump-pill { display: inline-flex; align-items: center; flex-shrink: 0;
-                 padding: 5px 12px; border-radius: 20px;
-                 background: var(--bg); border: 1px solid var(--border);
-                 font-size: 11px; font-weight: 600; color: var(--t2);
-                 cursor: pointer; white-space: nowrap;
-                 -webkit-tap-highlight-color: transparent; transition: all .15s; }
-    .jump-pill:active { background: var(--green-light); color: var(--green); border-color: var(--green-mid); }
-    .more-menu { display: none; position: absolute; right: 0; top: 38px; z-index: 300;
-                 background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-                 box-shadow: 0 4px 16px rgba(0,0,0,0.12); min-width: 160px; overflow: hidden; }
-    .more-menu.open { display: flex; flex-direction: column; }
-    .more-menu-item { padding: 13px 16px; background: none; border: none; border-top: 1px solid var(--border);
-                      font-family: var(--fp); font-size: 13px; font-weight: 500; color: var(--t1);
-                      cursor: pointer; text-align: left; -webkit-tap-highlight-color: transparent; }
-    .more-menu-item:first-child { border-top: none; }
-    .more-menu-item:active { background: var(--bg); }
+    /* single-view: 選択した1件だけ表示 */
+    #props-list.single-view .prop-card { display: none; }
+    #props-list.single-view .prop-card.focused { display: block; }
+    #props-list.single-view ~ #hidden-props-note { display: none !important; }
+    /* single-view バナー */
+    .sv-banner {
+      display: none; align-items: center; justify-content: space-between;
+      padding: 5px 12px; background: var(--green); color: white;
+      font-size: 11px; font-weight: 600; border-radius: 8px; margin: 4px 12px 0;
+    }
+    .sv-banner.on { display: flex; }
+    .sv-banner-close { font-size: 13px; line-height: 1; cursor: pointer;
+                       padding: 2px 4px; border-radius: 4px;
+                       -webkit-tap-highlight-color: transparent; }
+    .jump-pill {
+      display: inline-flex; align-items: center;
+      padding: 4px 11px; border-radius: 20px; flex-shrink: 0;
+      background: var(--bg); border: 1px solid var(--border);
+      font-size: 11px; font-weight: 600; color: var(--t2);
+      cursor: pointer; white-space: nowrap;
+      -webkit-tap-highlight-color: transparent; transition: all .15s;
+    }
+    .jump-pill:active { background: var(--green-light); color: var(--green); }
+    .jump-pill.active { background: var(--green); color: white; border-color: var(--green); }
 
     /* ─ Property card ───────────────────────────────────────── */
     /* overflow: clip で sticky を許可。未対応ブラウザは hidden にフォールバック */
@@ -283,6 +313,12 @@
     .phase-sec.hide-done .task-row.done { display: none; }
     /* 完了工程非表示 */
     .phases-wrap.hide-done-phases .phase-sec.phase-all-done { display: none; }
+    /* 物件ヘッダー内：完了工程トグルボタン */
+    .prop-done-phases-btn { display: none; background: var(--bg); border: 1px solid var(--border);
+                             border-radius: 10px; padding: 3px 8px; font-size: 10px; color: var(--t3);
+                             cursor: pointer; font-family: var(--fp); white-space: nowrap;
+                             -webkit-tap-highlight-color: transparent; }
+    .prop-done-phases-btn:active { background: var(--green-light); color: var(--green); border-color: var(--green-mid); }
     /* 工程ヘッダー内：完了タスクトグルボタン（✓ N バッジ） */
     .phase-done-btn { background: var(--green-light); border: 1px solid #c5dfd0; border-radius: 6px;
                       cursor: pointer; font-size: 10px; color: var(--green);
@@ -485,6 +521,37 @@
     .btn-modal.cancel { background: var(--bg); color: var(--t2); border: 1px solid var(--border); }
     .btn-modal.danger { background: #fff0f0; color: var(--red); }
 
+    /* ─ ··· オーバーフローメニュー（ミニマル・SVGアイコン） ─────── */
+    .tabs { position: relative; }
+    .tab-more-wrap { position: relative; flex: 0 0 44px; display: flex;
+                     align-items: center; justify-content: center; }
+    .tab-more { flex: 1; display: flex; align-items: center; justify-content: center;
+                padding: 10px 4px 11px; background: none; border: none;
+                color: var(--t3); cursor: pointer; position: relative;
+                -webkit-tap-highlight-color: transparent; transition: color .15s; }
+    .tab-more:active { color: var(--t1); }
+    .tab-more svg { display: block; }
+    .tab-more.sub-active { color: var(--green); }
+    .tab-more.sub-active::after { content: ''; position: absolute; bottom: 0;
+                                   left: 30%; width: 40%; height: 2.5px;
+                                   background: var(--green); border-radius: 2px 2px 0 0; }
+    .more-menu {
+      display: none; position: absolute; right: 0; top: calc(100% + 6px);
+      background: var(--card); border-radius: 12px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.04);
+      z-index: 400; min-width: 160px; overflow: hidden;
+      padding: 6px;
+    }
+    .more-menu.open { display: flex; flex-direction: column; }
+    .more-menu-item {
+      padding: 10px 14px; font-size: 13px; font-weight: 500; color: var(--t1);
+      cursor: pointer; text-align: left; background: none; border: none;
+      border-radius: 8px; font-family: var(--fp);
+      -webkit-tap-highlight-color: transparent;
+      transition: background .12s;
+    }
+    .more-menu-item:active { background: var(--bg); }
+    .more-menu-item.on { color: var(--green); font-weight: 700; background: rgba(0,104,55,0.07); }
     .del-task-btn { width: 24px; height: 24px; background: none; border: none;
                     flex-shrink: 0; cursor: pointer; display: flex; align-items: center;
                     justify-content: center; color: #d1d5db; margin-top: 1px;
@@ -506,7 +573,7 @@
 <!-- ─── Header ──────────────────────────────────────────────── -->
 <header class="hdr">
   <div class="hdr-top">
-    <button class="btn-back" id="btn-back" style="display:none" onclick="switchTab('props')">
+    <button class="btn-back" id="btn-back" style="display:none" onclick="switchTab('props',null)">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <polyline points="15,18 9,12 15,6"/>
       </svg>
@@ -521,24 +588,39 @@
         <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
       </svg>
     </button>
-    <div class="hdr-settings-wrap">
-      <button class="btn-refresh" id="btn-settings" onclick="toggleMoreMenu(event)" title="設定">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    <div class="tab-more-wrap">
+      <button class="tab tab-more" id="btn-more" onclick="toggleMoreMenu(event)" aria-label="その他">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <line x1="4" y1="7"  x2="20" y2="7"/>
+          <line x1="4" y1="12" x2="20" y2="12"/>
+          <line x1="4" y1="17" x2="20" y2="17"/>
         </svg>
       </button>
       <div id="more-menu" class="more-menu">
-        <button class="more-menu-item" id="more-item-master" onclick="switchTab('master');closeMoreMenu()">マスタータスク</button>
-        <button class="more-menu-item" id="more-item-history" onclick="switchTab('history');closeMoreMenu()">変更履歴</button>
+        <button class="more-menu-item" id="more-item-master"  onclick="switchTab('master',null);closeMoreMenu()">マスタータスク</button>
+        <button class="more-menu-item" id="more-item-history" onclick="switchTab('history',null);closeMoreMenu()">変更履歴</button>
       </div>
     </div>
   </div>
+  <!-- 物件クイックジャンプバー（物件一覧タブのみ表示） -->
   <div id="prop-jump-bar" class="prop-jump-bar"></div>
+  <!-- single-view バナー -->
+  <div id="sv-banner" class="sv-banner">
+    <span id="sv-banner-label">物件名を表示中</span>
+    <span class="sv-banner-close" onclick="_jumpToProp(_focusedPropCid)">✕</span>
+  </div>
 </header>
 
 <!-- ─── 物件一覧 ─────────────────────────────────────────────── -->
 <section id="pane-props" class="pane on">
+  <div class="sort-bar">
+    <span class="sort-lbl">並び順：</span>
+    <div class="sort-btns">
+      <button class="sort-btn" id="sort-btn-handover" onclick="setSortOrder('handover')">引渡し順</button>
+      <button class="sort-btn" id="sort-btn-start"    onclick="setSortOrder('start')">着工日順</button>
+      <button class="sort-btn" id="sort-btn-name"     onclick="setSortOrder('name')">名前順</button>
+    </div>
+  </div>
   <div id="props-list"><div class="center"><div class="spin"></div></div></div>
   <div id="hidden-props-note" style="display:none;text-align:center;font-size:11px;color:var(--t3);padding:6px 0 12px;"></div>
 </section>
@@ -637,6 +719,8 @@ let masterData  = [];
 let phaseList   = [...PHASE_ORDER];
 let masterInit  = false;
 let historyInit = false;
+let propSortOrder = 'handover'; // 'handover' | 'start' | 'name'
+
 const TASK_CACHE_KEY   = 'taskCacheV2';
 const TASK_CACHE_TS_KEY = 'taskCacheTsV2';   // キャッシュ取得時刻 { propName: timestamp }
 const DISPLAY_STATE_KEY = 'displayStateV2';  // 表示状態 { cid: { hideDonePhases, phases:{phid:{hideDone,open}} } }
@@ -764,28 +848,28 @@ function _doRefresh() {
   if (_curTab === 'props') loadProperties();
 }
 
-function switchTab(name) {
+function switchTab(name, btn) {
   _curTab = name;
   document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
   document.getElementById('pane-' + name).classList.add('on');
 
   const isMain = name === 'props';
-  const backBtn     = document.getElementById('btn-back');
-  const refreshBtn  = document.getElementById('btn-sync-prio');
-  const settingsBtn = document.getElementById('btn-settings');
-  const titleEl     = document.getElementById('hdr-title');
-  const lblUpd      = document.getElementById('lbl-upd');
+  const backBtn    = document.getElementById('btn-back');
+  const refreshBtn = document.getElementById('btn-sync-prio');
+  const moreWrap   = document.querySelector('.tab-more-wrap');
+  const titleEl    = document.getElementById('hdr-title');
+  const jumpBar    = document.getElementById('prop-jump-bar');
+  const lblUpd     = document.getElementById('lbl-upd');
 
   if (backBtn)    backBtn.style.display    = isMain ? 'none' : '';
   if (refreshBtn) refreshBtn.style.display = isMain ? '' : 'none';
-  if (settingsBtn) settingsBtn.style.display = isMain ? '' : 'none';
+  if (moreWrap)   moreWrap.style.display   = isMain ? '' : 'none';
+  if (jumpBar)    jumpBar.classList.toggle('visible', isMain);
   if (lblUpd)     lblUpd.style.display     = isMain ? '' : 'none';
-  const jumpBar = document.getElementById('prop-jump-bar');
-  if (jumpBar)    jumpBar.style.display    = isMain ? '' : 'none';
   if (titleEl) {
-    if (name === 'master')  titleEl.textContent = 'マスタータスク';
+    if (name === 'master')       titleEl.textContent = 'マスタータスク';
     else if (name === 'history') titleEl.textContent = '変更履歴';
-    else titleEl.textContent = '現場タスク';
+    else                         titleEl.textContent = '現場タスク';
   }
   if (name === 'master'  && !masterInit)  loadMaster();
   if (name === 'history' && !historyInit) loadHistory();
@@ -801,7 +885,7 @@ function closeMoreMenu() {
 }
 // メニュー外タップで閉じる
 document.addEventListener('click', function(e) {
-  const wrap = document.querySelector('.hdr-settings-wrap');
+  const wrap = document.querySelector('.tab-more-wrap');
   if (wrap && !wrap.contains(e.target)) closeMoreMenu();
 });
 
@@ -865,22 +949,15 @@ async function loadProperties() {
   }
 }
 
-function _buildJumpBar(props) {
-  const bar = document.getElementById('prop-jump-bar');
-  if (!bar) return;
-  bar.innerHTML = (props || []).map(p => {
-    const cid = 'pc-' + slug(p.name);
-    return `<span class="jump-pill" onclick="_scrollToProp('${cid}')">${esc(p.name)}</span>`;
-  }).join('');
-}
-
-function _scrollToProp(cid) {
-  const card = document.getElementById(cid);
-  if (!card) return;
-  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  if (!card.classList.contains('open')) {
-    card.querySelector('.prop-hdr')?.click();
-  }
+function setSortOrder(order) {
+  propSortOrder = order;
+  // ボタンのon状態を更新
+  ['handover','start','name'].forEach(k => {
+    const btn = document.getElementById('sort-btn-' + k);
+    if (btn) btn.classList.toggle('on', k === order);
+  });
+  // propData が未ロードの場合は renderProps を呼ばない（初期化時の空レンダリング防止）
+  if (propData && propData.length > 0) renderProps(propData);
 }
 
 function renderProps(props) {
@@ -900,21 +977,98 @@ function renderProps(props) {
   });
   const hiddenCnt = props.length - visible.length;
 
-  // 引渡し順でソート（未設定は末尾）
+  // 選択された並び順でソート（未設定は末尾）
   const sorted = [...visible].sort((a, b) => {
-    if (!a.handover && !b.handover) return 0;
-    if (!a.handover) return 1;
-    if (!b.handover) return -1;
-    return a.handover.localeCompare(b.handover);
+    if (propSortOrder === 'name') {
+      return (a.name || '').localeCompare(b.name || '', 'ja');
+    } else if (propSortOrder === 'start') {
+      if (!a.start && !b.start) return 0;
+      if (!a.start) return 1;
+      if (!b.start) return -1;
+      return a.start.localeCompare(b.start);
+    } else { // 'handover'（デフォルト）
+      if (!a.handover && !b.handover) return 0;
+      if (!a.handover) return 1;
+      if (!b.handover) return -1;
+      return a.handover.localeCompare(b.handover);
+    }
   });
   el.innerHTML = sorted.map(p => propCardHTML(p)).join('');
-  _buildJumpBar(sorted);
+  // フォーカス状態をリセット（再レンダリング時）
+  _focusedPropCid = null;
+  el.classList.remove('single-view');
+  const svBanner = document.getElementById('sv-banner');
+  if (svBanner) svBanner.classList.remove('on');
   // 非表示件数の表示（進捗「引渡し」+ 引渡し日超過の合計）
   const note = document.getElementById('hidden-props-note');
   if (note) {
     note.style.display = hiddenCnt > 0 ? 'block' : 'none';
     note.textContent   = `完了・引渡し済み ${hiddenCnt}件を非表示中`;
   }
+  // ジャンプバー更新
+  _buildJumpBar(sorted);
+}
+
+// 物件クイックジャンプバーを生成
+function _buildJumpBar(props) {
+  const bar = document.getElementById('prop-jump-bar');
+  if (!bar) return;
+  if (!props || props.length === 0) { bar.innerHTML = ''; return; }
+
+  bar.innerHTML = props.map(p => {
+    const cid   = 'pc-' + slug(p.name); // propCardHTML と同じ ID 生成ロジック
+    const label = (p.name || '').replace(/様邸$/, '').slice(0, 6);
+    return `<button class="jump-pill" onclick="_jumpToProp('${esc(cid)}')" data-jump="${esc(cid)}">${label}</button>`;
+  }).join('');
+}
+
+// フォーカス中の物件 cid
+let _focusedPropCid = null;
+
+// ピルタップ: 1件フォーカス / 再タップで全件に戻る
+function _jumpToProp(cid) {
+  const list   = document.getElementById('props-list');
+  const card   = document.getElementById(cid);
+  const banner = document.getElementById('sv-banner');
+  const lbl    = document.getElementById('sv-banner-label');
+  if (!card || !list) return;
+
+  // 同じピルを再タップ → 全件表示に戻る
+  if (_focusedPropCid === cid) {
+    _focusedPropCid = null;
+    list.classList.remove('single-view');
+    document.querySelectorAll('#props-list .prop-card').forEach(c => c.classList.remove('focused'));
+    document.querySelectorAll('.jump-pill').forEach(p => p.classList.remove('active'));
+    if (banner) banner.classList.remove('on');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  // 別の物件をフォーカス
+  _focusedPropCid = cid;
+  document.querySelectorAll('#props-list .prop-card').forEach(c => c.classList.remove('focused'));
+  card.classList.add('focused');
+  list.classList.add('single-view');
+
+  // バナーに物件名を表示
+  if (banner && lbl) {
+    const propName = card.dataset.prop || '';
+    lbl.textContent = propName + ' のみ表示中';
+    banner.classList.add('on');
+  }
+
+  // 未展開なら展開
+  if (!card.classList.contains('open')) {
+    const hdr = card.querySelector('.prop-hdr');
+    if (hdr) hdr.click();
+  }
+
+  // ページトップへ（カードが最上部に来る）
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // アクティブピルをハイライト
+  document.querySelectorAll('.jump-pill').forEach(pill =>
+    pill.classList.toggle('active', pill.dataset.jump === cid));
 }
 
 function propCardHTML(p) {
@@ -956,6 +1110,10 @@ function propCardHTML(p) {
     </div>
     <div class="prop-right">
       <span class="prop-progress-badge" id="${cid}-prog">${esc(p.progress || '―')}</span>
+      <button class="prop-done-phases-btn" id="${cid}-pdtbtn"
+        onclick="event.stopPropagation();toggleDonePhases('${cid}')">
+        <span id="${cid}-pdtlbl"></span>
+      </button>
 <svg class="prop-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <polyline points="6,9 12,15 18,9"/>
       </svg>
@@ -1854,6 +2012,8 @@ async function deleteProperty(cid) {
     delete taskCacheTs[propName];
     saveTaskCache();
     card.remove();
+    // ジャンプピル除去
+    document.querySelector(`.jump-pill[data-jump="${cid}"]`)?.remove();
     showToast(`「${propName}」を削除しました`);
   } catch(e) {
     showToast('エラー: ' + e.message);
@@ -2138,6 +2298,7 @@ function showToast(msg) {
 // ═══════════════════════════════════════════════════════
 restoreTaskCache();          // タスクキャッシュをlocalStorageから復元
 loadDisplayState();          // 表示状態（非表示フィルタ・工程開閉）を復元
+setSortOrder('handover');
 loadProperties();
 
 // 物件メニューで進捗が変更されたらタスクメニューの物件リストを自動で再読み込み
