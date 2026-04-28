@@ -335,8 +335,6 @@
     .task-id { font-family: var(--fm); font-size: 10px; color: var(--t3); }
     .task-due { font-size: 11px; color: var(--t3); display: flex; align-items: center; gap: 3px; }
     .task-due.late { color: var(--red); font-weight: 600; }
-    .pdot { width: 6px; height: 6px; background: var(--red); border-radius: 50%;
-            flex-shrink: 0; margin-top: 5px; }
 
     /* ─ Init button ─────────────────────────────────────────── */
     .init-box { padding: 20px 14px; text-align: center; }
@@ -575,7 +573,7 @@
       <div class="hdr-title" id="hdr-title">現場タスク</div>
     </div>
     <span class="tbar-meta" id="lbl-upd" style="display:none">読み込み中…</span>
-    <button class="btn-refresh" id="btn-sync-prio" onclick="_doRefresh()" title="更新">
+    <button class="btn-refresh" id="btn-refresh-main" onclick="_doRefresh()" title="更新">
       <svg id="sync-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
         <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
@@ -848,7 +846,7 @@ function switchTab(name, btn) {
 
   const isMain = name === 'props';
   const backBtn    = document.getElementById('btn-back');
-  const refreshBtn = document.getElementById('btn-sync-prio');
+  const refreshBtn = document.getElementById('btn-refresh-main');
   const moreWrap   = document.querySelector('.tab-more-wrap');
   const titleEl    = document.getElementById('hdr-title');
   const jumpBar    = document.getElementById('prop-jump-bar');
@@ -890,7 +888,7 @@ let _loadingProperties = false; // 二重呼び出し防止フラグ
 async function loadProperties() {
   if (_loadingProperties) return;
   _loadingProperties = true;
-  const btn  = document.getElementById('btn-sync-prio');
+  const btn  = document.getElementById('btn-refresh-main');
   const icon = document.getElementById('sync-icon');
   const el   = document.getElementById('props-list');
   const lbl  = document.getElementById('lbl-upd');
@@ -1399,7 +1397,7 @@ function taskRowHTML(task, propName, cid) {
   const late   = task.due && !task.done && task.due < today;
   return `
 <div class="task-row${task.done?' done':''}" id="tk-${task.id}"
-  data-prop="${esc(propName)}" data-cid="${cid}" data-priority="${task.priority}">
+  data-prop="${esc(propName)}" data-cid="${cid}">
   <div class="chk${task.done?' on':''}" onclick="toggleTask('${esc(task.id)}','${esc(propName)}','${cid}')">
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5">
       <polyline points="20,6 9,17 4,12"/>
@@ -1757,7 +1755,6 @@ function masterRowHTML(task) {
   </div>
   <span class="m-ord">${task.order}</span>
   <span class="m-name${!task.active?' off':''}">${esc(task.name)}</span>
-  ${task.priority ? '<div class="pdot"></div>' : ''}
   <div class="m-actions">
     <button class="m-btn" title="編集" onclick="openEditTask('${esc(task.id)}')">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -2203,7 +2200,6 @@ async function loadHistory() {
       'マスター.phase'   : { lbl:'工程変更',    dot:'h-dot-phase', chip:'h-chip-phase' },
       'マスター.order'   : { lbl:'順番変更',    dot:'h-dot-order', chip:'h-chip-order' },
       'マスター.active'  : { lbl:'有効/無効',   dot:'h-dot-misc',  chip:'h-chip-misc' },
-      'マスター.priority': { lbl:'優先変更',    dot:'h-dot-order', chip:'h-chip-order' },
       '工程名変更'       : { lbl:'工程名変更',  dot:'h-dot-phase', chip:'h-chip-phase' },
     };
     const isLast = i => i === hist.length - 1;

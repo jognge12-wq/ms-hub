@@ -412,8 +412,6 @@ function doGet(e) {
       case 'addTask'          : result = _apiAddTask(e.parameter);        break;
       case 'addMasterTask'    : result = _apiAddMasterTask(e.parameter);  break;
       case 'updateMasterTask' : result = _apiUpdateMasterTask(e.parameter); break;
-      case 'moveTask'         : result = _apiMoveTask(e.parameter);       break;
-      case 'reorderTask'      : result = _apiReorderTask(e.parameter);       break;
       case 'initProperty'     : result = _apiInitProperty(e.parameter);     break;
       case 'getHistory'       : result = _apiGetHistory(e.parameter);       break;
       case 'deleteMasterTask'     : result = _apiDeleteMasterTask(e.parameter);     break;
@@ -640,18 +638,6 @@ function _apiUpdateMasterTask(params) {
   _writeHistory('', data[rowIdx][MC.NAME - 1], 'マスター', 'マスター.' + field, oldValue, newValue);
 
   return { updated: true, id, field, newValue };
-}
-
-// 工程間タスク移動
-// ?mode=moveTask&id=T-0001&phase=基礎検査
-function _apiMoveTask(params) {
-  return _apiUpdateTask({ id: params.id, field: 'phase', value: params.phase });
-}
-
-// 並び順変更
-// ?mode=reorderTask&id=T-0001&order=3
-function _apiReorderTask(params) {
-  return _apiUpdateTask({ id: params.id, field: 'order', value: params.order });
 }
 
 // 物件タスク一括生成
