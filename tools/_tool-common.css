@@ -12,6 +12,36 @@
   animation: spin 0.8s linear infinite;
 }
 
+/* ---- プルトゥリフレッシュ（全ツール共通） ---- */
+#tool-ptr {
+  position: fixed; top: 52px; left: 50%;
+  transform: translateX(-50%) translateY(-52px);
+  z-index: 110;
+  width: 34px; height: 34px;
+  background: #fff; border: 1.5px solid #e8eaed;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  pointer-events: none; opacity: 0; transition: opacity 0.18s;
+}
+#tool-ptr.ptr-visible { opacity: 1; }
+.tool-ptr-arrow { transition: transform 0.2s ease, stroke 0.2s ease; stroke: #9ca3af; }
+#tool-ptr.ptr-ready .tool-ptr-arrow { stroke: #006837; transform: rotate(180deg); }
+.tool-ptr-ring {
+  display: none; width: 15px; height: 15px;
+  border: 2px solid rgba(0,104,55,0.2);
+  border-top-color: #006837; border-radius: 50%;
+}
+#tool-ptr.ptr-loading .tool-ptr-arrow { display: none; }
+#tool-ptr.ptr-loading .tool-ptr-ring { display: block; animation: spin 0.7s linear infinite; }
+
+@media (prefers-color-scheme: dark) {
+  #tool-ptr { background: #1a1f26; border-color: #2d333b; }
+  .tool-ptr-arrow { stroke: #6b7280 !important; }
+  #tool-ptr.ptr-ready .tool-ptr-arrow { stroke: #34d399 !important; }
+  .tool-ptr-ring { border-color: rgba(52,211,153,0.2); border-top-color: #34d399; }
+}
+
 /* ---- トップバー（全ツール共通） ---- */
 .tool-top-bar {
   position: fixed; top: 0; left: 0; right: 0;
