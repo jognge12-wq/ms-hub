@@ -2108,19 +2108,30 @@
             to   { transform: rotate(360deg); }
         }
 
-        /* Googleタスク更新ボタン（ピル型・ミニマル） */
-        .gtask-refresh-btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 28px; height: 28px; padding: 0;
-            background: var(--surface2, #f1f3f5);
-            border: none; border-radius: 999px;
-            color: var(--text2, #6b7280); cursor: pointer;
-            transition: background .15s, color .15s, transform .1s;
-            -webkit-tap-highlight-color: transparent;
+        /* ===== プルトゥリフレッシュ ===== */
+        #ptr-indicator {
+            position: fixed;
+            top: 52px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-56px);
+            z-index: 98;
+            width: 36px;
+            height: 36px;
+            background: var(--surface);
+            border: 1.5px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+            pointer-events: none;
+            transition: opacity 0.18s;
+            opacity: 0;
         }
-        .gtask-refresh-btn:active { background: var(--sfc-light, #e2e6ea); transform: scale(0.94); }
-        .gtask-refresh-btn:disabled { opacity: 0.55; cursor: default; }
-        .gtask-refresh-btn svg.spinning { animation: spin 0.8s linear infinite; }
+        #ptr-indicator.ptr-visible { opacity: 1; }
+        #ptr-indicator svg { transition: transform 0.2s ease, stroke 0.2s ease; stroke: var(--text3, #9ca3af); }
+        #ptr-indicator.ptr-ready svg { stroke: var(--brand, #3d7a5a); transform: rotate(180deg); }
+        #ptr-indicator.ptr-loading svg { animation: spin 0.8s linear infinite; stroke: var(--brand, #3d7a5a); }
 
         /* トースト通知 */
         #syncToast {
@@ -3384,6 +3395,13 @@
     </div>
     <!-- データ取得中グレーアウトオーバーレイ -->
     <div id="loadingOverlay"></div>
+
+    <!-- プルトゥリフレッシュインジケーター -->
+    <div id="ptr-indicator">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12l7 7 7-7"/>
+        </svg>
+    </div>
 
     <div class="drawer-overlay" id="drawerOverlay"></div>
     <nav class="drawer" id="drawer">
@@ -6014,14 +6032,8 @@
                                 <div class="card-title">Googleタスク</div>
                                 <a href="https://tasks.google.com" target="_blank" style="font-size:12px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:3px;">開く <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a>
                             </div>
-                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                            <div style="margin-bottom:10px;">
                                 <div style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;" id="gtaskUpdatedLabel">更新: ${googleTasksUpdatedAt}</div>
-                                <button class="gtask-refresh-btn" onclick="refreshGoogleTasks(this)" title="Googleタスクを更新" aria-label="Googleタスクを更新">
-                                    <svg id="gtaskRefreshIcon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-                                    </svg>
-                                </button>
                             </div>
                             ${gtHtml}
                         </div>
@@ -7382,6 +7394,63 @@
             setTimeout(function() { window.scrollTo(0, 0); }, 500);
             setTimeout(function() { window.scrollTo(0, 0); }, 1200);
         }
+
+        // ===== プルトゥリフレッシュ =====
+        (function() {
+            const indicator = document.getElementById('ptr-indicator');
+            if (!indicator) return;
+            let startY = 0, distance = 0, pulling = false, busy = false;
+            const THRESHOLD = 72, MAX_PULL = 110;
+
+            function setIndicatorY(d) {
+                const clamped = Math.min(d, MAX_PULL);
+                const ty = -56 + (clamped / MAX_PULL) * 66;
+                indicator.style.transform = 'translateX(-50%) translateY(' + ty + 'px)';
+            }
+
+            function resetIndicator() {
+                indicator.style.transform = 'translateX(-50%) translateY(-56px)';
+                indicator.classList.remove('ptr-visible', 'ptr-ready', 'ptr-loading');
+                distance = 0;
+                pulling = false;
+            }
+
+            document.addEventListener('touchstart', function(e) {
+                if (busy || window.scrollY > 0) return;
+                startY = e.touches[0].clientY;
+                pulling = true;
+            }, { passive: true });
+
+            document.addEventListener('touchmove', function(e) {
+                if (!pulling) return;
+                if (window.scrollY > 0) { pulling = false; return; }
+                distance = e.touches[0].clientY - startY;
+                if (distance <= 0) return;
+                setIndicatorY(distance);
+                indicator.classList.add('ptr-visible');
+                indicator.classList.toggle('ptr-ready', distance >= THRESHOLD);
+            }, { passive: true });
+
+            document.addEventListener('touchend', function() {
+                if (!pulling || distance <= 0) { resetIndicator(); return; }
+                if (distance >= THRESHOLD) {
+                    busy = true;
+                    indicator.classList.remove('ptr-ready');
+                    indicator.classList.add('ptr-loading');
+                    setIndicatorY(THRESHOLD);
+
+                    manualSync();
+                    const gtaskPane = document.getElementById('taskPane-gtask');
+                    if (gtaskPane && gtaskPane.classList.contains('active')) {
+                        refreshGoogleTasks(null);
+                    }
+
+                    setTimeout(function() { busy = false; resetIndicator(); }, 2800);
+                } else {
+                    resetIndicator();
+                }
+            }, { passive: true });
+        })();
 
         // ページ離脱前にタブ状態を確実に保存（iOS PWAリロード対策）
         function _saveCurrentTab() {
