@@ -65,8 +65,12 @@ function showToolLoading(text) {
   }
   document.getElementById('_tool_loading_lbl').textContent = text || '読み込み中...';
   ov.classList.remove('hidden');
+  // 15秒で自動消去（ネットワーク障害等で hideToolLoading が呼ばれない保険）
+  clearTimeout(window._toolLoadingTimer);
+  window._toolLoadingTimer = setTimeout(hideToolLoading, 15000);
 }
 function hideToolLoading() {
+  clearTimeout(window._toolLoadingTimer);
   const ov = document.getElementById('_tool_loading_ov');
   if (ov) ov.classList.add('hidden');
 }
