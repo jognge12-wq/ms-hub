@@ -7029,6 +7029,20 @@
                     'Notionの支払いDBへ直接登録'
                 ],
                 url: './tools/payment.html'
+            },
+            {
+                id: 'drawing-merge',
+                name: '製本図作成',
+                subtitle: '図面PDF/ZIPを1冊に自動まとめ',
+                color: '#006837',
+                icon: `<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>`,
+                desc: 'KizukuからDLした図面ZIP・個別PDFをブラウザ上で結合。ファイル名から図面種別を自動判定し、標準並び順に自動ソート。結合済みPDFを再投入すれば種別を復元して再編集可能。図面データはPC外に送信されない完全クライアント処理。',
+                features: [
+                    'ZIP / PDF をまとめてD&Dで投入',
+                    'ファイル名から22種別を自動判定・並び替え',
+                    'ブックマーク付きPDF出力で再編集対応'
+                ],
+                url: './tools/drawing-merge.html'
             }
         ];
 

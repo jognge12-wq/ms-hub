@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="../manifest.json">
+  <title>製本図作成 — m's hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="_tool-common.css">
+  <script src="_tool-common.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <style>
+    :root {
+      --sfc-dark:    #004d29;
+      --sfc-primary: #006837;
+      --sfc-light:   #e8f5e9;
+      --sfc-border:  #a5d6a7;
+      --bg:          #f0f4f2;
+      --surface:     #ffffff;
+      --surface2:    #f8faf9;
+      --border:      #dde8e2;
+      --text1:       #1e293b;
+      --text2:       #475569;
+      --text3:       #64748b;
+      --red:         #ef4444;
+      --amber:       #d97706;
+      --amber-bg:    #fef3c7;
+      --purple:      #7c3aed;
+      --purple-bg:   #f3e8ff;
+      --shadow-lg:   0 4px 20px rgba(15,25,20,0.06), 0 1px 3px rgba(15,25,20,0.04);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --sfc-dark:    #0a6b3a;
+        --sfc-primary: #34d399;
+        --sfc-light:   #064e3b;
+        --sfc-border:  #065f46;
+        --bg:          #0f1419;
+        --surface:     #1a1f26;
+        --surface2:    #242a33;
+        --border:      #2d3b33;
+        --text1:       #f3f4f6;
+        --text2:       #d1d5db;
+        --text3:       #9ca3af;
+        --red:         #f87171;
+        --amber:       #fbbf24;
+        --amber-bg:    #1c1500;
+        --purple:      #a78bfa;
+        --purple-bg:   #1e1030;
+      }
+      body { color-scheme: dark; }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 15px;
+      background: var(--bg);
+      color: var(--text1);
+      min-height: 100vh;
+      padding: 0 0 calc(74px + env(safe-area-inset-bottom, 0px));
+      -webkit-font-smoothing: antialiased;
+    }
+    .hidden { display: none !important; }
+
+    .app-wrap {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 8px 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* App header */
+    .app-header {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--shadow-lg);
+    }
+    .app-header-icon {
+      width: 40px; height: 40px;
+      background: var(--sfc-light);
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .app-header-icon svg {
+      width: 20px; height: 20px;
+      stroke: var(--sfc-primary); fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .app-header-title { font-size: 15px; font-weight: 700; color: var(--text1); letter-spacing: -0.01em; }
+    .app-header-sub   { font-size: 11px; color: var(--text3); margin-top: 2px; }
+    .btn-back {
+      margin-left: auto;
+      display: flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+    .btn-back:active { background: var(--border); }
+    .btn-back svg {
+      width: 18px; height: 18px;
+      stroke: var(--text2); fill: none;
+      stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    /* Section card */
+    .section {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      border-left: 3px solid var(--sfc-primary);
+    }
+    .section-icon {
+      width: 15px; height: 15px;
+      stroke: var(--sfc-primary); fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    .section-title { font-size: 14px; font-weight: 700; color: var(--text1); letter-spacing: -0.01em; }
+    .section-head-end { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .section-body { padding: 14px 16px 16px; }
+
+    /* Field */
+    .field { margin-bottom: 12px; }
+    .field:last-child { margin-bottom: 0; }
+    .field-label {
+      display: block;
+      font-size: 12px; font-weight: 700;
+      color: var(--text2);
+      margin-bottom: 6px;
+      letter-spacing: 0.03em;
+    }
+    select {
+      display: block; width: 100%;
+      padding: 11px 32px 11px 12px;
+      font-size: 14px;
+      font-family: 'Noto Sans JP', sans-serif;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface2);
+      color: var(--text1);
+      -webkit-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    select:focus {
+      outline: none;
+      border-color: var(--sfc-primary);
+      box-shadow: 0 0 0 3px rgba(0,104,55,0.12);
+    }
+
+    /* Drop zone */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--sfc-primary);
+      background: var(--sfc-light);
+    }
+    .drop-zone-icon svg {
+      width: 32px; height: 32px;
+      stroke: var(--text3); fill: none;
+      stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+      margin-bottom: 10px;
+      transition: stroke 0.2s;
+    }
+    .drop-zone:hover .drop-zone-icon svg,
+    .drop-zone.drag-over .drop-zone-icon svg { stroke: var(--sfc-primary); }
+    .drop-zone-text { font-size: 14px; font-weight: 600; color: var(--text1); }
+    .drop-zone-sub  { font-size: 12px; color: var(--text3); margin-top: 6px; line-height: 1.7; }
+
+    /* Count badge */
+    .count-badge {
+      font-size: 11px; font-weight: 700;
+      color: var(--sfc-primary);
+      background: var(--sfc-light);
+      border-radius: 20px;
+      padding: 2px 10px;
+    }
+
+    /* Add more button */
+    .btn-add-more {
+      font-size: 12px; font-weight: 700;
+      color: var(--sfc-primary);
+      background: var(--sfc-light);
+      border: none; border-radius: 8px;
+      padding: 5px 12px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.15s;
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .btn-add-more:active { opacity: 0.7; }
+
+    /* Drawing list */
+    .drawing-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .drawing-item {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px 8px 6px;
+      transition: border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
+    }
+    .drawing-item.drag-src { opacity: 0.4; }
+    .drawing-item.drag-target-above {
+      box-shadow: 0 -2px 0 var(--sfc-primary);
+      border-top-color: var(--sfc-primary);
+    }
+    .drawing-item.drag-target-below {
+      box-shadow: 0 2px 0 var(--sfc-primary);
+      border-bottom-color: var(--sfc-primary);
+    }
+
+    .drag-handle {
+      cursor: grab; color: var(--text3); flex-shrink: 0;
+      width: 22px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 5px;
+      transition: color 0.1s;
+    }
+    .drag-handle:hover { color: var(--sfc-primary); }
+    .drag-handle:active { cursor: grabbing; }
+    .drag-handle svg {
+      width: 14px; height: 14px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round;
+    }
+
+    .drawing-info { flex: 1; min-width: 0; }
+    .drawing-type-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; flex-wrap: wrap; }
+
+    .drawing-type-tag {
+      font-size: 11px; font-weight: 700;
+      color: var(--sfc-primary);
+      background: var(--sfc-light);
+      border-radius: 5px;
+      padding: 2px 7px;
+      flex-shrink: 0;
+    }
+    .drawing-type-tag.is-unknown { color: var(--amber); background: var(--amber-bg); }
+    .drawing-type-tag.is-merged  { color: var(--purple); background: var(--purple-bg); }
+
+    .drawing-filename {
+      font-size: 11px; color: var(--text3);
+      font-family: 'DM Mono', monospace;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .drawing-pages { font-size: 10px; color: var(--text3); margin-top: 1px; }
+    .skip-first-label {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; color: var(--amber); cursor: pointer;
+      margin-top: 4px; user-select: none;
+    }
+    .skip-first-label input { cursor: pointer; accent-color: var(--amber); }
+
+    .drawing-type-select {
+      width: 100%;
+      font-size: 12px;
+      font-family: 'Noto Sans JP', sans-serif;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 5px 24px 5px 8px;
+      background: var(--surface);
+      color: var(--text1);
+      -webkit-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      margin-top: 4px;
+    }
+
+    .btn-delete {
+      flex-shrink: 0; width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 7px; border: none; cursor: pointer;
+      background: transparent; color: var(--text3);
+      transition: background 0.12s, color 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-delete:hover { background: #fee2e2; color: var(--red); }
+    .btn-delete svg {
+      width: 14px; height: 14px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    /* Action area */
+    .action-area {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: var(--shadow-lg);
+    }
+    .output-filename {
+      font-size: 13px; color: var(--text2);
+      text-align: center; margin-bottom: 12px;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: -0.01em;
+    }
+    .btn-merge {
+      display: block; width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
+      color: #fff;
+      font-size: 15px; font-weight: 700;
+      font-family: 'Noto Sans JP', sans-serif;
+      border: none; border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(29,107,64,0.3);
+      transition: opacity 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-merge:active { opacity: 0.85; }
+    .btn-merge:disabled {
+      background: var(--border); color: var(--text3);
+      box-shadow: none; pointer-events: none;
+    }
+    .merge-summary { font-size: 12px; color: var(--text3); text-align: center; margin-top: 8px; }
+
+    /* Progress */
+    .progress-wrap { margin-top: 14px; }
+    .progress-track {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px; height: 8px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--sfc-dark) 0%, var(--sfc-primary) 100%);
+      border-radius: 6px;
+      transition: width 0.25s ease;
+      width: 0%;
+    }
+    .progress-text { font-size: 11px; color: var(--text3); text-align: center; margin-top: 6px; }
+
+    /* dark mode tweaks for tool-common top bar */
+    @media (prefers-color-scheme: dark) {
+      .tool-top-bar { background: #1a1f26; border-bottom-color: #2d333b; }
+      .tool-top-bar > button span { background: #e5e7eb; }
+    }
+  </style>
+</head>
+<body>
+<script src="../config.js"></script>
+
+<!-- トップバー -->
+<div class="tool-top-bar">
+  <button onclick="openToolDrawer()" aria-label="メニューを開く">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<!-- メインコンテンツ -->
+<div class="app-wrap" id="app">
+
+  <!-- アプリヘッダー -->
+  <div class="app-header">
+    <div class="app-header-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="app-header-title">製本図作成</div>
+      <div class="app-header-sub">図面PDF/ZIPを1冊に自動まとめ — seiun-nx保管用</div>
+    </div>
+    <button class="btn-back" onclick="history.back()" aria-label="戻る">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+  </div>
+
+  <!-- ① 物件 + ファイル選択 -->
+  <div class="section">
+    <div class="section-head">
+      <svg class="section-icon" viewBox="0 0 24 24">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span class="section-title">物件とファイルを選択</span>
+    </div>
+    <div class="section-body">
+      <div class="field">
+        <label class="field-label" for="propSelect">物件（ファイル名に自動反映）</label>
+        <select id="propSelect" onchange="onPropertyChange()">
+          <option value="">-- 読み込み中... --</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label class="field-label">図面ファイル</label>
+        <div class="drop-zone" id="dropZone"
+             onclick="document.getElementById('fileInput').click()"
+             role="button" tabindex="0" aria-label="ファイルを選択">
+          <div class="drop-zone-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </div>
+          <div class="drop-zone-text">ZIPまたはPDFをドラッグ&amp;ドロップ</div>
+          <div class="drop-zone-sub">
+            Kizuku一括DLのZIP・個別PDF対応<br>
+            ◾️製本図PDFを再投入すると種別を自動復元
+          </div>
+          <input type="file" id="fileInput" accept=".zip,.pdf" multiple
+                 style="display:none" onchange="handleFileInput(this)">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 確認リスト（ファイル投入後に表示） -->
+  <div class="section hidden" id="sectionPreview">
+    <div class="section-head">
+      <svg class="section-icon" viewBox="0 0 24 24">
+        <line x1="8" y1="6" x2="21" y2="6"/>
+        <line x1="8" y1="12" x2="21" y2="12"/>
+        <line x1="8" y1="18" x2="21" y2="18"/>
+        <line x1="3" y1="6" x2="3.01" y2="6"/>
+        <line x1="3" y1="12" x2="3.01" y2="12"/>
+        <line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+      <span class="section-title">並び順の確認</span>
+      <div class="section-head-end">
+        <span class="count-badge" id="countBadge">0図面</span>
+        <button class="btn-add-more"
+                onclick="document.getElementById('fileInputMore').click()">
+          ＋追加
+          <input type="file" id="fileInputMore" accept=".zip,.pdf" multiple
+                 style="display:none" onchange="handleFileInput(this)">
+        </button>
+      </div>
+    </div>
+    <div class="section-body" style="padding-top:12px; padding-bottom:12px;">
+      <div id="drawingList" class="drawing-list"></div>
+    </div>
+  </div>
+
+  <!-- ③ 作成ボタン（ファイル投入後に表示） -->
+  <div class="action-area hidden" id="sectionAction">
+    <div class="output-filename" id="outputFilename">◾️○様邸製本図.pdf</div>
+    <button class="btn-merge" id="btnMerge" onclick="mergeAndDownload()">
+      <span id="btnMergeLabel">結合して作成！</span>
+    </button>
+    <div class="merge-summary" id="mergeSummary"></div>
+    <div class="progress-wrap hidden" id="progressWrap">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text" id="progressText"></div>
+    </div>
+  </div>
+
+</div><!-- /.app-wrap -->
+
+<!-- サイドドロワー -->
+<div class="tdrawer-overlay" id="toolDrawerOverlay" onclick="closeToolDrawer()"></div>
+<nav class="tdrawer" id="toolDrawer">
+  <div class="tdrawer-head">
+    <div class="tdrawer-head-title">m's hub</div>
+    <div class="tdrawer-head-sub">施工管理ポータル</div>
+  </div>
+  <div class="tdrawer-sec">メイン</div>
+  <a class="tdrawer-item" href="../index.html">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    ホーム
+  </a>
+  <a class="tdrawer-item" href="../index.html?tab=tasks">
+    <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    タスク
+  </a>
+  <a class="tdrawer-item" href="../index.html?tab=properties">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg>
+    物件ボード
+  </a>
+  <div class="tdrawer-sep"></div>
+  <div class="tdrawer-sec">ツール</div>
+  <a class="tdrawer-item" href="./inspection.html">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    検査依頼
+  </a>
+  <a class="tdrawer-item" href="./payment.html">
+    <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+    支払い管理
+  </a>
+  <a class="tdrawer-item" href="./property.html">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    新規物件登録
+  </a>
+  <a class="tdrawer-item active" href="./drawing-merge.html">
+    <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    製本図作成
+  </a>
+  <div class="tdrawer-sep"></div>
+  <div class="tdrawer-sec">外部サービス</div>
+  <a class="tdrawer-item" href="https://calendar.google.com" target="_blank">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="2" x2="9" y2="6"/><line x1="15" y1="2" x2="15" y2="6"/></svg>
+    Google カレンダー
+    <svg class="tdrawer-ext" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+  </a>
+  <a class="tdrawer-item" href="https://tasks.google.com" target="_blank">
+    <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    Google Tasks
+    <svg class="tdrawer-ext" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+  </a>
+</nav>
+
+<!-- ボトムナビ -->
+<nav class="tool-bottom-nav">
+  <a class="tni" href="../index.html">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span class="tni-lbl">ホーム</span>
+  </a>
+  <a class="tni" href="../index.html?tab=tasks">
+    <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    <span class="tni-lbl">タスク</span>
+  </a>
+  <a class="tni" href="../index.html?tab=properties">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg>
+    <span class="tni-lbl">物件</span>
+  </a>
+  <a class="tni active" href="../index.html?tab=tools">
+    <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    <span class="tni-lbl">ツール</span>
+  </a>
+</nav>
+
+<script>
+// ================================================================
+// 図面種別マスタ（22種類 + 並び順）
+// keywords は長いものを先に定義（誤マッチ防止）
+// ================================================================
+const DRAWING_MASTER = [
+  { order: 1,  label: '仕上表',           kws: ['仕上げ表', '仕上表', '仕上げ', '仕様書'],               numbered: false },
+  { order: 2,  label: '配置図',           kws: ['配置図'],                                               numbered: false },
+  { order: 3,  label: '外構図',           kws: ['外構図', '外構'],                                        numbered: false },
+  { order: 4,  label: 'エプコ図',         kws: ['エプコ', '設備配管経路'],                               numbered: false },
+  { order: 5,  label: '1階平面図',        kws: ['1階平面', '1F平面', '一階平面'],                        numbered: false },
+  { order: 6,  label: '2階平面図',        kws: ['2階平面', '2F平面', '二階平面'],                        numbered: false },
+  { order: 7,  label: '1階設備図',        kws: ['1階設備位置', '1階設備', '1F設備', '一階設備'],         numbered: false },
+  { order: 8,  label: '2階設備図',        kws: ['2階設備位置', '2階設備', '2F設備', '二階設備'],         numbered: false },
+  { order: 9,  label: '照明プラン',       kws: ['照明プラン', '照明'],                                   numbered: false },
+  { order: 10, label: 'カーテンプラン',   kws: ['カーテンプラン', 'カーテン'],                           numbered: false },
+  { order: 11, label: 'インテリアプラン', kws: ['その他インテリア', 'インテリアプラン', 'インテリア'],    numbered: false },
+  { order: 12, label: '立面図',           kws: ['立面図'],                                               numbered: false },
+  { order: 13, label: '屋根伏図',         kws: ['屋根伏図', '屋根伏'],                                   numbered: false },
+  { order: 14, label: '断面図',           kws: ['断面図'],                                               numbered: false },
+  { order: 15, label: '展開図',           kws: ['展開図'],                                               numbered: true  },
+  { order: 16, label: '備品詳細図',       kws: ['備品詳細図', '備品詳細'],                               numbered: true  },
+  { order: 17, label: '基礎伏図',         kws: ['基礎伏図', '基礎伏'],                                   numbered: false },
+  { order: 18, label: '基礎断面図',       kws: ['基礎断面'],                                             numbered: false },
+  { order: 19, label: '基礎スリーブ図',   kws: ['基礎スリーブ', '基礎スリープ', 'スリーブ', 'スリープ'], numbered: false },
+  { order: 20, label: '1階スミテン図',    kws: ['1階スミテン', '1Fスミテン', 'スミテンSS割付図1階', 'スミテン割付図1階', 'スミテン'], numbered: false },
+  { order: 21, label: '2階スミテン図',    kws: ['2階スミテン', '2Fスミテン', 'スミテンSS割付図2階', 'スミテン割付図2階'], numbered: false },
+  { order: 22, label: '換気システム図',   kws: ['換気システム', '計画換気', '換気'],                     numbered: false },
+  { order: 23, label: '空調配管経路図',   kws: ['空調配管経路', '空調配管'],                             numbered: false },
+];
+
+// 最長キーワード優先で並び替えたコピー（分類時に使用）
+const MASTER_SORTED = [...DRAWING_MASTER].sort((a, b) =>
+  Math.max(...b.kws.map(k => k.length)) - Math.max(...a.kws.map(k => k.length))
+);
+
+// 全角英数字・半角カタカナを正規化（Kizukuは全角混在・半角カタカナ混在）
+function normalizeForMatch(name) {
+  // NFC正規化（macOSはNFDでファイル名を格納するためブ→フ+゛のように分離する場合がある）
+  let s = name.normalize('NFC');
+  // 全角英数字 → 半角ASCII
+  s = s.replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+  // 半角カタカナ → 全角カタカナ（濁点・半濁点の結合も処理）
+  const HW = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ';
+  const FW = 'ヲァィゥェォャュョッーアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン';
+  const VOICED   = {カ:'ガ',キ:'ギ',ク:'グ',ケ:'ゲ',コ:'ゴ',サ:'ザ',シ:'ジ',ス:'ズ',セ:'ゼ',ソ:'ゾ',タ:'ダ',チ:'ヂ',ツ:'ヅ',テ:'デ',ト:'ド',ハ:'バ',ヒ:'ビ',フ:'ブ',ヘ:'ベ',ホ:'ボ',ウ:'ヴ'};
+  const SVOICED  = {ハ:'パ',ヒ:'ピ',フ:'プ',ヘ:'ペ',ホ:'ポ'};
+  let out = '';
+  for (let i = 0; i < s.length; i++) {
+    const idx = HW.indexOf(s[i]);
+    if (idx < 0) { out += s[i]; continue; }
+    const fw = FW[idx];
+    if (s[i + 1] === 'ﾞ')       { out += VOICED[fw]  || fw; i++; }
+    else if (s[i + 1] === 'ﾟ')  { out += SVOICED[fw] || fw; i++; }
+    else                         { out += fw; }
+  }
+  return out;
+}
+
+// ================================================================
+// アプリ状態
+// ================================================================
+let drawingItems = [];   // {id, filename, bytes:ArrayBuffer, typeOrder, typeLabel, typeNum, pageCount, fromBookmark?}
+let selectedPropName = '';
+let dragSrcIdx = -1;
+
+// ================================================================
+// 分類ロジック
+// ================================================================
+function classifyFilename(filename) {
+  const name = filename.replace(/\.pdf$/i, '');
+  const norm = normalizeForMatch(name);  // 全角→半角正規化してマッチング
+  // デバッグ: 種別不明になったファイルのコードポイントをコンソール出力
+  const _dbgResult = (() => {
+    for (const type of MASTER_SORTED) {
+      for (const kw of type.kws) { if (norm.includes(kw)) return type.label; }
+    }
+    return null;
+  })();
+  if (!_dbgResult) console.log('[分類失敗]', filename, '→ norm:', norm, '| codes:', [...norm].map(c => c.codePointAt(0).toString(16).padStart(4,'0')).join(' '));
+  for (const type of MASTER_SORTED) {
+    for (const kw of type.kws) {
+      if (norm.includes(kw)) {
+        let num = 0;
+        if (type.numbered) {
+          // キーワード以降に任意の非数字を挟んで数字を取得（例: 備品詳細図（特注品）10）
+          const kwEsc = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const m = norm.match(new RegExp(kwEsc + '[^\\d]*(\\d+)'));
+          num = m ? parseInt(m[1]) : 0;
+        }
+        return { typeOrder: type.order, typeLabel: type.label, typeNum: num };
+      }
+    }
+  }
+  return { typeOrder: 99, typeLabel: null, typeNum: 0 };
+}
+
+function classifyFromBookmarkTitle(title) {
+  for (const type of DRAWING_MASTER) {
+    const escaped = type.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const m = title.match(new RegExp('^' + escaped + '(\\d*)$'));
+    if (m) {
+      return { typeOrder: type.order, typeLabel: type.label, typeNum: m[1] ? parseInt(m[1]) : 0 };
+    }
+  }
+  return { typeOrder: 99, typeLabel: null, typeNum: 0 };
+}
+
+function sortItems(arr) {
+  arr.sort((a, b) => {
+    if (a.typeOrder !== b.typeOrder) return a.typeOrder - b.typeOrder;
+    if (a.typeNum   !== b.typeNum)   return a.typeNum   - b.typeNum;
+    return a.filename.localeCompare(b.filename, 'ja');
+  });
+}
+
+// ================================================================
+// ブックマーク（pdf-lib）
+// ================================================================
+function readBookmarks(pdfDoc) {
+  try {
+    const { PDFName } = PDFLib;
+    const outlineRef = pdfDoc.catalog.lookup(PDFName.of('Outlines'));
+    if (!outlineRef || !outlineRef.lookup) return null;
+
+    const pages = pdfDoc.getPages();
+    const results = [];
+    let cur = outlineRef.lookup(PDFName.of('First'));
+
+    while (cur) {
+      const titleObj = cur.lookup(PDFName.of('Title'));
+      let title = '';
+      if (titleObj) {
+        title = typeof titleObj.decodeText === 'function'
+          ? titleObj.decodeText()
+          : titleObj.toString().replace(/[<>()]/g, '');
+      }
+
+      const destObj = cur.lookup(PDFName.of('Dest'));
+      let pageIndex = 0;
+      if (destObj) {
+        let pageRef = null;
+        if (typeof destObj.asArray === 'function') {
+          const arr = destObj.asArray();
+          pageRef = arr[0];
+        }
+        if (pageRef) {
+          for (let i = 0; i < pages.length; i++) {
+            if (pages[i].ref.toString() === pageRef.toString()) { pageIndex = i; break; }
+          }
+        }
+      }
+      results.push({ title, pageIndex });
+      cur = cur.lookup(PDFName.of('Next'));
+    }
+    return results.length > 0 ? results : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function addBookmarks(pdfDoc, items) {
+  try {
+    const { PDFName, PDFString } = PDFLib;
+    if (!items.length) return;
+
+    const pages = pdfDoc.getPages();
+    const ctx = pdfDoc.context;
+
+    const refs = items.map(({ title, pageIndex }) => {
+      if (pageIndex >= pages.length) return null;
+      const dict = ctx.obj({});
+      dict.set(PDFName.of('Title'), PDFString.of(title));
+      dict.set(PDFName.of('Dest'), ctx.obj([pages[pageIndex].ref, PDFName.of('Fit')]));
+      return ctx.register(dict);
+    }).filter(Boolean);
+
+    if (!refs.length) return;
+
+    for (let i = 0; i < refs.length; i++) {
+      const d = ctx.lookup(refs[i]);
+      if (i > 0) d.set(PDFName.of('Prev'), refs[i - 1]);
+      if (i < refs.length - 1) d.set(PDFName.of('Next'), refs[i + 1]);
+    }
+
+    const root = ctx.obj({});
+    const rootRef = ctx.register(root);
+    root.set(PDFName.of('Type'),  PDFName.of('Outlines'));
+    root.set(PDFName.of('First'), refs[0]);
+    root.set(PDFName.of('Last'),  refs[refs.length - 1]);
+    root.set(PDFName.of('Count'), ctx.obj(refs.length));
+    refs.forEach(r => ctx.lookup(r).set(PDFName.of('Parent'), rootRef));
+
+    pdfDoc.catalog.set(PDFName.of('Outlines'), rootRef);
+    pdfDoc.catalog.set(PDFName.of('PageMode'), PDFName.of('UseOutlines'));
+  } catch (e) {
+    console.warn('Bookmark creation skipped:', e.message);
+  }
+}
+
+// ================================================================
+// PDF ユーティリティ
+// ================================================================
+async function getPdfPageCount(bytes) {
+  const doc = await PDFLib.PDFDocument.load(new Uint8Array(bytes), { ignoreEncryption: true });
+  return doc.getPageCount();
+}
+
+// 結合済み製本図かチェック → ブックマークがあればサブPDFに分解して返す
+async function tryExtractMergedPdf(bytes) {
+  try {
+    const { PDFDocument } = PDFLib;
+    const doc = await PDFDocument.load(new Uint8Array(bytes), { ignoreEncryption: true });
+    const bookmarks = readBookmarks(doc);
+    if (!bookmarks || bookmarks.length === 0) return null;
+
+    const total = doc.getPageCount();
+    const results = [];
+
+    for (let i = 0; i < bookmarks.length; i++) {
+      const start = bookmarks[i].pageIndex;
+      const end = i + 1 < bookmarks.length ? bookmarks[i + 1].pageIndex - 1 : total - 1;
+      const len = end - start + 1;
+      if (len < 1) continue;
+
+      const sub = await PDFDocument.create();
+      const copied = await sub.copyPages(doc, Array.from({ length: len }, (_, k) => start + k));
+      copied.forEach(p => sub.addPage(p));
+      const subBytes = await sub.save();
+
+      results.push({ title: bookmarks[i].title, bytes: subBytes.buffer });
+    }
+    return results.length > 0 ? results : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function extractZipPdfs(bytes) {
+  // Kizuku等のWindowsで作成したZIPはShift-JIS、UTF-8フラグ付きZIPはUTF-8
+  const zip = await JSZip.loadAsync(bytes, {
+    decodeFileName: (filenameBytes) => {
+      try {
+        return new TextDecoder('utf-8', { fatal: true }).decode(filenameBytes);
+      } catch (_) {
+        try {
+          return new TextDecoder('shift-jis').decode(filenameBytes);
+        } catch (_2) {
+          return new TextDecoder('utf-8', { fatal: false }).decode(filenameBytes);
+        }
+      }
+    }
+  });
+  const results = [];
+  for (const [path, entry] of Object.entries(zip.files)) {
+    if (!entry.dir && path.toLowerCase().endsWith('.pdf')) {
+      const pdfBytes = await entry.async('arraybuffer');
+      results.push({ filename: path.split('/').pop(), bytes: pdfBytes });
+    }
+  }
+  return results;
+}
+
+// ================================================================
+// ファイル処理パイプライン
+// ================================================================
+async function processFiles(files) {
+  const existing = new Set(drawingItems.map(i => i.filename));
+  const newItems = [];
+
+  for (const file of files) {
+    const bytes = await file.arrayBuffer();
+    const lower = file.name.toLowerCase();
+
+    if (lower.endsWith('.zip')) {
+      const pdfs = await extractZipPdfs(bytes);
+      for (const { filename, bytes: pb } of pdfs) {
+        if (existing.has(filename)) continue;
+        const cls = classifyFilename(filename);
+        const pc = await getPdfPageCount(pb);
+        newItems.push(mkItem(filename, pb, cls, pc, false));
+        existing.add(filename);
+      }
+    } else if (lower.endsWith('.pdf')) {
+      // 結合済み製本図かチェック
+      const extracted = await tryExtractMergedPdf(bytes);
+      if (extracted) {
+        for (const { title, bytes: pb } of extracted) {
+          const synName = title + '.pdf';
+          if (existing.has(synName)) continue;
+          const cls = classifyFromBookmarkTitle(title);
+          const pc = await getPdfPageCount(pb);
+          newItems.push(mkItem(synName, pb, cls, pc, true));
+          existing.add(synName);
+        }
+      } else {
+        if (!existing.has(file.name)) {
+          const cls = classifyFilename(file.name);
+          const pc = await getPdfPageCount(bytes);
+          newItems.push(mkItem(file.name, bytes, cls, pc, false));
+          existing.add(file.name);
+        }
+      }
+    }
+  }
+
+  if (newItems.length === 0) return;
+
+  drawingItems.push(...newItems);
+  sortItems(drawingItems);
+  updateUI();
+}
+
+function mkItem(filename, bytes, cls, pageCount, fromBookmark) {
+  return {
+    id: Math.random().toString(36).slice(2),
+    filename,
+    bytes,
+    typeOrder: cls.typeOrder,
+    typeLabel: cls.typeLabel,
+    typeNum:   cls.typeNum,
+    pageCount,
+    fromBookmark,
+    skipFirstPage: false,
+  };
+}
+
+// ================================================================
+// UI 描画
+// ================================================================
+function updateUI() {
+  const hasItems = drawingItems.length > 0;
+  document.getElementById('sectionPreview').classList.toggle('hidden', !hasItems);
+  document.getElementById('sectionAction').classList.toggle('hidden', !hasItems);
+
+  if (!hasItems) return;
+
+  renderList();
+  const totalPages = drawingItems.reduce((s, i) => s + i.pageCount, 0);
+  document.getElementById('countBadge').textContent =
+    `${drawingItems.length}図面 / ${totalPages}P`;
+
+  const propName = selectedPropName || '○様邸';
+  document.getElementById('outputFilename').textContent = `◾️${propName}製本図.pdf`;
+  document.getElementById('mergeSummary').textContent =
+    `${drawingItems.length}図面・${totalPages}ページを1ファイルに結合`;
+}
+
+function renderList() {
+  const container = document.getElementById('drawingList');
+  container.innerHTML = '';
+
+  drawingItems.forEach((item, idx) => {
+    const isUnknown = item.typeLabel === null;
+    const isMerged  = !!item.fromBookmark;
+    const tagClass  = isUnknown ? 'is-unknown' : isMerged ? 'is-merged' : '';
+    const tagText   = isUnknown ? '種別不明'
+      : item.typeLabel + (item.typeNum > 0 ? item.typeNum : '');
+
+    const div = document.createElement('div');
+    div.className = 'drawing-item';
+    div.draggable = true;
+    div.dataset.idx = idx;
+
+    div.innerHTML = `
+      <div class="drag-handle" title="ドラッグして並び替え">
+        <svg viewBox="0 0 16 16">
+          <line x1="4" y1="5" x2="12" y2="5"/>
+          <line x1="4" y1="8" x2="12" y2="8"/>
+          <line x1="4" y1="11" x2="12" y2="11"/>
+        </svg>
+      </div>
+      <div class="drawing-info">
+        <div class="drawing-type-row">
+          <span class="drawing-type-tag ${tagClass}">${tagText}</span>
+        </div>
+        <div class="drawing-filename" title="${item.filename}">${item.filename}</div>
+        <div class="drawing-pages">${item.skipFirstPage ? `<s>${item.pageCount}P</s> → ${item.pageCount - 1}P` : `${item.pageCount}ページ`}</div>
+        ${item.pageCount > 1 ? `
+        <label class="skip-first-label" onclick="event.stopPropagation()">
+          <input type="checkbox" ${item.skipFirstPage ? 'checked' : ''}
+                 onchange="toggleSkipFirst(${idx}, this.checked)">
+          1ページ目を除外
+        </label>` : ''}
+        ${isUnknown ? `
+        <div style="font-size:9px;color:var(--text3);word-break:break-all;margin-top:2px">${[...normalizeForMatch(item.filename.replace(/\.pdf$/i,''))].map(c=>c.codePointAt(0).toString(16).padStart(4,'0')).join(' ')}</div>
+        <select class="drawing-type-select"
+                onchange="applyManualType(${idx}, this.value)"
+                onclick="event.stopPropagation()">
+          <option value="">-- 種別を選択 --</option>
+          ${DRAWING_MASTER.map(t => `<option value="${t.order}">${t.label}</option>`).join('')}
+        </select>` : ''}
+      </div>
+      <button class="btn-delete" onclick="deleteItem(${idx})" title="削除" aria-label="削除">
+        <svg viewBox="0 0 24 24">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/>
+          <path d="M10 11v6M14 11v6"/>
+          <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+        </svg>
+      </button>
+    `;
+
+    // --- ドラッグ&ドロップ ---
+    div.addEventListener('dragstart', e => {
+      dragSrcIdx = idx;
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => div.classList.add('drag-src'), 0);
+    });
+    div.addEventListener('dragend', () => {
+      div.classList.remove('drag-src');
+      document.querySelectorAll('.drawing-item')
+        .forEach(el => el.classList.remove('drag-target-above', 'drag-target-below'));
+    });
+    div.addEventListener('dragover', e => {
+      e.preventDefault();
+      document.querySelectorAll('.drawing-item')
+        .forEach(el => el.classList.remove('drag-target-above', 'drag-target-below'));
+      const rect = div.getBoundingClientRect();
+      div.classList.add(e.clientY < rect.top + rect.height / 2
+        ? 'drag-target-above' : 'drag-target-below');
+    });
+    div.addEventListener('dragleave', () =>
+      div.classList.remove('drag-target-above', 'drag-target-below'));
+    div.addEventListener('drop', e => {
+      e.preventDefault();
+      const above = div.classList.contains('drag-target-above');
+      div.classList.remove('drag-target-above', 'drag-target-below');
+      if (dragSrcIdx === idx) return;
+
+      const [moved] = drawingItems.splice(dragSrcIdx, 1);
+      let insertAt = dragSrcIdx < idx ? idx - 1 : idx;
+      if (!above) insertAt += 1;
+      drawingItems.splice(Math.max(0, Math.min(insertAt, drawingItems.length)), 0, moved);
+
+      renderList();
+
+      const totalPages = drawingItems.reduce((s, i) => s + i.pageCount, 0);
+      document.getElementById('countBadge').textContent =
+        `${drawingItems.length}図面 / ${totalPages}P`;
+    });
+
+    container.appendChild(div);
+  });
+}
+
+function deleteItem(idx) {
+  drawingItems.splice(idx, 1);
+  if (drawingItems.length === 0) {
+    document.getElementById('sectionPreview').classList.add('hidden');
+    document.getElementById('sectionAction').classList.add('hidden');
+  } else {
+    renderList();
+    const totalPages = drawingItems.reduce((s, i) => s + i.pageCount, 0);
+    document.getElementById('countBadge').textContent =
+      `${drawingItems.length}図面 / ${totalPages}P`;
+    document.getElementById('mergeSummary').textContent =
+      `${drawingItems.length}図面・${totalPages}ページを1ファイルに結合`;
+  }
+}
+
+function toggleSkipFirst(idx, checked) {
+  drawingItems[idx].skipFirstPage = checked;
+  renderList();
+  const totalPages = drawingItems.reduce((s, i) => s + i.pageCount - (i.skipFirstPage ? 1 : 0), 0);
+  document.getElementById('countBadge').textContent = `${drawingItems.length}図面 / ${totalPages}P`;
+  document.getElementById('mergeSummary').textContent = `${drawingItems.length}図面・${totalPages}ページを1ファイルに結合`;
+}
+
+function applyManualType(idx, orderStr) {
+  const order = parseInt(orderStr);
+  const type = DRAWING_MASTER.find(t => t.order === order);
+  if (!type) return;
+  drawingItems[idx].typeOrder = type.order;
+  drawingItems[idx].typeLabel = type.label;
+  drawingItems[idx].typeNum   = 0;
+  sortItems(drawingItems);  // 種別変更後に並び直す
+  renderList();
+}
+
+// ================================================================
+// 結合 & ダウンロード
+// ================================================================
+async function mergeAndDownload() {
+  const btn   = document.getElementById('btnMerge');
+  const label = document.getElementById('btnMergeLabel');
+  btn.disabled = true;
+  label.textContent = '処理中...';
+
+  const wrap  = document.getElementById('progressWrap');
+  const fill  = document.getElementById('progressFill');
+  const text  = document.getElementById('progressText');
+  wrap.classList.remove('hidden');
+
+  try {
+    const { PDFDocument } = PDFLib;
+    const merged = await PDFDocument.create();
+    const bookmarkData = [];
+    let curPage = 0;
+
+    for (let i = 0; i < drawingItems.length; i++) {
+      const item = drawingItems[i];
+      fill.style.width = Math.round((i / drawingItems.length) * 88) + '%';
+      text.textContent = `${i + 1} / ${drawingItems.length}  ${item.filename}`;
+      await new Promise(r => setTimeout(r, 0));
+
+      const srcDoc = await PDFDocument.load(new Uint8Array(item.bytes));
+      const n = srcDoc.getPageCount();
+      const start = item.skipFirstPage ? 1 : 0;
+      const pages = await merged.copyPages(srcDoc,
+        Array.from({ length: n - start }, (_, k) => k + start));
+      pages.forEach(p => merged.addPage(p));
+
+      const bmTitle = item.typeLabel
+        ? item.typeLabel + (item.typeNum > 0 ? item.typeNum : '')
+        : item.filename.replace(/\.pdf$/i, '');
+      bookmarkData.push({ title: bmTitle, pageIndex: curPage });
+      curPage += (n - start);
+    }
+
+    fill.style.width = '92%';
+    text.textContent = 'ブックマーク設定中...';
+    await new Promise(r => setTimeout(r, 0));
+    addBookmarks(merged, bookmarkData);
+
+    fill.style.width = '96%';
+    text.textContent = 'PDF保存中...';
+    await new Promise(r => setTimeout(r, 0));
+    const bytes = await merged.save();
+
+    fill.style.width = '100%';
+    text.textContent = '完了！';
+
+    // ダウンロード
+    const propName = selectedPropName || '○様邸';
+    const filename = `◾️${propName}製本図.pdf`;
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), { href: url, download: filename });
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+
+    setTimeout(() => {
+      wrap.classList.add('hidden');
+      fill.style.width = '0%';
+      btn.disabled = false;
+      label.textContent = '結合して作成！';
+    }, 2500);
+
+  } catch (err) {
+    console.error(err);
+    text.textContent = 'エラー: ' + err.message;
+    btn.disabled = false;
+    label.textContent = '結合して作成！';
+  }
+}
+
+// ================================================================
+// 物件一覧の読み込み
+// ================================================================
+async function loadProperties() {
+  const sel = document.getElementById('propSelect');
+  try {
+    const res  = await fetch(GAS_URLS.TASK + '?mode=getProperties');
+    const json = await res.json();
+    if (json.ok && json.data && json.data.length > 0) {
+      sel.innerHTML = '<option value="">-- 物件を選択（任意）--</option>';
+      json.data.forEach(p => {
+        const name = p.name || p.物件名 || p.title || '';
+        if (!name) return;
+        // 竣工・引渡し済みステータスの物件は除外
+        const prog = p.progress || '';
+        if (prog === '竣工' || prog.includes('引渡')) return;
+        const opt = document.createElement('option');
+        opt.value = name; opt.textContent = name;
+        sel.appendChild(opt);
+      });
+    } else {
+      sel.innerHTML = '<option value="">-- 物件一覧を取得できませんでした --</option>';
+    }
+  } catch (e) {
+    sel.innerHTML = '<option value="">-- 物件一覧（オフライン時は直接入力） --</option>';
+    // テキスト入力にフォールバック（オフライン時）
+    sel.insertAdjacentHTML('afterend',
+      '<input type="text" id="propNameInput" placeholder="物件名を入力（例：田中様邸）"'
+      + ' style="margin-top:6px;display:block;width:100%;padding:11px 12px;font-size:14px;'
+      + 'font-family:\'Noto Sans JP\',sans-serif;border:1.5px solid var(--border);border-radius:10px;'
+      + 'background:var(--surface2);color:var(--text1);" oninput="selectedPropName=this.value;'
+      + 'if(drawingItems.length>0)document.getElementById(\'outputFilename\').textContent=\'◾️\'+(this.value||\'○様邸\')+\'製本図.pdf\'">');
+  }
+}
+
+function onPropertyChange() {
+  const sel = document.getElementById('propSelect');
+  selectedPropName = sel.value ? sel.options[sel.selectedIndex].text : '';
+  if (drawingItems.length > 0) {
+    document.getElementById('outputFilename').textContent =
+      `◾️${selectedPropName || '○様邸'}製本図.pdf`;
+  }
+}
+
+// ================================================================
+// ファイル入力ハンドラ
+// ================================================================
+async function handleFileInput(input) {
+  const files = Array.from(input.files).filter(f => /\.(pdf|zip)$/i.test(f.name));
+  input.value = '';
+  if (!files.length) return;
+
+  showToolLoading('図面ファイルを読み込み中...');
+  try {
+    await processFiles(files);
+  } finally {
+    hideToolLoading();
+  }
+}
+
+// ================================================================
+// 初期化
+// ================================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadProperties();
+
+  // ドロップゾーンの D&D
+  const dz = document.getElementById('dropZone');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', e => {
+    if (!dz.contains(e.relatedTarget)) dz.classList.remove('drag-over');
+  });
+  dz.addEventListener('drop', async e => {
+    e.preventDefault();
+    dz.classList.remove('drag-over');
+    const files = Array.from(e.dataTransfer.files).filter(f => /\.(pdf|zip)$/i.test(f.name));
+    if (!files.length) return;
+    showToolLoading('図面ファイルを読み込み中...');
+    try {
+      await processFiles(files);
+    } finally {
+      hideToolLoading();
+    }
+  });
+
+  // キーボードアクセシビリティ（スペース/エンターでファイル選択）
+  dz.addEventListener('keydown', e => {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('fileInput').click();
+    }
+  });
+});
+</script>
+</body>
+</html>
