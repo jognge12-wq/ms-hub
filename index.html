@@ -2129,9 +2129,17 @@
             opacity: 0;
         }
         #ptr-indicator.ptr-visible { opacity: 1; }
-        #ptr-indicator svg { transition: transform 0.2s ease, stroke 0.2s ease; stroke: var(--text3, #9ca3af); }
-        #ptr-indicator.ptr-ready svg { stroke: var(--brand, #3d7a5a); transform: rotate(180deg); }
-        #ptr-indicator.ptr-loading svg { animation: spin 0.8s linear infinite; stroke: var(--brand, #3d7a5a); }
+        .ptr-arrow { transition: transform 0.2s ease, stroke 0.2s ease; stroke: var(--text3, #9ca3af); }
+        #ptr-indicator.ptr-ready .ptr-arrow { stroke: var(--brand, #3d7a5a); transform: rotate(180deg); }
+        .ptr-ring {
+            display: none;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(61,122,90,0.25);
+            border-top-color: var(--brand, #3d7a5a);
+            border-radius: 50%;
+        }
+        #ptr-indicator.ptr-loading .ptr-arrow { display: none; }
+        #ptr-indicator.ptr-loading .ptr-ring { display: block; animation: spin 0.7s linear infinite; }
 
         /* トースト通知 */
         #syncToast {
@@ -3398,9 +3406,10 @@
 
     <!-- プルトゥリフレッシュインジケーター -->
     <div id="ptr-indicator">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="ptr-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 5v14M5 12l7 7 7-7"/>
         </svg>
+        <div class="ptr-ring"></div>
     </div>
 
     <div class="drawer-overlay" id="drawerOverlay"></div>
