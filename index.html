@@ -7446,7 +7446,7 @@
                     busy = true;
                     indicator.classList.remove('ptr-ready');
                     indicator.classList.add('ptr-loading');
-                    setIndicatorY(THRESHOLD);
+                    indicator.style.transform = 'translateX(-50%) translateY(20px)';
 
                     manualSync();
                     const gtaskPane = document.getElementById('taskPane-gtask');

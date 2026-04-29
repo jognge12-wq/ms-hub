@@ -116,13 +116,29 @@
     .btn-xs:active { background: var(--bg); }
     .btn-xs.primary { background: var(--green); color: white; border-color: var(--green); }
     .btn-xs.primary:active { background: var(--green-dark); }
-    /* ─ 統一アイコン更新ボタン ──────────────────────────────── */
-    .btn-refresh { display: flex; align-items: center; justify-content: center;
-                   width: 30px; height: 30px; border-radius: 50%;
-                   background: none; border: none; padding: 0;
-                   color: var(--t3); cursor: pointer;
-                   -webkit-tap-highlight-color: transparent; transition: color .15s; }
-    .btn-refresh:active { color: var(--green); }
+    /* ─ プルトゥリフレッシュ ──────────────────────────────── */
+    #tm-ptr {
+        position: fixed; top: 44px; left: 50%;
+        transform: translateX(-50%) translateY(-52px);
+        z-index: 300;
+        width: 34px; height: 34px;
+        background: var(--card); border: 1.5px solid var(--border);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+        pointer-events: none; opacity: 0; transition: opacity 0.18s;
+    }
+    #tm-ptr.ptr-visible { opacity: 1; }
+    .tm-ptr-arrow { transition: transform 0.2s ease, stroke 0.2s ease; stroke: #9ca3af; }
+    #tm-ptr.ptr-ready .tm-ptr-arrow { stroke: var(--brand, #3d7a5a); transform: rotate(180deg); }
+    .tm-ptr-ring {
+        display: none; width: 15px; height: 15px;
+        border: 2px solid rgba(61,122,90,0.25);
+        border-top-color: var(--brand, #3d7a5a); border-radius: 50%;
+    }
+    #tm-ptr.ptr-loading .tm-ptr-arrow { display: none; }
+    #tm-ptr.ptr-loading .tm-ptr-ring { display: block; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .btn-back { display: flex; align-items: center; justify-content: center;
                 width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
                 background: none; border: none; padding: 0; color: var(--t2);
@@ -573,12 +589,6 @@
       <div class="hdr-title" id="hdr-title">現場タスク</div>
     </div>
     <span class="tbar-meta" id="lbl-upd" style="display:none">読み込み中…</span>
-    <button class="btn-refresh" id="btn-refresh-main" onclick="_doRefresh()" title="更新">
-      <svg id="sync-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-      </svg>
-    </button>
     <div class="tab-more-wrap">
       <button class="tab tab-more" id="btn-more" onclick="toggleMoreMenu(event)" aria-label="その他">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
@@ -601,6 +611,12 @@
     <span class="sv-banner-close" onclick="_jumpToProp(_focusedPropCid)">✕</span>
   </div>
 </header>
+<div id="tm-ptr">
+  <svg class="tm-ptr-arrow" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 5v14M5 12l7 7 7-7"/>
+  </svg>
+  <div class="tm-ptr-ring"></div>
+</div>
 
 <!-- ─── 物件一覧 ─────────────────────────────────────────────── -->
 <section id="pane-props" class="pane on">
@@ -846,14 +862,12 @@ function switchTab(name, btn) {
 
   const isMain = name === 'props';
   const backBtn    = document.getElementById('btn-back');
-  const refreshBtn = document.getElementById('btn-refresh-main');
   const moreWrap   = document.querySelector('.tab-more-wrap');
   const titleEl    = document.getElementById('hdr-title');
   const jumpBar    = document.getElementById('prop-jump-bar');
   const lblUpd     = document.getElementById('lbl-upd');
 
   if (backBtn)    backBtn.style.display    = isMain ? 'none' : '';
-  if (refreshBtn) refreshBtn.style.display = isMain ? '' : 'none';
   if (moreWrap)   moreWrap.style.display   = isMain ? '' : 'none';
   if (jumpBar)    jumpBar.classList.toggle('visible', isMain);
   if (lblUpd)     lblUpd.style.display     = isMain ? '' : 'none';
@@ -888,12 +902,8 @@ let _loadingProperties = false; // 二重呼び出し防止フラグ
 async function loadProperties() {
   if (_loadingProperties) return;
   _loadingProperties = true;
-  const btn  = document.getElementById('btn-refresh-main');
-  const icon = document.getElementById('sync-icon');
   const el   = document.getElementById('props-list');
   const lbl  = document.getElementById('lbl-upd');
-  if (btn)  btn.disabled = true;
-  if (icon) icon.classList.add('icon-spin');
 
   // キャッシュがあれば即座に表示（スピナーなし）
   const cached = loadPropDataFromCache();
@@ -935,8 +945,6 @@ async function loadProperties() {
     }
   } finally {
     _loadingProperties = false;
-    if (btn)  btn.disabled = false;
-    if (icon) icon.classList.remove('icon-spin');
   }
 }
 
@@ -2310,6 +2318,52 @@ document.addEventListener('visibilitychange', () => {
     if (invalidatedAt > propDataLoadedAt) loadProperties();
   } catch(_) {}
 });
+// ===== プルトゥリフレッシュ =====
+(function() {
+    const indicator = document.getElementById('tm-ptr');
+    if (!indicator) return;
+    let startY = 0, distance = 0, pulling = false, busy = false;
+    const THRESHOLD = 68, MAX_PULL = 100;
+
+    function setY(d) {
+        const ty = -52 + (Math.min(d, MAX_PULL) / MAX_PULL) * 72;
+        indicator.style.transform = 'translateX(-50%) translateY(' + ty + 'px)';
+    }
+    function reset() {
+        indicator.style.transform = 'translateX(-50%) translateY(-52px)';
+        indicator.classList.remove('ptr-visible', 'ptr-ready', 'ptr-loading');
+        distance = 0; pulling = false;
+    }
+
+    document.addEventListener('touchstart', function(e) {
+        if (busy || window.scrollY > 0) return;
+        startY = e.touches[0].clientY; pulling = true;
+    }, { passive: true });
+
+    document.addEventListener('touchmove', function(e) {
+        if (!pulling) return;
+        if (window.scrollY > 0) { pulling = false; return; }
+        distance = e.touches[0].clientY - startY;
+        if (distance <= 0) return;
+        setY(distance);
+        indicator.classList.add('ptr-visible');
+        indicator.classList.toggle('ptr-ready', distance >= THRESHOLD);
+    }, { passive: true });
+
+    document.addEventListener('touchend', function() {
+        if (!pulling || distance <= 0) { reset(); return; }
+        if (distance >= THRESHOLD) {
+            busy = true;
+            indicator.classList.remove('ptr-ready');
+            indicator.classList.add('ptr-loading');
+            indicator.style.transform = 'translateX(-50%) translateY(20px)';
+            _doRefresh();
+            setTimeout(function() { busy = false; reset(); }, 2500);
+        } else {
+            reset();
+        }
+    }, { passive: true });
+})();
 </script>
 </body>
 </html>
