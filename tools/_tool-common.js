@@ -54,6 +54,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { passive: true });
 });
 
+function showToolLoading(text) {
+  let ov = document.getElementById('_tool_loading_ov');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = '_tool_loading_ov';
+    ov.className = 'tool-loading-overlay hidden';
+    ov.innerHTML = '<div class="tool-loading-card"><div class="tool-loading-ring"></div><div class="tool-loading-label" id="_tool_loading_lbl"></div></div>';
+    document.body.appendChild(ov);
+  }
+  document.getElementById('_tool_loading_lbl').textContent = text || '読み込み中...';
+  ov.classList.remove('hidden');
+}
+function hideToolLoading() {
+  const ov = document.getElementById('_tool_loading_ov');
+  if (ov) ov.classList.add('hidden');
+}
+
 function openToolDrawer() {
   document.getElementById('toolDrawer').classList.add('open');
   document.getElementById('toolDrawerOverlay').classList.add('open');

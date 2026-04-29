@@ -4474,8 +4474,8 @@
             // 取得中: グレーアウト + バッジ表示
             const _fetchBadge = document.getElementById('homeFetchBadge');
             const _fetchOverlay = document.getElementById('loadingOverlay');
-            if (_fetchBadge) _fetchBadge.style.display = 'flex';
-            if (_fetchOverlay) _fetchOverlay.style.display = 'block';
+            if (_fetchBadge && !window._ptrLoading) _fetchBadge.style.display = 'flex';
+            if (_fetchOverlay && !window._ptrLoading) _fetchOverlay.style.display = 'block';
             try {
                 var params = '?mode=getDashboardData';
                 if (isWeekNav) {
@@ -7444,6 +7444,7 @@
                 if (!pulling || distance <= 0) { resetIndicator(); return; }
                 if (distance >= THRESHOLD) {
                     busy = true;
+                    window._ptrLoading = true;
                     indicator.classList.remove('ptr-ready');
                     indicator.classList.add('ptr-loading');
                     indicator.style.transform = 'translateX(-50%) translateY(20px)';
@@ -7454,7 +7455,7 @@
                         refreshGoogleTasks(null);
                     }
 
-                    setTimeout(function() { busy = false; resetIndicator(); }, 2800);
+                    setTimeout(function() { busy = false; window._ptrLoading = false; resetIndicator(); }, 2800);
                 } else {
                     resetIndicator();
                 }

@@ -478,19 +478,6 @@
     .toast.error { background: #dc2626; }
 
     /* ===== ローディング ===== */
-    .loading-wrap {
-      display: flex; align-items: center; justify-content: center;
-      gap: 10px; padding: 32px 0;
-      color: var(--text3); font-size: 13px;
-    }
-    .spinner {
-      width: 20px; height: 20px;
-      border: 2.5px solid var(--border);
-      border-top-color: var(--sfc-primary);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -750,9 +737,7 @@ async function callGas(mode, params = {}) {
 async function init() {
   // 既存のエラーバナーを除去（再試行時）
   document.querySelectorAll('.init-error-banner').forEach(el => el.remove());
-  const loadingHtml = '<div class="loading-wrap"><div class="spinner"></div>データ取得中...</div>';
-  // タブパネルにローディング表示
-  document.getElementById('panelRegister').querySelector('.section').insertAdjacentHTML('afterbegin', loadingHtml);
+  showToolLoading('データ取得中...');
   try {
     const r = await callGas('getAllFormData');
     if (!r.ok) throw new Error(r.error || 'データ取得失敗');
@@ -783,8 +768,7 @@ async function init() {
     const panel = document.getElementById('panelRegister');
     if (panel) panel.insertAdjacentHTML('afterbegin', banner);
   } finally {
-    // ローディング要素を削除
-    document.querySelectorAll('.loading-wrap').forEach(el => el.remove());
+    hideToolLoading();
   }
 }
 

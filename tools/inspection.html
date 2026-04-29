@@ -529,14 +529,6 @@
       to   { opacity: 1; transform: scale(1) translateY(0); }
     }
 
-    /* ローディング */
-    @keyframes spin-loader {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
-    .icon-spin { animation: spin-loader 0.9s linear infinite; display: inline-block; }
-    .loading-card { text-align: center; }
-    .loading-card p { font-size: 15px; font-weight: 700; color: var(--text1); margin-top: 16px; }
 
     /* 削除確認・結果 モーダル */
     .modal-card h2 { font-size: 15px; font-weight: 700; text-align: center; color: var(--text1); margin-bottom: 10px; }
@@ -897,19 +889,6 @@ const GAS_CONFIG = {
 
 </div><!-- /app-wrap -->
 
-
-<!-- ===== ローディング ===== -->
-<div id="loading-overlay" class="modal-overlay hidden">
-  <div class="modal-card loading-card">
-    <span class="icon-spin">
-      <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="var(--border)" stroke-width="3"/>
-        <path d="M12 2a10 10 0 0 1 10 10" stroke="var(--sfc-primary)" stroke-width="3" stroke-linecap="round"/>
-      </svg>
-    </span>
-    <p id="loading-title">処理中...</p>
-  </div>
-</div>
 
 <!-- ===== 時刻選択（検査） ===== -->
 <div id="time-modal" class="time-sheet-overlay hidden">
@@ -1925,9 +1904,8 @@ async function postToGAS(payload) {
    UI ヘルパー
 ============================================================ */
 function setLoading(isLoading, statusText = '') {
-  document.getElementById('loading-overlay').classList.toggle('hidden', !isLoading);
-  const t = document.getElementById('loading-title');
-  if (t) t.textContent = statusText || '処理中...';
+  if (isLoading) showToolLoading(statusText || '処理中...');
+  else hideToolLoading();
 }
 
 function showResultModal(type, title, bodyText) {

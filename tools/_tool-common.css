@@ -12,6 +12,42 @@
   animation: spin 0.8s linear infinite;
 }
 
+/* ---- 初期ロードオーバーレイ（全ツール共通） ---- */
+.tool-loading-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.42);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500; padding: 16px;
+}
+.tool-loading-overlay.hidden { display: none; }
+.tool-loading-card {
+  background: #fff; border-radius: 20px; padding: 28px 32px;
+  text-align: center; min-width: 160px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  animation: tool-modal-in 0.18s ease-out forwards;
+}
+@keyframes tool-modal-in {
+  from { opacity: 0; transform: scale(0.94) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.tool-loading-ring {
+  width: 44px; height: 44px;
+  border: 3.5px solid rgba(0,104,55,0.15);
+  border-top-color: #006837;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+.tool-loading-label {
+  font-size: 14px; font-weight: 600;
+  color: #1f2937; letter-spacing: -0.01em;
+}
+@media (prefers-color-scheme: dark) {
+  .tool-loading-card { background: #1a1f26; }
+  .tool-loading-label { color: #f3f4f6; }
+  .tool-loading-ring { border-color: rgba(52,211,153,0.15); border-top-color: #34d399; }
+}
+
 /* ---- プルトゥリフレッシュ（全ツール共通） ---- */
 #tool-ptr {
   position: fixed; top: 52px; left: 50%;
