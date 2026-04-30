@@ -1026,9 +1026,10 @@ const SCHEDULE_KEYWORDS = [
 function buildScheduleData(propName, city) {
   if (!propName) throw new Error('propName required');
 
-  // 物件名（例：「藤本S」）からイニシャル等を除いた苗字（例：「藤本」）
-  // GCalタイトルがイニシャルなしの場合のフォールバック用
-  const surname = propName.replace(/[\s　A-Za-z.\-]+$/, '').trim();
+  // 物件名・苗字を半角正規化（GCalタイトルに「藤本Ｓ」のように全角が混じる運用に対応）
+  const propNorm = _toHalfWidthAlnum(propName);
+  const surname = propNorm.replace(/[\s　A-Za-z.\-]+$/, '').trim();
+  const cityNorm = _toHalfWidthAlnum(city || '');
 
   const now = new Date();
   const from = new Date(now.getFullYear() - 1, 0, 1);
@@ -1036,19 +1037,20 @@ function buildScheduleData(propName, city) {
 
   // 全カレンダーからタイトル＋市町村でマッチするイベントを集める
   // タイトルは {物件名}様/邸 を優先、無ければ {苗字}様/邸 にフォールバック
-  // 同姓物件の混同を市町村で防止
+  // 同姓物件の混同を市町村で防止。半角/全角のゆれを吸収するため正規化済みで比較。
   const calendars = CalendarApp.getAllCalendars();
   const matched = [];
   calendars.forEach(cal => {
     cal.getEvents(from, to).forEach(ev => {
-      const title = ev.getTitle() || '';
-      const loc = ev.getLocation() || '';
+      const titleRaw = ev.getTitle() || '';
+      const title = _toHalfWidthAlnum(titleRaw);
+      const loc = _toHalfWidthAlnum(ev.getLocation() || '');
       const titleHit =
-        title.indexOf(propName + '様') >= 0 ||
-        title.indexOf(propName + '邸') >= 0 ||
-        (surname && surname !== propName &&
+        title.indexOf(propNorm + '様') >= 0 ||
+        title.indexOf(propNorm + '邸') >= 0 ||
+        (surname && surname !== propNorm &&
           (title.indexOf(surname + '様') >= 0 || title.indexOf(surname + '邸') >= 0));
-      const cityHit = !city || loc.indexOf(city) >= 0;
+      const cityHit = !cityNorm || loc.indexOf(cityNorm) >= 0;
       if (titleHit && cityHit) matched.push(ev);
     });
   });
@@ -1110,3 +1112,11 @@ function _addDays(d, n) {
   return r;
 }
 function _pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+// 全角英数字 → 半角に正規化（Ａ-Ｚ / ａ-ｚ / ０-９）
+function _toHalfWidthAlnum(s) {
+  if (!s) return '';
+  return String(s).replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(c) {
+    return String.fromCharCode(c.charCodeAt(0) - 0xFEE0);
+  });
+}
