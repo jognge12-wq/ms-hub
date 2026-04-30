@@ -836,7 +836,8 @@ async function onPropertyChange() {
     messages = JSON.parse(JSON.stringify(DEFAULT_MESSAGES));
     renderPaymentList();
     renderMessageList();
-    await fetchScheduleDates(selectedPropName);
+    await 
+fetchScheduleDates(selectedPropName);
     syncDateEditInputs();
     document.getElementById('saveIndicator').textContent = '';
   }
@@ -1377,19 +1378,25 @@ function collectPreviewData() {
     publicInspDates: scheduleDates.publicInspDates,
   };
 }
-
-// 物件選択時に GAS から GCal日程を取得（未実装時はサンプルにフォールバック）
+// 物件選択時に GAS から GCal日程を取得（取得失敗時はサンプルにフォールバック）
 async function fetchScheduleDates(propName) {
   if (!propName) { scheduleDates = SAMPLE_DATES; return; }
   try {
-    // TODO Step C-3: GAS の getCustomerScheduleData(propName) を叩く
-    // const url = GAS_URLS.TASK + '?mode=getCustomerScheduleData&prop=' + encodeURIComponent(propName);
-    // const res = await fetch(url); const json = await res.json();
-    // if (json.ok) { scheduleDates = json.data; return; }
-    scheduleDates = SAMPLE_DATES;  // 暫定
+    const url = GAS_URLS.TASK + '?mode=getCustomerScheduleData&prop=' + encodeURIComponent(propName);
+    const res = await fetch(url);
+    const json = await res.json();
+    if (json.ok && json.data) {
+      scheduleDates = {
+        workDates:        json.data.workDates        || {},
+        meetingDates:     json.data.meetingDates     || {},
+        publicInspDates:  json.data.publicInspDates  || {},
+      };
+      return;
+    }
   } catch (e) {
-    scheduleDates = SAMPLE_DATES;
+    console.warn('GCal日程取得失敗、サンプルにフォールバック:', e);
   }
+  scheduleDates = SAMPLE_DATES;
 }
 
 function updatePreview() {
