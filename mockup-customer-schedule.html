@@ -311,19 +311,17 @@
     flex: 1;
   }
   .vendors > div {
-    padding: 0.7mm 2mm;
+    padding: 0 2mm;             /* line-height で縦中央寄せ */
     border-right: 0.4mm solid #000;
     border-bottom: 0.4mm solid #000;
     font-size: 13px;
-    display: flex; align-items: center;
     background: #fff;
-    line-height: 1.2;
     height: 7mm;                /* 固定高さ：長い業者名でも改行で表が変形しない */
-    overflow: hidden;
+    line-height: 7mm;           /* 行高 = セル高で縦中央寄せ */
     white-space: nowrap;
+    overflow: hidden;
     text-overflow: ellipsis;
   }
-  .vendors > div > * { min-width: 0; }
 
   .notes {
     display: grid;
@@ -643,6 +641,8 @@ function applyData(data) {
       const el = document.getElementById('vendor-' + k);
       if (el && data.vendors[k] !== undefined) el.textContent = data.vendors[k] || '';
     });
+    // 長い社名は自動でフォント縮小して可能な限り全文表示
+    setTimeout(fitVendorCells, 0);
   }
 
   // お支払い時期（配列形式：ラベル/位置/表示の編集可）
@@ -757,9 +757,24 @@ const DEFAULT_MESSAGES_TPL = [
   { text: '手形式　有・無',   position: 5, shown: true },
 ];
 
+// 業者セル：固定高さでも長い社名は自動フォント縮小（13px → 最小 8.5px）
+function fitVendorCells() {
+  const cells = document.querySelectorAll('.vendors > div');
+  cells.forEach(cell => {
+    cell.style.fontSize = '';  // リセット
+    let size = 13;
+    // scrollWidth がセル幅を超える間、フォントを段階的に縮小
+    while (cell.scrollWidth > cell.clientWidth + 1 && size > 8.5) {
+      size -= 0.5;
+      cell.style.fontSize = size + 'px';
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   renderPayments(DEFAULT_PAYMENTS_TPL);
   renderMessages(DEFAULT_MESSAGES_TPL);
+  fitVendorCells();
 });
 
 // postMessage 経由でも更新可能

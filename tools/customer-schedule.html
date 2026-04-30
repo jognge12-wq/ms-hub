@@ -992,8 +992,8 @@ function escapeHtml(s) {
   }[c]));
 }
 
-// 新ウィンドウでテンプレートを ?print=1 で開き、データ適用 → window.print()
-// ユーザーは「PDFとして保存」を選んで保存する
+// 新ウィンドウでテンプレートを ?print=1 で開き、画像・フォントの完全ロード待ち → print()
+// 画像未ロードのまま print() を叩くと、PDF保存時にブラウザが画像待ちで固まる
 function createPdf() {
   if (!selectedPropName) {
     alert('物件を選択してください');
@@ -1007,18 +1007,41 @@ function createPdf() {
     alert('ポップアップがブロックされました。ポップアップ許可してから再度お試しください。');
     return;
   }
-  const onReady = () => {
+
+  let triggered = false;
+  const onReady = async () => {
+    if (triggered) return;
+    triggered = true;
     try {
       if (typeof win.applyData === 'function') win.applyData(data);
       win.document.title = `${surname}様邸お客様工程表`;
-      // レイアウト確定を少し待ってから印刷ダイアログ
-      setTimeout(() => {
-        try { win.focus(); win.print(); } catch (e) { console.error(e); }
-      }, 400);
+
+      // 1) 画像の完全ロード待ち（イラスト12枚＝約5MB）
+      const images = Array.from(win.document.querySelectorAll('img'));
+      await Promise.all(images.map(img => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        return new Promise(res => {
+          img.addEventListener('load', res, { once: true });
+          img.addEventListener('error', res, { once: true });
+          setTimeout(res, 8000);  // セーフティタイムアウト
+        });
+      }));
+
+      // 2) フォントロード待ち
+      if (win.document.fonts && win.document.fonts.ready) {
+        await win.document.fonts.ready;
+      }
+
+      // 3) レイアウト確定を少し待ってから印刷ダイアログ
+      await new Promise(r => setTimeout(r, 200));
+      win.focus();
+      win.print();
     } catch (e) {
       console.error('PDF生成エラー:', e);
+      alert('PDF生成準備中にエラーが発生しました。もう一度お試しください。');
     }
   };
+
   win.addEventListener('load', onReady);
   // 既にロード済みのケースに備えて
   setTimeout(() => {
