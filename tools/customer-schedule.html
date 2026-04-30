@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="../manifest.json">
+  <title>お客様工程表作成 — m's hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="_tool-common.css">
+  <script src="_tool-common.js"></script>
+  <style>
+    :root {
+      --sfc-dark:    #004d29;
+      --sfc-primary: #006837;
+      --sfc-light:   #e8f5e9;
+      --sfc-border:  #a5d6a7;
+      --bg:          #f0f4f2;
+      --surface:     #ffffff;
+      --surface2:    #f8faf9;
+      --border:      #dde8e2;
+      --text1:       #1e293b;
+      --text2:       #475569;
+      --text3:       #64748b;
+      --red:         #ef4444;
+      --amber:       #d97706;
+      --amber-bg:    #fef3c7;
+      --shadow-lg:   0 4px 20px rgba(15,25,20,0.06), 0 1px 3px rgba(15,25,20,0.04);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --sfc-dark:    #0a6b3a;
+        --sfc-primary: #34d399;
+        --sfc-light:   #064e3b;
+        --sfc-border:  #065f46;
+        --bg:          #0f1419;
+        --surface:     #1a1f26;
+        --surface2:    #242a33;
+        --border:      #2d3b33;
+        --text1:       #f3f4f6;
+        --text2:       #d1d5db;
+        --text3:       #9ca3af;
+        --red:         #f87171;
+        --amber:       #fbbf24;
+        --amber-bg:    #1c1500;
+      }
+      body { color-scheme: dark; }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 15px;
+      background: var(--bg);
+      color: var(--text1);
+      min-height: 100vh;
+      padding: 0 0 calc(74px + env(safe-area-inset-bottom, 0px));
+      -webkit-font-smoothing: antialiased;
+    }
+    .hidden { display: none !important; }
+
+    .app-wrap {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 8px 16px 24px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+
+    .app-header {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: var(--shadow-lg);
+    }
+    .app-header-icon {
+      width: 40px; height: 40px;
+      background: var(--sfc-light);
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .app-header-icon svg {
+      width: 20px; height: 20px;
+      stroke: var(--sfc-primary); fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .app-header-title { font-size: 15px; font-weight: 700; color: var(--text1); letter-spacing: -0.01em; }
+    .app-header-sub   { font-size: 11px; color: var(--text3); margin-top: 2px; }
+    .btn-back {
+      margin-left: auto;
+      display: flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      cursor: pointer; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+    .btn-back:active { background: var(--border); }
+    .btn-back svg {
+      width: 18px; height: 18px;
+      stroke: var(--text2); fill: none;
+      stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .section {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .section-head {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      border-left: 3px solid var(--sfc-primary);
+    }
+    .section-icon {
+      width: 15px; height: 15px;
+      stroke: var(--sfc-primary); fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    .section-title { font-size: 14px; font-weight: 700; color: var(--text1); letter-spacing: -0.01em; }
+    .section-head-end { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .section-body { padding: 14px 16px 16px; }
+
+    .field { margin-bottom: 12px; }
+    .field:last-child { margin-bottom: 0; }
+    .field-label {
+      display: block;
+      font-size: 12px; font-weight: 700;
+      color: var(--text2);
+      margin-bottom: 6px;
+      letter-spacing: 0.03em;
+    }
+    select, input[type="text"] {
+      display: block; width: 100%;
+      padding: 11px 12px;
+      font-size: 14px;
+      font-family: 'Noto Sans JP', sans-serif;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface2);
+      color: var(--text1);
+      -webkit-appearance: none; appearance: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    select {
+      padding-right: 32px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--sfc-primary);
+      box-shadow: 0 0 0 3px rgba(0,104,55,0.12);
+    }
+
+    /* Vendor row */
+    .vendor-grid { display: flex; flex-direction: column; gap: 8px; }
+    .vendor-row {
+      display: grid;
+      grid-template-columns: 96px 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .vendor-label {
+      font-size: 12px; font-weight: 700;
+      color: var(--text2);
+      text-align: right;
+      white-space: nowrap;
+    }
+    .vendor-input-wrap {
+      position: relative;
+      display: flex; align-items: stretch;
+    }
+    .vendor-input {
+      flex: 1;
+      padding: 9px 32px 9px 11px;
+      font-size: 13px;
+      font-family: 'Noto Sans JP', sans-serif;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text1);
+    }
+    .vendor-input:focus {
+      outline: none; border-color: var(--sfc-primary);
+      box-shadow: 0 0 0 3px rgba(0,104,55,0.12);
+    }
+    .vendor-input::placeholder { color: var(--text3); font-size: 12px; }
+    .vendor-pick {
+      position: absolute;
+      right: 4px; top: 50%; transform: translateY(-50%);
+      width: 24px; height: 24px;
+      border: none; background: transparent;
+      cursor: pointer;
+      color: var(--text3);
+      border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .vendor-pick:hover { background: var(--border); color: var(--sfc-primary); }
+    .vendor-pick svg {
+      width: 13px; height: 13px;
+      stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+    .btn-register {
+      flex-shrink: 0;
+      font-size: 11px; font-weight: 700;
+      color: var(--sfc-primary);
+      background: var(--sfc-light);
+      border: 1.5px solid var(--sfc-border);
+      border-radius: 7px;
+      padding: 7px 11px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    .btn-register:active { opacity: 0.7; }
+    .btn-register:disabled { opacity: 0.4; cursor: default; pointer-events: none; }
+
+    /* Master picker popover */
+    .picker-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 300;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.18s;
+    }
+    .picker-overlay.open { opacity: 1; pointer-events: auto; }
+    .picker {
+      position: fixed; left: 50%;
+      top: 50%; transform: translate(-50%, -50%);
+      width: min(440px, calc(100vw - 32px));
+      max-height: 80vh;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.2);
+      z-index: 301;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.18s;
+      display: flex; flex-direction: column;
+    }
+    .picker.open { opacity: 1; pointer-events: auto; }
+    .picker-head {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .picker-title { font-size: 14px; font-weight: 700; flex: 1; }
+    .picker-cat { font-size: 12px; color: var(--text3); }
+    .picker-close {
+      width: 28px; height: 28px;
+      border: none; background: transparent;
+      color: var(--text3); cursor: pointer;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .picker-close:hover { background: var(--border); color: var(--text1); }
+    .picker-close svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .picker-body { padding: 10px 14px; overflow-y: auto; flex: 1; }
+    .picker-list { display: flex; flex-direction: column; gap: 5px; }
+    .picker-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .picker-item:hover { border-color: var(--sfc-primary); background: var(--sfc-light); }
+    .picker-item-name { flex: 1; font-size: 13px; font-weight: 500; }
+    .picker-item-del {
+      flex-shrink: 0;
+      width: 26px; height: 26px;
+      border: none; background: transparent; color: var(--text3);
+      border-radius: 6px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .picker-item-del:hover { background: #fee2e2; color: var(--red); }
+    .picker-item-del svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .picker-empty {
+      text-align: center; color: var(--text3);
+      font-size: 12px; padding: 24px 0;
+    }
+    .picker-foot { padding: 10px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+    .picker-foot input {
+      flex: 1; padding: 9px 11px; font-size: 13px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      background: var(--surface2); color: var(--text1);
+    }
+    .picker-foot button {
+      flex-shrink: 0;
+      font-size: 12px; font-weight: 700;
+      color: #fff; background: var(--sfc-primary);
+      border: none; border-radius: 8px;
+      padding: 9px 14px; cursor: pointer;
+    }
+
+    /* Manual input groups */
+    .group-title {
+      font-size: 12px; font-weight: 700;
+      color: var(--text2);
+      margin: 0 0 8px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .check-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .check-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .check-item input { accent-color: var(--sfc-primary); cursor: pointer; }
+    .check-item:has(input:checked) {
+      border-color: var(--sfc-primary);
+      background: var(--sfc-light);
+    }
+
+    /* Item editor (お支払い時期 / 特殊メッセージ) */
+    .item-list { display: flex; flex-direction: column; gap: 6px; }
+    .item-row {
+      display: grid;
+      grid-template-columns: auto 1fr 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 8px;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+    }
+    .item-row input[type="checkbox"] { accent-color: var(--sfc-primary); cursor: pointer; }
+    .item-row input[type="text"] {
+      font-size: 13px; padding: 6px 9px;
+      border: 1.5px solid var(--border); border-radius: 6px;
+      background: var(--surface); color: var(--text1);
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    .item-row select {
+      font-size: 12px; padding: 6px 22px 6px 9px;
+      border: 1.5px solid var(--border); border-radius: 6px;
+      background: var(--surface); color: var(--text1);
+      font-family: 'Noto Sans JP', sans-serif;
+      -webkit-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 6px center;
+    }
+    .item-row input:focus, .item-row select:focus {
+      outline: none;
+      border-color: var(--sfc-primary);
+      box-shadow: 0 0 0 3px rgba(0,104,55,0.12);
+    }
+    .btn-del-item {
+      width: 26px; height: 26px;
+      border: none; background: transparent; color: var(--text3);
+      cursor: pointer; border-radius: 5px;
+      font-size: 18px; line-height: 1; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .btn-del-item:hover { background: #fee2e2; color: var(--red); }
+    .btn-add-item {
+      font-size: 12px; font-weight: 700;
+      color: var(--sfc-primary); background: var(--sfc-light);
+      border: 1.5px solid var(--sfc-border); border-radius: 7px;
+      padding: 7px 14px; cursor: pointer;
+      margin-top: 6px;
+    }
+    .btn-add-item:active { opacity: 0.7; }
+
+    /* Date edit grid */
+    .date-edit-grid {
+      display: grid;
+      grid-template-columns: 96px 1fr;
+      gap: 6px 10px;
+      align-items: center;
+    }
+    .date-edit-grid label {
+      font-size: 12px;
+      color: var(--text2);
+      text-align: right;
+      font-weight: 600;
+    }
+    .date-edit-grid input {
+      font-size: 13px;
+      padding: 7px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text1);
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    .date-edit-grid input:focus {
+      outline: none;
+      border-color: var(--sfc-primary);
+      box-shadow: 0 0 0 3px rgba(0,104,55,0.12);
+    }
+    .btn-toggle {
+      font-size: 11px; font-weight: 700;
+      color: var(--sfc-primary);
+      background: var(--sfc-light);
+      border: 1.5px solid var(--sfc-border);
+      border-radius: 7px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .save-indicator {
+      font-size: 10px; color: var(--text3);
+      margin-left: 8px;
+    }
+    .save-indicator.saved { color: var(--sfc-primary); font-weight: 600; }
+
+    /* Preview iframe（A3横アスペクト維持） */
+    .preview-iframe-wrap {
+      width: 100%;
+      aspect-ratio: 420 / 297;
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    .preview-iframe {
+      width: 100%; height: 100%;
+      border: none;
+      display: block;
+      background: #fff;
+    }
+    .preview-loading {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text3); font-size: 12px;
+      pointer-events: none;
+    }
+
+    .action-area {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: var(--shadow-lg);
+    }
+    .output-filename {
+      font-size: 13px; color: var(--text2);
+      text-align: center; margin-bottom: 12px;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: -0.01em;
+    }
+    .btn-create {
+      display: block; width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #004d29 0%, #00703d 100%);
+      color: #fff;
+      font-size: 15px; font-weight: 700;
+      font-family: 'Noto Sans JP', sans-serif;
+      border: none; border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(29,107,64,0.3);
+      transition: opacity 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-create:active { opacity: 0.85; }
+    .btn-create:disabled {
+      background: var(--border); color: var(--text3);
+      box-shadow: none; pointer-events: none;
+    }
+    .create-summary { font-size: 12px; color: var(--text3); text-align: center; margin-top: 8px; }
+
+    @media (max-width: 480px) {
+      .vendor-row { grid-template-columns: 80px 1fr auto; gap: 6px; }
+      .vendor-label { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+<script src="../config.js"></script>
+
+<!-- トップバー -->
+<div class="tool-top-bar">
+  <button onclick="openToolDrawer()" aria-label="メニューを開く">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<!-- メインコンテンツ -->
+<div class="app-wrap" id="app">
+
+  <!-- アプリヘッダー -->
+  <div class="app-header">
+    <div class="app-header-icon">
+      <svg viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+        <line x1="9" y1="2" x2="9" y2="6"/>
+        <line x1="15" y1="2" x2="15" y2="6"/>
+        <path d="M8 14h8M8 18h5"/>
+      </svg>
+    </div>
+    <div>
+      <div class="app-header-title">お客様工程表作成</div>
+      <div class="app-header-sub">物件選択 + 業者プルダウン → A3横PDF</div>
+    </div>
+    <button class="btn-back" onclick="history.back()" aria-label="戻る">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+  </div>
+
+  <!-- ① 物件選択 -->
+  <div class="section">
+    <div class="section-head">
+      <svg class="section-icon" viewBox="0 0 24 24">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span class="section-title">物件を選択</span>
+    </div>
+    <div class="section-body">
+      <div class="field" style="margin-bottom:0">
+        <label class="field-label" for="propSelect">物件名（苗字＋イニシャル）</label>
+        <select id="propSelect" onchange="onPropertyChange()">
+          <option value="">-- 読み込み中... --</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ② 施工工事店名 -->
+  <div class="section">
+    <div class="section-head">
+      <svg class="section-icon" viewBox="0 0 24 24">
+        <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/>
+        <path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/>
+      </svg>
+      <span class="section-title">施工工事店名</span>
+      <div class="section-head-end" style="font-size:11px; color:var(--text3);">
+        登録 or 直接入力 / 該当なしは空欄OK
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="vendor-grid" id="vendorGrid"></div>
+    </div>
+  </div>
+
+  <!-- ③ お客様渡し設定 -->
+  <div class="section">
+    <div class="section-head">
+      <svg class="section-icon" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span class="section-title">お支払い時期・特殊メッセージ</span>
+    </div>
+    <div class="section-body">
+      <div class="group-title">お支払い時期（ラベル・位置・表示すべて編集可）</div>
+      <div class="item-list" id="paymentList"></div>
+      <button class="btn-add-item" onclick="addPayment()">＋ お支払い段を追加</button>
+
+      <div class="group-title" style="margin-top:14px;">特殊メッセージ（赤文字 / 位置はどの工程列でも可）</div>
+      <div class="item-list" id="messageList"></div>
+      <button class="btn-add-item" onclick="addMessage()">＋ メッセージを追加</button>
+    </div>
+  </div>
+
+  <!-- ④ 日程の確認・修正 -->
+  <div class="section">
+    <div class="section-head">
+      <svg class="section-icon" viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+        <line x1="9" y1="2" x2="9" y2="6"/>
+        <line x1="15" y1="2" x2="15" y2="6"/>
+      </svg>
+      <span class="section-title">日程の確認・修正</span>
+      <div class="section-head-end">
+        <span class="save-indicator" id="saveIndicator"></span>
+        <button class="btn-toggle" id="dateToggleBtn" onclick="toggleDateEdit()">展開</button>
+      </div>
+    </div>
+    <div class="section-body hidden" id="dateEditBody">
+      <div class="group-title" style="margin-top:0;">工程予定日（11工程）</div>
+      <div class="date-edit-grid" id="workDateGrid"></div>
+
+      <div class="group-title" style="margin-top:14px;">立会い予定日（5項目）</div>
+      <div class="date-edit-grid" id="meetingDateGrid"></div>
+
+      <div class="group-title" style="margin-top:14px;">公的検査予定日（5項目）</div>
+      <div class="date-edit-grid" id="publicInspDateGrid"></div>
+    </div>
+  </div>
+
+  <!-- ⑤ プレビュー -->
+  <div class="section">
+    <div class="section-head">
+      <svg class="section-icon" viewBox="0 0 24 24">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+      <span class="section-title">プレビュー</span>
+    </div>
+    <div class="section-body">
+      <div class="preview-iframe-wrap">
+        <iframe id="previewIframe" class="preview-iframe"
+                src="../mockup-customer-schedule.html?embed=1"
+                title="お客様工程表 プレビュー"></iframe>
+        <div class="preview-loading" id="previewLoading">プレビュー読み込み中...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ 作成ボタン -->
+  <div class="action-area">
+    <div class="output-filename" id="outputFilename">○様邸お客様工程表.pdf</div>
+    <button class="btn-create" id="btnCreate" onclick="createPdf()" disabled>
+      <span id="btnCreateLabel">PDFを作成</span>
+    </button>
+    <div class="create-summary" id="createSummary">物件を選択するとPDF作成可能になります</div>
+  </div>
+
+</div><!-- /.app-wrap -->
+
+<!-- 業者マスタピッカー -->
+<div class="picker-overlay" id="pickerOverlay" onclick="closePicker()"></div>
+<div class="picker" id="picker">
+  <div class="picker-head">
+    <div>
+      <div class="picker-cat" id="pickerCat">業種</div>
+      <div class="picker-title">登録業者から選択</div>
+    </div>
+    <button class="picker-close" onclick="closePicker()" aria-label="閉じる">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="picker-body">
+    <div class="picker-list" id="pickerList"></div>
+  </div>
+  <div class="picker-foot">
+    <input type="text" id="pickerInput" placeholder="新規業者名を入力" onkeydown="if(event.key==='Enter') addPickerEntry()">
+    <button onclick="addPickerEntry()">+ 追加</button>
+  </div>
+</div>
+
+<!-- サイドドロワー -->
+<div class="tdrawer-overlay" id="toolDrawerOverlay" onclick="closeToolDrawer()"></div>
+<nav class="tdrawer" id="toolDrawer">
+  <div class="tdrawer-head">
+    <div class="tdrawer-head-title">m's hub</div>
+    <div class="tdrawer-head-sub">施工管理ポータル</div>
+  </div>
+  <div class="tdrawer-sec">メイン</div>
+  <a class="tdrawer-item" href="../index.html">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    ホーム
+  </a>
+  <a class="tdrawer-item" href="../index.html?tab=tasks">
+    <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    タスク
+  </a>
+  <a class="tdrawer-item" href="../index.html?tab=properties">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg>
+    物件ボード
+  </a>
+  <div class="tdrawer-sep"></div>
+  <div class="tdrawer-sec">ツール</div>
+  <a class="tdrawer-item" href="./inspection.html">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    検査依頼
+  </a>
+  <a class="tdrawer-item" href="./payment.html">
+    <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+    支払い管理
+  </a>
+  <a class="tdrawer-item" href="./property.html">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    新規物件登録
+  </a>
+  <a class="tdrawer-item" href="./drawing-merge.html">
+    <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    製本図作成
+  </a>
+  <a class="tdrawer-item active" href="./customer-schedule.html">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="2" x2="9" y2="6"/><line x1="15" y1="2" x2="15" y2="6"/></svg>
+    お客様工程表作成
+  </a>
+  <div class="tdrawer-sep"></div>
+  <div class="tdrawer-sec">外部サービス</div>
+  <a class="tdrawer-item" href="https://calendar.google.com" target="_blank">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="2" x2="9" y2="6"/><line x1="15" y1="2" x2="15" y2="6"/></svg>
+    Google カレンダー
+    <svg class="tdrawer-ext" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+  </a>
+</nav>
+
+<!-- ボトムナビ -->
+<nav class="tool-bottom-nav">
+  <a class="tni" href="../index.html">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span class="tni-lbl">ホーム</span>
+  </a>
+  <a class="tni" href="../index.html?tab=tasks">
+    <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    <span class="tni-lbl">タスク</span>
+  </a>
+  <a class="tni" href="../index.html?tab=properties">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg>
+    <span class="tni-lbl">物件</span>
+  </a>
+  <a class="tni active" href="../index.html?tab=tools">
+    <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    <span class="tni-lbl">ツール</span>
+  </a>
+</nav>
+
+<script>
+// ================================================================
+// 業者カテゴリ定義（8業種）
+// ================================================================
+const VENDOR_CATEGORIES = [
+  { key: 'main',     label: '本体工事' },
+  { key: 'electric', label: '電気' },
+  { key: 'water',    label: '水道' },
+  { key: 'roof',     label: '屋根' },
+  { key: 'gas',      label: 'ガス配管' },
+  { key: 'demo',     label: '解体撤去' },
+  { key: 'ground',   label: '地盤改良' },
+  { key: 'aircon',   label: '空調' },
+];
+
+// ================================================================
+// 業者マスタ（localStorage）
+// 構造: { main: ['矢橋林業㈱', '○○工務店', ...], electric: [...], ... }
+// ================================================================
+const VENDOR_MASTER_KEY = 'customer-schedule-vendors-v1';
+let vendorMaster = loadVendorMaster();
+let pickerActiveKey = null;  // 開いているピッカーの業種key
+
+function loadVendorMaster() {
+  try {
+    const raw = localStorage.getItem(VENDOR_MASTER_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+function saveVendorMaster() {
+  localStorage.setItem(VENDOR_MASTER_KEY, JSON.stringify(vendorMaster));
+}
+function getMasterList(key) {
+  return Array.isArray(vendorMaster[key]) ? vendorMaster[key] : [];
+}
+
+// ================================================================
+// 状態
+// ================================================================
+let selectedPropName = '';
+
+// 物件名（苗字＋イニシャル）から末尾の英字・空白・記号を除去して苗字のみ抽出
+function extractSurname(propName) {
+  if (!propName) return '';
+  return propName.replace(/[\s　A-Za-z.\-]+$/, '').trim();
+}
+
+// ================================================================
+// 物件一覧の読み込み
+// ================================================================
+async function loadProperties() {
+  const sel = document.getElementById('propSelect');
+  try {
+    const res  = await fetch(GAS_URLS.TASK + '?mode=getProperties');
+    const json = await res.json();
+    if (json.ok && json.data && json.data.length > 0) {
+      sel.innerHTML = '<option value="">-- 物件を選択 --</option>';
+      json.data.forEach(p => {
+        const name = p.name || p.物件名 || p.title || '';
+        if (!name) return;
+        const prog = p.progress || '';
+        if (prog === '竣工' || prog.includes('引渡')) return;
+        const opt = document.createElement('option');
+        opt.value = name; opt.textContent = name;
+        sel.appendChild(opt);
+      });
+    } else {
+      sel.innerHTML = '<option value="">-- 物件一覧を取得できませんでした --</option>';
+    }
+  } catch (e) {
+    sel.innerHTML = '<option value="">-- オフライン：物件名を直接入力 --</option>';
+  }
+}
+
+async function onPropertyChange() {
+  const sel = document.getElementById('propSelect');
+  selectedPropName = sel.value || '';
+  updateOutputFilename();
+  updateCreateButton();
+
+  // 保存済み状態があれば復元、なければGASから日程取得
+  const saved = loadState(selectedPropName);
+  if (saved) {
+    applyState(saved);
+    showSavedIndicator(saved.savedAt);
+  } else {
+    // 入力欄をリセット
+    VENDOR_CATEGORIES.forEach(cat => {
+      const input = document.getElementById('vin-' + cat.key);
+      if (input) input.value = '';
+      onVendorInputSilent(cat.key);
+    });
+    payments = JSON.parse(JSON.stringify(DEFAULT_PAYMENTS));
+    messages = JSON.parse(JSON.stringify(DEFAULT_MESSAGES));
+    renderPaymentList();
+    renderMessageList();
+    await fetchScheduleDates(selectedPropName);
+    syncDateEditInputs();
+    document.getElementById('saveIndicator').textContent = '';
+  }
+  updatePreview();
+}
+
+function updateOutputFilename() {
+  const surname = extractSurname(selectedPropName);
+  const display = surname ? `${surname}様邸` : '○様邸';
+  document.getElementById('outputFilename').textContent = `${display}お客様工程表.pdf`;
+}
+
+function updateCreateButton() {
+  const btn = document.getElementById('btnCreate');
+  const sum = document.getElementById('createSummary');
+  if (selectedPropName) {
+    btn.disabled = false;
+    sum.textContent = '新しいウィンドウで印刷ダイアログが開きます。「PDFとして保存」を選択してください';
+  } else {
+    btn.disabled = true;
+    sum.textContent = '物件を選択するとPDF作成可能になります';
+  }
+}
+
+// ================================================================
+// 業者行のレンダリング
+// ================================================================
+function renderVendorGrid() {
+  const grid = document.getElementById('vendorGrid');
+  grid.innerHTML = VENDOR_CATEGORIES.map(cat => `
+    <div class="vendor-row" data-key="${cat.key}">
+      <div class="vendor-label">${cat.label}</div>
+      <div class="vendor-input-wrap">
+        <input type="text" class="vendor-input" id="vin-${cat.key}"
+               placeholder="登録から選ぶ or 直接入力（空欄OK）"
+               oninput="onVendorInput('${cat.key}')">
+        <button class="vendor-pick" onclick="openPicker('${cat.key}')" title="登録業者から選ぶ" aria-label="登録業者から選ぶ">
+          <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+      </div>
+      <button class="btn-register" id="vbtn-${cat.key}" onclick="registerCurrent('${cat.key}')" disabled>登録</button>
+    </div>
+  `).join('');
+}
+
+function onVendorInput(key) {
+  onVendorInputSilent(key);
+  updatePreview();
+  saveState();
+}
+
+function registerCurrent(key) {
+  const input = document.getElementById('vin-' + key);
+  const val = (input.value || '').trim();
+  if (!val) return;
+  const list = getMasterList(key);
+  if (list.includes(val)) return;
+  list.push(val);
+  vendorMaster[key] = list;
+  saveVendorMaster();
+  onVendorInput(key);  // ボタンの状態更新
+}
+
+// ================================================================
+// ピッカー（登録業者一覧モーダル）
+// ================================================================
+function openPicker(key) {
+  pickerActiveKey = key;
+  const cat = VENDOR_CATEGORIES.find(c => c.key === key);
+  document.getElementById('pickerCat').textContent = cat ? cat.label : '';
+  renderPickerList();
+  document.getElementById('pickerInput').value = '';
+  document.getElementById('pickerOverlay').classList.add('open');
+  document.getElementById('picker').classList.add('open');
+}
+
+function closePicker() {
+  pickerActiveKey = null;
+  document.getElementById('pickerOverlay').classList.remove('open');
+  document.getElementById('picker').classList.remove('open');
+}
+
+function renderPickerList() {
+  const list = getMasterList(pickerActiveKey);
+  const el = document.getElementById('pickerList');
+  if (!list.length) {
+    el.innerHTML = '<div class="picker-empty">まだ登録がありません。下から追加してください。</div>';
+    return;
+  }
+  el.innerHTML = list.map((v, i) => `
+    <div class="picker-item" onclick="pickVendor(${i})">
+      <span class="picker-item-name">${escapeHtml(v)}</span>
+      <button class="picker-item-del" onclick="event.stopPropagation(); deleteVendor(${i})" aria-label="削除">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+      </button>
+    </div>
+  `).join('');
+}
+
+function pickVendor(idx) {
+  const list = getMasterList(pickerActiveKey);
+  const v = list[idx];
+  if (!v) return;
+  const input = document.getElementById('vin-' + pickerActiveKey);
+  input.value = v;
+  onVendorInput(pickerActiveKey);
+  closePicker();
+  updatePreview();
+}
+
+function deleteVendor(idx) {
+  const list = getMasterList(pickerActiveKey);
+  if (!list[idx]) return;
+  if (!confirm(`「${list[idx]}」を業者マスタから削除しますか？`)) return;
+  list.splice(idx, 1);
+  vendorMaster[pickerActiveKey] = list;
+  saveVendorMaster();
+  renderPickerList();
+  // 入力欄が削除された業者と一致していれば登録ボタンの状態も更新
+  onVendorInput(pickerActiveKey);
+}
+
+function addPickerEntry() {
+  const input = document.getElementById('pickerInput');
+  const val = (input.value || '').trim();
+  if (!val) return;
+  const list = getMasterList(pickerActiveKey);
+  if (list.includes(val)) {
+    alert('すでに登録されています');
+    return;
+  }
+  list.push(val);
+  vendorMaster[pickerActiveKey] = list;
+  saveVendorMaster();
+  input.value = '';
+  renderPickerList();
+}
+
+// ================================================================
+// utility
+// ================================================================
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+// 新ウィンドウでテンプレートを ?print=1 で開き、データ適用 → window.print()
+// ユーザーは「PDFとして保存」を選んで保存する
+function createPdf() {
+  if (!selectedPropName) {
+    alert('物件を選択してください');
+    return;
+  }
+  const data = collectPreviewData();
+  const surname = data.surname || '○';
+  const url = '../mockup-customer-schedule.html?print=1';
+  const win = window.open(url, '_blank');
+  if (!win) {
+    alert('ポップアップがブロックされました。ポップアップ許可してから再度お試しください。');
+    return;
+  }
+  const onReady = () => {
+    try {
+      if (typeof win.applyData === 'function') win.applyData(data);
+      win.document.title = `${surname}様邸お客様工程表`;
+      // レイアウト確定を少し待ってから印刷ダイアログ
+      setTimeout(() => {
+        try { win.focus(); win.print(); } catch (e) { console.error(e); }
+      }, 400);
+    } catch (e) {
+      console.error('PDF生成エラー:', e);
+    }
+  };
+  win.addEventListener('load', onReady);
+  // 既にロード済みのケースに備えて
+  setTimeout(() => {
+    if (win.document && win.document.readyState === 'complete') onReady();
+  }, 100);
+}
+
+// ================================================================
+// 日程編集UI
+// ================================================================
+function renderDateEditGrid() {
+  const make = (labels, prefix, cat) => labels.map(d => `
+    <label for="de-${prefix}-${d.key}">${d.label}</label>
+    <input type="text" id="de-${prefix}-${d.key}" data-cat="${cat}" data-key="${d.key}"
+           oninput="onDateEditInput(this)" placeholder="（未取得）">
+  `).join('');
+  document.getElementById('workDateGrid').innerHTML = make(WORK_DATE_LABELS, 'd', 'workDates');
+  document.getElementById('meetingDateGrid').innerHTML = make(MEETING_DATE_LABELS, 'ta', 'meetingDates');
+  document.getElementById('publicInspDateGrid').innerHTML = make(PUBLIC_INSP_DATE_LABELS, 'pd', 'publicInspDates');
+}
+
+function syncDateEditInputs() {
+  WORK_DATE_LABELS.forEach(d => {
+    const el = document.getElementById('de-d-' + d.key);
+    if (el) el.value = (scheduleDates.workDates && scheduleDates.workDates[d.key]) || '';
+  });
+  MEETING_DATE_LABELS.forEach(d => {
+    const el = document.getElementById('de-ta-' + d.key);
+    if (el) el.value = (scheduleDates.meetingDates && scheduleDates.meetingDates[d.key]) || '';
+  });
+  PUBLIC_INSP_DATE_LABELS.forEach(d => {
+    const el = document.getElementById('de-pd-' + d.key);
+    if (el) el.value = (scheduleDates.publicInspDates && scheduleDates.publicInspDates[d.key]) || '';
+  });
+}
+
+function onDateEditInput(input) {
+  const cat = input.dataset.cat;
+  const key = input.dataset.key;
+  if (!scheduleDates[cat]) scheduleDates[cat] = {};
+  scheduleDates[cat][key] = input.value;
+  updatePreview();
+  saveState();
+}
+
+function toggleDateEdit() {
+  const body = document.getElementById('dateEditBody');
+  body.classList.toggle('hidden');
+  const btn = document.getElementById('dateToggleBtn');
+  if (btn) btn.textContent = body.classList.contains('hidden') ? '展開' : '折りたたみ';
+}
+
+// ================================================================
+// お支払い・特殊メッセージ エディタ
+// ================================================================
+function renderPaymentList() {
+  const list = document.getElementById('paymentList');
+  list.innerHTML = payments.map((p, i) => `
+    <div class="item-row">
+      <input type="checkbox" ${p.shown ? 'checked' : ''} onchange="updatePayment(${i}, 'shown', this.checked)" title="表示">
+      <input type="text" value="${escapeHtml(p.label || '')}" placeholder="例：申込・契約時" oninput="updatePayment(${i}, 'label', this.value)">
+      <select onchange="updatePayment(${i}, 'position', parseFloat(this.value))" title="表示位置">
+        ${POSITION_OPTIONS.map(o => `<option value="${o.v}"${o.v === p.position ? ' selected' : ''}>${escapeHtml(o.l)}</option>`).join('')}
+      </select>
+      <button class="btn-del-item" onclick="removePayment(${i})" title="削除">×</button>
+    </div>
+  `).join('');
+}
+
+function renderMessageList() {
+  const list = document.getElementById('messageList');
+  list.innerHTML = messages.map((m, i) => `
+    <div class="item-row">
+      <input type="checkbox" ${m.shown ? 'checked' : ''} onchange="updateMessage(${i}, 'shown', this.checked)" title="表示">
+      <input type="text" value="${escapeHtml(m.text || '')}" placeholder="例：棟札のご持参" oninput="updateMessage(${i}, 'text', this.value)">
+      <select onchange="updateMessage(${i}, 'position', parseFloat(this.value))" title="表示位置">
+        ${POSITION_OPTIONS.map(o => `<option value="${o.v}"${o.v === m.position ? ' selected' : ''}>${escapeHtml(o.l)}</option>`).join('')}
+      </select>
+      <button class="btn-del-item" onclick="removeMessage(${i})" title="削除">×</button>
+    </div>
+  `).join('');
+}
+
+function updatePayment(idx, field, val) {
+  if (idx < 0 || idx >= payments.length) return;
+  payments[idx][field] = val;
+  updatePreview();
+  saveState();
+}
+function updateMessage(idx, field, val) {
+  if (idx < 0 || idx >= messages.length) return;
+  messages[idx][field] = val;
+  updatePreview();
+  saveState();
+}
+function addPayment() {
+  payments.push({ label: '新規', position: 1, shown: true });
+  renderPaymentList();
+  updatePreview();
+  saveState();
+}
+function addMessage() {
+  messages.push({ text: '新規メッセージ', position: 5, shown: true });
+  renderMessageList();
+  updatePreview();
+  saveState();
+}
+function removePayment(idx) {
+  payments.splice(idx, 1);
+  renderPaymentList();
+  updatePreview();
+  saveState();
+}
+function removeMessage(idx) {
+  messages.splice(idx, 1);
+  renderMessageList();
+  updatePreview();
+  saveState();
+}
+
+// ================================================================
+// 状態保存／復元（物件名ごとに localStorage に保持）
+// ================================================================
+const STATE_KEY_PREFIX = 'customer-schedule-state-v2-';
+
+function saveState() {
+  if (!selectedPropName) return;
+  const state = {
+    propName: selectedPropName,
+    vendors: collectVendorsRaw(),
+    payments: payments,
+    messages: messages,
+    scheduleDates: scheduleDates,
+    savedAt: new Date().toISOString(),
+  };
+  try {
+    localStorage.setItem(STATE_KEY_PREFIX + selectedPropName, JSON.stringify(state));
+    showSavedIndicator(state.savedAt);
+  } catch (e) {
+    console.warn('状態保存失敗:', e);
+  }
+}
+
+function loadState(propName) {
+  if (!propName) return null;
+  try {
+    const raw = localStorage.getItem(STATE_KEY_PREFIX + propName);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function applyState(state) {
+  if (!state) return;
+  if (state.vendors) {
+    VENDOR_CATEGORIES.forEach(cat => {
+      const input = document.getElementById('vin-' + cat.key);
+      if (input) {
+        input.value = state.vendors[cat.key] || '';
+        onVendorInputSilent(cat.key);
+      }
+    });
+  }
+  if (Array.isArray(state.payments)) {
+    payments = JSON.parse(JSON.stringify(state.payments));
+    renderPaymentList();
+  }
+  if (Array.isArray(state.messages)) {
+    messages = JSON.parse(JSON.stringify(state.messages));
+    renderMessageList();
+  }
+  if (state.scheduleDates) scheduleDates = state.scheduleDates;
+  syncDateEditInputs();
+}
+
+// onVendorInput の保存トリガなしバージョン（applyState 内で使う）
+function onVendorInputSilent(key) {
+  const input = document.getElementById('vin-' + key);
+  const btn = document.getElementById('vbtn-' + key);
+  const val = (input.value || '').trim();
+  const list = getMasterList(key);
+  btn.disabled = !val || list.includes(val);
+  btn.textContent = val && list.includes(val) ? '登録済み' : '登録';
+}
+
+function collectVendorsRaw() {
+  const v = {};
+  VENDOR_CATEGORIES.forEach(cat => {
+    const input = document.getElementById('vin-' + cat.key);
+    v[cat.key] = input ? (input.value || '').trim() : '';
+  });
+  return v;
+}
+
+function showSavedIndicator(iso) {
+  const el = document.getElementById('saveIndicator');
+  if (!el || !iso) return;
+  const d = new Date(iso);
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  el.textContent = `自動保存 ${hh}:${mm}`;
+  el.classList.add('saved');
+}
+
+// ================================================================
+// プレビュー反映（iframe へのデータ送信）
+// ================================================================
+let previewReady = false;
+
+// ================================================================
+// お支払い・特殊メッセージ用データと位置選択肢
+// ================================================================
+const STEP_NAMES = ['地縄','本体着工','基礎工事','土台敷き','建方','屋根工事','外壁工事','木工事完了','内部仕上工事','竣工','お引渡し'];
+
+function generatePositionOptions() {
+  const opts = [];
+  STEP_NAMES.forEach((name, i) => {
+    opts.push({ v: i + 1, l: name });
+    if (i < STEP_NAMES.length - 1) {
+      opts.push({ v: i + 1.5, l: `${name}〜${STEP_NAMES[i+1]}の中間` });
+    }
+  });
+  return opts;
+}
+const POSITION_OPTIONS = generatePositionOptions();
+
+const DEFAULT_PAYMENTS = [
+  { label: '申込・契約時', position: 1,    shown: true },
+  { label: '着工時',       position: 2,    shown: true },
+  { label: '建方完了時',   position: 5,    shown: true },
+  { label: '完成時',       position: 10.5, shown: true },
+];
+const DEFAULT_MESSAGES = [
+  { text: '棟札のご持参',    position: 5, shown: false },
+  { text: '手形式　有・無',  position: 5, shown: false },
+];
+
+// 編集中の状態（物件選択時に上書き）
+let payments = JSON.parse(JSON.stringify(DEFAULT_PAYMENTS));
+let messages = JSON.parse(JSON.stringify(DEFAULT_MESSAGES));
+
+// 日程編集UI用ラベル
+const WORK_DATE_LABELS = [
+  { key:'jinawa',      label:'地縄' },
+  { key:'chakkou',     label:'本体着工' },
+  { key:'kiso',        label:'基礎工事' },
+  { key:'dodai',       label:'土台敷き' },
+  { key:'tatekata',    label:'建方' },
+  { key:'yane',        label:'屋根工事' },
+  { key:'gaiheki',     label:'外壁工事' },
+  { key:'mokkan',      label:'木工事完了' },
+  { key:'naibu',       label:'内部仕上工事' },
+  { key:'shunkou',     label:'竣工' },
+  { key:'hikiwatashi', label:'お引渡し' },
+];
+const MEETING_DATE_LABELS = [
+  { key:'jinawa',  label:'地縄立会い' },
+  { key:'kinjo',   label:'近隣挨拶' },
+  { key:'kouzou',  label:'構造立会い' },
+  { key:'mokkan',  label:'木完立会い' },
+  { key:'shunkou', label:'竣工立会い' },
+];
+const PUBLIC_INSP_DATE_LABELS = [
+  { key:'1',          label:'第1回性能検査' },
+  { key:'2',          label:'第2回性能検査' },
+  { key:'3',          label:'第3回性能検査' },
+  { key:'4',          label:'第4回性能検査' },
+  { key:'completion', label:'完了検査' },
+];
+
+// サンプル日付（Step C-3 で GAS / GCal から動的取得に置き換える）
+const SAMPLE_DATES = {
+  workDates: {
+    jinawa:'（05/09）', chakkou:'（05/22）', kiso:'（6月下旬）', dodai:'（6月下旬）',
+    tatekata:'（06/30）', yane:'（7月中旬）', gaiheki:'（8月下旬）', mokkan:'（08/30）',
+    naibu:'（9月中旬）', shunkou:'（09/15）', hikiwatashi:'（10/03）',
+  },
+  meetingDates: {
+    jinawa:'（05/09）', kinjo:'（05/09）',
+    kouzou:'（07/04）', mokkan:'（08/30）', shunkou:'（09/20）',
+  },
+  publicInspDates: {
+    '1':'（6月上旬）', '2':'（7月上旬）', '3':'（7月下旬）',
+    '4':'（09/15）', completion:'（09/15）',
+  },
+};
+let scheduleDates = SAMPLE_DATES;  // GAS取得が成功したら上書き
+
+function collectPreviewData() {
+  const vendors = {};
+  VENDOR_CATEGORIES.forEach(cat => {
+    const input = document.getElementById('vin-' + cat.key);
+    vendors[cat.key] = input ? (input.value || '').trim() : '';
+  });
+  return {
+    surname: extractSurname(selectedPropName),
+    vendors,
+    payments: payments,
+    messages: messages,
+    workDates: scheduleDates.workDates,
+    meetingDates: scheduleDates.meetingDates,
+    publicInspDates: scheduleDates.publicInspDates,
+  };
+}
+
+// 物件選択時に GAS から GCal日程を取得（未実装時はサンプルにフォールバック）
+async function fetchScheduleDates(propName) {
+  if (!propName) { scheduleDates = SAMPLE_DATES; return; }
+  try {
+    // TODO Step C-3: GAS の getCustomerScheduleData(propName) を叩く
+    // const url = GAS_URLS.TASK + '?mode=getCustomerScheduleData&prop=' + encodeURIComponent(propName);
+    // const res = await fetch(url); const json = await res.json();
+    // if (json.ok) { scheduleDates = json.data; return; }
+    scheduleDates = SAMPLE_DATES;  // 暫定
+  } catch (e) {
+    scheduleDates = SAMPLE_DATES;
+  }
+}
+
+function updatePreview() {
+  if (!previewReady) return;
+  const iframe = document.getElementById('previewIframe');
+  if (!iframe || !iframe.contentWindow) return;
+  const data = collectPreviewData();
+  // 直接呼び出し（同一オリジン前提）
+  if (typeof iframe.contentWindow.applyData === 'function') {
+    iframe.contentWindow.applyData(data);
+  } else {
+    // フォールバック：postMessage
+    iframe.contentWindow.postMessage({ type: 'applyData', data }, '*');
+  }
+}
+
+
+// ================================================================
+// 初期化
+// ================================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadProperties();
+  renderVendorGrid();
+  renderPaymentList();
+  renderMessageList();
+  renderDateEditGrid();
+  syncDateEditInputs();
+  updateOutputFilename();
+  updateCreateButton();
+
+  // iframe ロード完了 → プレビュー初期反映
+  const iframe = document.getElementById('previewIframe');
+  const loading = document.getElementById('previewLoading');
+  iframe.addEventListener('load', () => {
+    previewReady = true;
+    if (loading) loading.style.display = 'none';
+    updatePreview();
+  });
+  // postMessage の "previewReady" でも検知（埋め込み側からの通知）
+  window.addEventListener('message', e => {
+    if (e.data && e.data.type === 'previewReady') {
+      previewReady = true;
+      if (loading) loading.style.display = 'none';
+      updatePreview();
+    }
+  });
+});
+</script>
+</body>
+</html>

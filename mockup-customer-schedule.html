@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>お客様工程表 モックアップ — m's hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --c1: #fff5c8;
+    --c2: #f8c894;
+    --c3: #f3d8d5;
+    --c4: #d8e5b8;
+    --c5: #cbd9e6;
+    --c6: #d8d3e0;
+    --c7: #f3d8d5;
+
+    --label-yellow: #ffec80;
+    --green-frame: #4a8b47;
+    --red-msg: #d63c2f;
+
+    --ff-go: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'YuGothic', 'Noto Sans JP', 'MS PGothic', sans-serif;
+  }
+
+  body {
+    font-family: var(--ff-go);
+    background: #cfd0cb;
+    color: #000;
+    min-height: 100vh;
+    padding: 24px 16px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .toolbar {
+    max-width: 1180px; margin: 0 auto 16px;
+    display: flex; gap: 10px; align-items: center;
+    background: #fff; padding: 12px 16px;
+    border: 1.5px solid #d8d8d2;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(15,25,20,0.06);
+  }
+  .toolbar-title {
+    font-size: 15px; font-weight: 700; color: #1f2937;
+    border-left: 3px solid #006837; padding-left: 10px;
+  }
+  .toolbar-meta { font-size: 11px; color: #6b7280; margin-left: auto; }
+  .toolbar button {
+    font-family: var(--ff-go); font-size: 12px; font-weight: 700;
+    padding: 8px 14px; border-radius: 999px;
+    background: #e8f5e9; color: #004d29;
+    border: 1.5px solid #a5d6a7; cursor: pointer;
+  }
+
+  /* A3 横（420×297mm）— 内部要素もA3に最適化（A4 v10 比 約1.4倍） */
+  .page {
+    width: 420mm;
+    height: 297mm;
+    margin: 0 auto;
+    background: #fff;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+    padding: 14mm 18mm;
+    color: #000;
+    font-size: 14px;
+    line-height: 1.3;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- ヘッダー（固定）— 左右対称化 ---------- */
+  .head {
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: 95mm 1fr 95mm;
+    column-gap: 5mm;
+    align-items: start;
+    height: 50mm;
+  }
+  .head-l { display: flex; flex-direction: column; align-items: flex-start; }
+  .prop-name {
+    display: flex;
+    align-items: baseline;
+    font-family: var(--ff-go);
+    font-size: 24px;
+    font-weight: 400;
+    width: 90mm;
+    margin: 2mm 0 0 0;
+    padding-bottom: 1.4mm;
+    border-bottom: 0.6mm solid #000;
+    line-height: 1.1;
+  }
+  .prop-name .blank { flex: 1; }
+  .head-fam { width: 95mm; height: 36mm; margin-top: 1.4mm; overflow: hidden; }
+  .head-fam img { width: 100%; height: 100%; object-fit: contain; object-position: left center; }
+
+  .head-c { text-align: center; padding-top: 0; }
+  .head-title {
+    font-family: var(--ff-go);
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: 0.55em;
+    color: #000;
+    line-height: 1.1;
+    padding: 2mm 0 0 0.55em;
+    white-space: nowrap;
+  }
+  .head-resp { margin-top: 7mm; font-size: 17px; }
+  .head-resp strong { font-weight: 700; }
+
+  .head-r { text-align: right; font-size: 14px; line-height: 1.5; padding-top: 0.7mm; }
+  .head-r-logo { display: flex; justify-content: flex-end; align-items: center; margin-bottom: 1.4mm; }
+  .head-r-logo img { height: 7mm; width: auto; display: block; }
+  .head-r-branch { font-size: 15px; font-weight: 500; margin-bottom: 0.4mm; }
+  .head-r-addr { font-size: 13px; line-height: 1.45; }
+  .head-person { margin-top: 3.5mm; font-size: 16px; font-weight: 700; }
+
+  /* ---------- 中央セクション（垂直中央寄せで上下バランス） ---------- */
+  .middle {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4mm 0;
+  }
+
+  /* 12カラム */
+  .row12 {
+    display: grid;
+    grid-template-columns: 30mm repeat(11, 1fr);
+    align-items: center;
+  }
+  .row12 > * { grid-row: 1; }
+
+  .lbl {
+    background: var(--label-yellow);
+    border: 0.4mm solid #000;
+    border-radius: 2mm;
+    font-family: var(--ff-go);
+    font-size: 14px; font-weight: 700;
+    text-align: center;
+    line-height: 1.15;
+    padding: 0.7mm 0.7mm;
+    height: 9mm;
+    width: 28mm;
+    display: flex; align-items: center; justify-content: center;
+    grid-column: 1;
+  }
+  .lbl-2line {
+    height: 14mm;
+    flex-direction: column;
+    font-size: 14px;
+  }
+  .lbl-text {
+    font-size: 15px; font-weight: 600; text-align: center;
+    grid-column: 1;
+  }
+
+  /* 工事の流れ */
+  .flow-row { margin-top: 0; }
+  .flow-bar {
+    grid-column: 2 / 13;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 5fr 1fr 1fr 1fr;
+    column-gap: 0.8mm;
+    height: 10mm;
+  }
+  .flow-seg {
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--ff-go);
+    font-size: 15px; font-weight: 700;
+    letter-spacing: 0.08em;
+    border: 0.4mm solid #000;
+    border-radius: 1.4mm;
+  }
+  .flow-seg.s1 { background: var(--c1); }
+  .flow-seg.s2 { background: var(--c2); }
+  .flow-seg.s3 { background: var(--c3); }
+  .flow-seg.s4 { background: var(--c4); }
+  .flow-seg.s5 { background: var(--c5); font-size: 14px; }
+  .flow-seg.s6 { background: var(--c6); }
+  .flow-seg.s7 { background: var(--c7); }
+
+  /* 11工程 */
+  .steps-row { margin-top: 2mm; }
+  .step-name-cell { text-align: center; font-size: 14px; font-weight: 600; line-height: 1; }
+
+  .illus-row { margin-top: 0.7mm; height: 25mm; }
+  .illus-cell {
+    height: 25mm;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 1.4mm;
+  }
+  .illus-cell img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+  .dates-row { margin-top: 1.4mm; }
+  .dates-row .date { text-align: center; font-size: 15px; padding: 0; line-height: 1.2; }
+
+  /* 立会い 名前 */
+  .ta-name-row { margin-top: 10mm; align-items: center; }
+  .ta-cell { display: flex; align-items: center; justify-content: center; padding: 0 1.4mm; }
+  .ta-box {
+    border: 0.6mm solid var(--green-frame);
+    background: #fff;
+    width: 100%;
+    text-align: center;
+    font-size: 14px; font-weight: 600;
+    padding: 1.1mm 0.7mm;
+    border-radius: 1.4mm;
+    line-height: 1.2;
+  }
+
+  /* 立会い 予定日（プレーンテキスト） */
+  .ta-date-row { margin-top: 1.4mm; align-items: center; }
+  .ta-date-cell { text-align: center; font-size: 15px; padding: 0; line-height: 1.2; }
+
+  /* 棟札のご持参 + 手形式 — 動的位置（grid-column はインラインで指定） */
+  .red-row { margin-top: 2mm; }
+  .red-msg {
+    text-align: center;
+    color: var(--red-msg);
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  /* お支払い時期 */
+  .pay-row { margin-top: 3.5mm; }
+  .pay-cell { display: flex; align-items: center; justify-content: center; padding: 0 1.4mm; }
+  .pay-box {
+    border: 0.4mm solid #000;
+    background: #fff;
+    text-align: center;
+    font-size: 14px;
+    padding: 1.1mm 0.7mm;
+    width: 100%;
+    border-radius: 1.4mm;
+    line-height: 1.2;
+  }
+  .pay-cell.between-11-12 {
+    grid-column: 11 / 13;
+    justify-content: center;
+  }
+  .pay-cell.between-11-12 .pay-box { width: 50%; }
+
+  /* 社内検査 */
+  .insp-in-row { margin-top: 3.5mm; }
+  .insp-cell { display: flex; align-items: center; justify-content: center; padding: 0 1.4mm; }
+  .insp-box {
+    border: 0.4mm solid #000;
+    background: #fff;
+    text-align: center;
+    font-size: 13px;
+    padding: 0.7mm 0.7mm;
+    width: 100%;
+    border-radius: 1.4mm;
+    line-height: 1.1;
+    min-height: 8.5mm;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .insp-cell.between-3-4 { grid-column: 3 / 5; justify-content: center; }
+  .insp-cell.between-3-4 .insp-box,
+  .insp-cell.between-3-4 .pub-box { width: 50%; }
+  .insp-cell.between-4-5 { grid-column: 4 / 6; justify-content: center; }
+  .insp-cell.between-4-5 .insp-box { width: 50%; }
+  .insp-cell.between-6-7 { grid-column: 6 / 8; justify-content: center; }
+  .insp-cell.between-6-7 .pub-box { width: 50%; }
+  .insp-cell.between-7-8 { grid-column: 7 / 9; justify-content: center; }
+  .insp-cell.between-7-8 .pub-box { width: 50%; }
+  .insp-cell.span-6-9 { grid-column: 6 / 9; justify-content: center; }
+  .insp-cell.span-6-9 .insp-box { width: 96%; }
+
+  /* 公的検査 */
+  .insp-pub-row { margin-top: 3.5mm; }
+  .pub-box {
+    border: 0.4mm solid #000;
+    background: #fff;
+    text-align: center;
+    font-size: 13px; font-weight: 600;
+    padding: 1.1mm 0.6mm;
+    width: 100%;
+    border-radius: 1.4mm;
+  }
+
+  .pub-dates-row { margin-top: 1.7mm; }
+  .pub-date {
+    text-align: center;
+    font-size: 15px;
+    padding: 0;
+    line-height: 1.2;
+  }
+  .pub-date.between-3-4 { grid-column: 3 / 5; }
+  .pub-date.between-6-7 { grid-column: 6 / 8; }
+  .pub-date.between-7-8 { grid-column: 7 / 9; }
+
+  /* ---------- フッター（固定） ---------- */
+  .foot {
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 8mm;
+    align-items: stretch;
+  }
+  .vendors-wrap { display: flex; flex-direction: column; gap: 1.2mm; }
+  .vendors-title { font-size: 15px; font-weight: 700; letter-spacing: 0.05em; }
+  .vendors {
+    display: grid;
+    grid-template-columns: 45mm 1fr 45mm 1fr;
+    border-top: 0.4mm solid #000;
+    border-left: 0.4mm solid #000;
+    flex: 1;
+  }
+  .vendors > div {
+    padding: 0.7mm 2mm;
+    border-right: 0.4mm solid #000;
+    border-bottom: 0.4mm solid #000;
+    font-size: 13px;
+    display: flex; align-items: center;
+    background: #fff;
+    line-height: 1.2;
+    min-height: 6mm;
+  }
+
+  .notes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4mm;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  .notes > div {
+    border: 0.4mm solid #000;
+    border-radius: 1.4mm;
+    padding: 2mm 2.8mm;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+  }
+  .notes h4 {
+    font-size: 14px; font-weight: 700;
+    color: #000; margin-bottom: 1.4mm;
+  }
+  .notes h4::before { content: '◆'; margin-right: 0.7mm; }
+
+  /* テンプレート埋め込みモード（iframe / ?embed=1） */
+  body.embed {
+    padding: 0;
+    background: transparent;
+    min-height: auto;
+  }
+  body.embed .toolbar { display: none; }
+  body.embed .page-wrap {
+    transform: scale(calc(100vw / 1590px));
+    transform-origin: top left;
+  }
+  body.embed .page { box-shadow: none; margin: 0; }
+
+  /* 印刷モード（?print=1）— 縮小せずA3原寸でレンダリング */
+  body.print-mode { padding: 0; background: #fff; }
+  body.print-mode .toolbar { display: none; }
+  body.print-mode .page-wrap { transform: none !important; }
+  body.print-mode .page { box-shadow: none; margin: 0; }
+
+  .msg-line { display: block; }
+  .msg-line.hidden { display: none !important; }
+  .pay-box.hidden { visibility: hidden; }
+
+  /* 印刷 */
+  @page { size: A3 landscape; margin: 0; }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .toolbar { display: none; }
+    .page { box-shadow: none; margin: 0; }
+    .page-wrap { transform: none !important; }
+  }
+
+  @media (max-width: 1700px) {
+    body:not(.embed):not(.print-mode) .page-wrap {
+      transform-origin: top center;
+      transform: scale(min(calc((100vw - 32px) / 1590px), 1));
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <span class="toolbar-title">お客様工程表 モックアップ（v10）</span>
+  <span class="toolbar-meta">中央セクション垂直中央 / 性能検査位置揃え</span>
+  <button onclick="window.print()">PDFとして印刷</button>
+</div>
+
+<div class="page-wrap">
+<div class="page">
+
+  <!-- ============ ヘッダー ============ -->
+  <div class="head">
+    <div class="head-l">
+      <div class="prop-name"><span id="prop-surname"></span><span class="blank">&nbsp;</span>様邸</div>
+      <div class="head-fam">
+        <img src="assets/customer-schedule/00_kanseifamily.png" alt="完成家族">
+      </div>
+    </div>
+    <div class="head-c">
+      <div class="head-title">新築工事工程表</div>
+      <div class="head-resp">現場の総合管理責任者は生産担当の <strong>城岸 政行</strong> です。</div>
+    </div>
+    <div class="head-r">
+      <div class="head-r-logo">
+        <img src="assets/customer-schedule/_logo_sumitomo.png" alt="住友林業株式会社">
+      </div>
+      <div class="head-r-branch">岐阜支店</div>
+      <div class="head-r-addr">〒500-8842 岐阜県岐阜市金町6-6</div>
+      <div class="head-r-addr">ニッセイ岐阜ビル11階</div>
+      <div class="head-r-addr">TEL：058-267-7711　FAX：058-267-7715</div>
+      <div class="head-person">生産担当：城岸 政行</div>
+    </div>
+  </div>
+
+  <!-- ============ 中央セクション（工事の流れ〜公的検査） ============ -->
+  <div class="middle">
+
+    <!-- 工事の流れ -->
+    <div class="row12 flow-row">
+      <div class="lbl">工事の流れ</div>
+      <div class="flow-bar">
+        <div class="flow-seg s1">配置確認</div>
+        <div class="flow-seg s2">着　工</div>
+        <div class="flow-seg s3">基礎工事</div>
+        <div class="flow-seg s4">木工事</div>
+        <div class="flow-seg s5">内部仕上工事</div>
+        <div class="flow-seg s6">竣　工</div>
+        <div class="flow-seg s7">お引渡し</div>
+      </div>
+    </div>
+
+    <!-- 11工程 名前 -->
+    <div class="row12 steps-row">
+      <div></div>
+      <div class="step-name-cell">地縄</div>
+      <div class="step-name-cell">本体着工</div>
+      <div class="step-name-cell">基礎工事</div>
+      <div class="step-name-cell">土台敷き</div>
+      <div class="step-name-cell">建方</div>
+      <div class="step-name-cell">屋根工事</div>
+      <div class="step-name-cell">外壁工事</div>
+      <div class="step-name-cell">木工事完了</div>
+      <div class="step-name-cell">　</div>
+      <div class="step-name-cell">　</div>
+      <div class="step-name-cell">　</div>
+    </div>
+
+    <!-- イラスト -->
+    <div class="row12 illus-row">
+      <div></div>
+      <div class="illus-cell"><img src="assets/customer-schedule/01_jinawa.png"></div>
+      <div class="illus-cell"><img src="assets/customer-schedule/02_chakkou.png"></div>
+      <div class="illus-cell"><img src="assets/customer-schedule/03_kiso.png"></div>
+      <div class="illus-cell"><img src="assets/customer-schedule/04_dodai.png"></div>
+      <div class="illus-cell"><img src="assets/customer-schedule/05_tatekata.png"></div>
+      <div class="illus-cell"><img src="assets/customer-schedule/06_yane.png"></div>
+      <div class="illus-cell"><img src="assets/customer-schedule/07_gaiheki.png"></div>
+      <div class="illus-cell"><img src="assets/customer-schedule/08_mokkan.png"></div>
+      <div class="illus-cell"><img src="assets/customer-schedule/09_naibu.png"></div>
+      <div class="illus-cell"><img src="assets/customer-schedule/10_shunkou.png"></div>
+      <div class="illus-cell"><img src="assets/customer-schedule/11_hikiwatashi.png"></div>
+    </div>
+
+    <!-- 予定日（11工程） -->
+    <div class="row12 dates-row">
+      <div class="lbl-text">予定日</div>
+      <div class="date" id="d-jinawa">（05/09）</div>
+      <div class="date" id="d-chakkou">（05/22）</div>
+      <div class="date" id="d-kiso">（6月下旬）</div>
+      <div class="date" id="d-dodai">（6月下旬）</div>
+      <div class="date" id="d-tatekata">（06/30）</div>
+      <div class="date" id="d-yane">（7月中旬）</div>
+      <div class="date" id="d-gaiheki">（8月下旬）</div>
+      <div class="date" id="d-mokkan">（08/30）</div>
+      <div class="date" id="d-naibu">（9月中旬）</div>
+      <div class="date" id="d-shunkou">（09/15）</div>
+      <div class="date" id="d-hikiwatashi">（10/03）</div>
+    </div>
+
+    <!-- 住友林業との立会い 名前 -->
+    <div class="row12 ta-name-row">
+      <div class="lbl lbl-2line">住友林業との<br>立会い</div>
+      <div class="ta-cell"><div class="ta-box">地縄立会い</div></div>
+      <div class="ta-cell"><div class="ta-box">近隣挨拶</div></div>
+      <div class="ta-cell"></div>
+      <div class="ta-cell"></div>
+      <div class="ta-cell"><div class="ta-box">構造立会い</div></div>
+      <div class="ta-cell"></div>
+      <div class="ta-cell"></div>
+      <div class="ta-cell"><div class="ta-box">木完立会い</div></div>
+      <div class="ta-cell"></div>
+      <div class="ta-cell"><div class="ta-box">竣工立会い</div></div>
+      <div class="ta-cell"></div>
+    </div>
+
+    <!-- 立会い 予定日（プレーンテキストラベル） -->
+    <div class="row12 ta-date-row">
+      <div class="lbl-text">予定日</div>
+      <div class="ta-date-cell" id="ta-jinawa">（05/09）</div>
+      <div class="ta-date-cell" id="ta-kinjo">（05/09）</div>
+      <div class="ta-date-cell"></div>
+      <div class="ta-date-cell"></div>
+      <div class="ta-date-cell" id="ta-kouzou">（07/04）</div>
+      <div class="ta-date-cell"></div>
+      <div class="ta-date-cell"></div>
+      <div class="ta-date-cell" id="ta-mokkan">（08/30）</div>
+      <div class="ta-date-cell"></div>
+      <div class="ta-date-cell" id="ta-shunkou">（09/20）</div>
+      <div class="ta-date-cell"></div>
+    </div>
+
+    <!-- 特殊メッセージ（動的レンダリング） -->
+    <div class="row12 red-row" id="redRow">
+      <div></div>
+    </div>
+
+    <!-- お支払い時期（動的レンダリング） -->
+    <div class="row12 pay-row" id="payRow">
+      <div class="lbl">お支払い時期</div>
+    </div>
+
+    <!-- 社内検査 -->
+    <div class="row12 insp-in-row">
+      <div class="lbl">社内検査</div>
+      <div class="insp-cell between-3-4"><div class="insp-box">配筋検査</div></div>
+      <div class="insp-cell between-4-5"><div class="insp-box">基礎検査</div></div>
+      <div class="insp-cell span-6-9"><div class="insp-box">構造・雨仕舞検査</div></div>
+      <div class="insp-cell" style="grid-column: 9;"><div class="insp-box">木完検査</div></div>
+      <div class="insp-cell" style="grid-column: 11;"><div class="insp-box">竣工検査</div></div>
+    </div>
+
+    <!-- 公的検査 -->
+    <div class="row12 insp-pub-row">
+      <div class="lbl">公的検査</div>
+      <div class="insp-cell between-3-4"><div class="pub-box">第１回性能検査</div></div>
+      <div class="insp-cell between-6-7"><div class="pub-box">第２回性能検査</div></div>
+      <div class="insp-cell between-7-8"><div class="pub-box">第３回性能検査</div></div>
+      <div class="insp-cell" style="grid-column: 11;"><div class="pub-box">第４回性能検査</div></div>
+      <div class="insp-cell" style="grid-column: 12;"><div class="pub-box">完了検査</div></div>
+    </div>
+
+    <!-- 公的検査 予定日 -->
+    <div class="row12 pub-dates-row">
+      <div class="lbl-text">予定日</div>
+      <div class="pub-date between-3-4" id="pd-1">（6月上旬）</div>
+      <div class="pub-date between-6-7" id="pd-2">（7月上旬）</div>
+      <div class="pub-date between-7-8" id="pd-3">（7月下旬）</div>
+      <div class="pub-date" style="grid-column: 11;" id="pd-4">（09/15）</div>
+      <div class="pub-date" style="grid-column: 12;" id="pd-completion">（09/15）</div>
+    </div>
+
+  </div>
+  <!-- /middle -->
+
+  <!-- ============ フッター ============ -->
+  <div class="foot">
+    <div class="vendors-wrap">
+      <div class="vendors-title">【施工工事店名】</div>
+      <div class="vendors">
+        <div>本体工事業者(工務店)</div>
+        <div id="vendor-main"></div>
+        <div>ガス配管工事業者</div>
+        <div id="vendor-gas"></div>
+
+        <div>電気工事業者</div>
+        <div id="vendor-electric"></div>
+        <div>解体撤去工事業者</div>
+        <div id="vendor-demo"></div>
+
+        <div>水道工事業者</div>
+        <div id="vendor-water"></div>
+        <div>地盤改良工事業者</div>
+        <div id="vendor-ground"></div>
+
+        <div>屋根工事業者</div>
+        <div id="vendor-roof"></div>
+        <div>空調工事業者</div>
+        <div id="vendor-aircon"></div>
+      </div>
+    </div>
+
+    <div class="notes">
+      <div>
+        <h4>天候による工程変更について</h4>
+        <div>工事の予定日は天候の影響を考慮していません。基礎工事及び建て方工事は雨等による天候の影響を受けやすいため、都合により工程が変更することがあります。その場合はご連絡を致します。</div>
+      </div>
+      <div>
+        <h4>追加変更工事による工期延長</h4>
+        <div>追加工事又は変更工事により工期が延長する場合がございます。延長日数は事前にご説明を致します。</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ================================================================
+// 埋め込みモード（iframe / ?embed=1）— ツール画面のプレビューに使う
+// ================================================================
+(function() {
+  const embedded = (window !== window.top) || /(?:^|[?&])embed=1(?:$|&)/.test(location.search);
+  if (embedded) document.body.classList.add('embed');
+  if (/(?:^|[?&])print=1(?:$|&)/.test(location.search)) {
+    document.body.classList.add('print-mode');
+  }
+})();
+
+// ================================================================
+// applyData(data) — 親ウィンドウから呼ばれてDOMを更新
+// data = {
+//   surname: '山田',
+//   vendors: { main: '...', electric: '...', water: '...', roof: '...',
+//              gas: '...', demo: '...', ground: '...', aircon: '...' },
+//   payments: { apply: bool, start: bool, frame: bool, done: bool },
+//   messages: { munafuda: bool, tegata: bool }
+// }
+// ================================================================
+function applyData(data) {
+  if (!data || typeof data !== 'object') return;
+
+  // 物件名（苗字）
+  if (data.surname !== undefined) {
+    const el = document.getElementById('prop-surname');
+    if (el) el.textContent = data.surname || '';
+  }
+
+  // 業者
+  if (data.vendors && typeof data.vendors === 'object') {
+    ['main','electric','water','roof','gas','demo','ground','aircon'].forEach(k => {
+      const el = document.getElementById('vendor-' + k);
+      if (el && data.vendors[k] !== undefined) el.textContent = data.vendors[k] || '';
+    });
+  }
+
+  // お支払い時期（配列形式：ラベル/位置/表示の編集可）
+  if (Array.isArray(data.payments)) {
+    renderPayments(data.payments);
+  }
+
+  // 特殊メッセージ（配列形式：テキスト/位置/表示の編集可）
+  if (Array.isArray(data.messages)) {
+    renderMessages(data.messages);
+  }
+
+  // 工程予定日（11個）
+  if (data.workDates && typeof data.workDates === 'object') {
+    ['jinawa','chakkou','kiso','dodai','tatekata','yane','gaiheki','mokkan','naibu','shunkou','hikiwatashi'].forEach(k => {
+      const el = document.getElementById('d-' + k);
+      if (el && data.workDates[k] !== undefined) el.textContent = data.workDates[k] || '';
+    });
+  }
+
+  // 立会い予定日（5個）
+  if (data.meetingDates && typeof data.meetingDates === 'object') {
+    ['jinawa','kinjo','kouzou','mokkan','shunkou'].forEach(k => {
+      const el = document.getElementById('ta-' + k);
+      if (el && data.meetingDates[k] !== undefined) el.textContent = data.meetingDates[k] || '';
+    });
+  }
+
+  // 公的検査予定日（5個）
+  if (data.publicInspDates && typeof data.publicInspDates === 'object') {
+    ['1','2','3','4','completion'].forEach(k => {
+      const el = document.getElementById('pd-' + k);
+      if (el && data.publicInspDates[k] !== undefined) el.textContent = data.publicInspDates[k] || '';
+    });
+  }
+}
+window.applyData = applyData;
+
+// ================================================================
+// お支払い・特殊メッセージの動的レンダリング
+// 位置仕様：1=地縄, 2=本体着工, ... 11=お引渡し
+//          1.5=地縄〜本体着工の中間, ... 10.5=竣工〜お引渡しの中間
+// ================================================================
+function applyPositionStyle(el, position) {
+  const num = parseFloat(position);
+  if (Number.isInteger(num)) {
+    // 単一列：step N → grid col (N+1)
+    el.style.gridColumn = String(num + 1);
+  } else {
+    // 中間：境界の前後 2 列にスパン → 中央寄せ
+    const start = Math.floor(num);
+    el.style.gridColumn = `${start + 1} / ${start + 3}`;
+    el.style.justifyContent = 'center';
+  }
+}
+
+function renderPayments(items) {
+  const row = document.getElementById('payRow');
+  if (!row) return;
+  row.querySelectorAll('.pay-cell').forEach(el => el.remove());
+  if (!Array.isArray(items)) return;
+  items.forEach(item => {
+    if (!item || item.shown === false || !item.label) return;
+    const cell = document.createElement('div');
+    cell.className = 'pay-cell';
+    applyPositionStyle(cell, item.position);
+    const box = document.createElement('div');
+    box.className = 'pay-box';
+    box.textContent = item.label;
+    if (!Number.isInteger(parseFloat(item.position))) box.style.width = '50%';
+    cell.appendChild(box);
+    row.appendChild(cell);
+  });
+}
+
+function renderMessages(items) {
+  const row = document.getElementById('redRow');
+  if (!row) return;
+  row.querySelectorAll('.red-msg').forEach(el => el.remove());
+  if (!Array.isArray(items)) return;
+  // 同位置のメッセージは1つの容器にまとめて積み上げ
+  const byPos = {};
+  items.forEach(item => {
+    if (!item || item.shown === false || !item.text) return;
+    const key = String(item.position);
+    if (!byPos[key]) byPos[key] = [];
+    byPos[key].push(item);
+  });
+  Object.keys(byPos).forEach(posKey => {
+    const container = document.createElement('div');
+    container.className = 'red-msg';
+    applyPositionStyle(container, parseFloat(posKey));
+    byPos[posKey].forEach(item => {
+      const span = document.createElement('span');
+      span.className = 'msg-line';
+      span.textContent = item.text;
+      container.appendChild(span);
+    });
+    row.appendChild(container);
+  });
+}
+
+// 標準デフォルト（スタンドアロン表示用）
+const DEFAULT_PAYMENTS_TPL = [
+  { label: '申込・契約時', position: 1,    shown: true },
+  { label: '着工時',       position: 2,    shown: true },
+  { label: '建方完了時',   position: 5,    shown: true },
+  { label: '完成時',       position: 10.5, shown: true },
+];
+const DEFAULT_MESSAGES_TPL = [
+  { text: '棟札のご持参',     position: 5, shown: true },
+  { text: '手形式　有・無',   position: 5, shown: true },
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderPayments(DEFAULT_PAYMENTS_TPL);
+  renderMessages(DEFAULT_MESSAGES_TPL);
+});
+
+// postMessage 経由でも更新可能
+window.addEventListener('message', e => {
+  if (e.data && e.data.type === 'applyData') applyData(e.data.data);
+});
+
+// 埋め込み時、親に「準備OK」を通知（ツール側でロード完了を待つ用）
+if (window !== window.top) {
+  window.addEventListener('DOMContentLoaded', () => {
+    window.parent.postMessage({ type: 'previewReady' }, '*');
+  });
+}
+</script>
+
+</body>
+</html>
