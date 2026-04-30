@@ -338,6 +338,18 @@
       background: var(--sfc-light);
     }
 
+    /* Theme select */
+    .theme-select {
+      width: auto !important;
+      padding: 5px 26px 5px 9px !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      background-color: var(--sfc-light) !important;
+      color: var(--sfc-dark) !important;
+      border-color: var(--sfc-border) !important;
+      cursor: pointer;
+    }
+
     /* Item editor (お支払い時期 / 特殊メッセージ) */
     .item-list { display: flex; flex-direction: column; gap: 6px; }
     .item-row {
@@ -617,6 +629,12 @@
         <circle cx="12" cy="12" r="3"/>
       </svg>
       <span class="section-title">プレビュー</span>
+      <div class="section-head-end">
+        <select id="themeSelect" class="theme-select" onchange="onThemeChange()" title="デザインテーマ">
+          <option value="showa">昭和版（オリジナル）</option>
+          <option value="modern">モダン版（水彩テーマ）</option>
+        </select>
+      </div>
     </div>
     <div class="section-body">
       <div class="preview-iframe-wrap">
@@ -774,6 +792,7 @@ function getMasterList(key) {
 // ================================================================
 let selectedPropName = '';
 let propertyMap = {};  // { '藤本T': { city: '本巣市' }, ... } 同姓判別用
+let currentTheme = 'showa';  // 'showa' or 'modern'
 
 // 物件名（例：「山田T」「山田Ｔ」「山田T様」「山田様邸T」「佐藤 K」「田中M.S」）から
 // 苗字部分のみを抽出する。テンプレ側で「様邸」を後ろに付けるため、ここでは「様」「邸」も除去する。
@@ -1000,7 +1019,30 @@ function escapeHtml(s) {
 // 1. 保存ダイアログを「先に」開く（ユーザークリック直後の user activation を使う）
 // 2. ダイアログで保存先確定後 → 新ウィンドウで PDF生成
 // 3. 生成された Blob を親ウィンドウで受け取り、確定済みのファイルハンドルへ書き込み
-async function createPdf() {
+async // テーマ切替（昭和版 / モダン版）
+function getMockupUrl(forPrint) {
+  const file = currentTheme === 'modern'
+    ? 'mockup-customer-schedule-modern.html'
+    : 'mockup-customer-schedule.html';
+  const param = forPrint ? '?print=1' : '?embed=1';
+  return '../' + file + param;
+}
+
+function onThemeChange() {
+  const sel = document.getElementById('themeSelect');
+  currentTheme = sel.value || 'showa';
+  // iframe を再ロード
+  const iframe = document.getElementById('previewIframe');
+  const loading = document.getElementById('previewLoading');
+  if (iframe) {
+    previewReady = false;
+    if (loading) loading.style.display = '';
+    iframe.src = getMockupUrl(false);
+  }
+  saveState();
+}
+
+function createPdf() {
   if (!selectedPropName) {
     alert('物件を選択してください');
     return;
@@ -1025,7 +1067,7 @@ async function createPdf() {
   }
 
   // 2) 新ウィンドウを開いて PDF 生成
-  const url = '../mockup-customer-schedule.html?print=1';
+  const url = getMockupUrl(true);
   const win = window.open(url, '_blank');
   if (!win) {
     alert('ポップアップがブロックされました。ポップアップ許可してから再度お試しください。');
@@ -1205,6 +1247,7 @@ function saveState() {
   if (!selectedPropName) return;
   const state = {
     propName: selectedPropName,
+    theme: currentTheme,
     vendors: collectVendorsRaw(),
     payments: payments,
     messages: messages,
@@ -1231,6 +1274,16 @@ function loadState(propName) {
 
 function applyState(state) {
   if (!state) return;
+  if (state.theme && state.theme !== currentTheme) {
+    currentTheme = state.theme;
+    const sel = document.getElementById('themeSelect');
+    if (sel) sel.value = currentTheme;
+    const iframe = document.getElementById('previewIframe');
+    if (iframe) {
+      previewReady = false;
+      iframe.src = getMockupUrl(false);
+    }
+  }
   if (state.vendors) {
     VENDOR_CATEGORIES.forEach(cat => {
       const input = document.getElementById('vin-' + cat.key);
