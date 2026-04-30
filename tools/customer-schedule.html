@@ -655,7 +655,7 @@
     <div class="picker-list" id="pickerList"></div>
   </div>
   <div class="picker-foot">
-    <input type="text" id="pickerInput" placeholder="新規業者名を入力" onkeydown="if(event.key==='Enter') addPickerEntry()">
+    <input type="text" id="pickerInput" placeholder="新規業者名を入力" onkeydown="onPickerKeydown(event)">
     <button onclick="addPickerEntry()">+ 追加</button>
   </div>
 </div>
@@ -774,10 +774,17 @@ function getMasterList(key) {
 // ================================================================
 let selectedPropName = '';
 
-// 物件名（苗字＋イニシャル）から末尾の英字・空白・記号を除去して苗字のみ抽出
+// 物件名（例：「山田T」「山田Ｔ」「山田T様」「山田様邸T」「佐藤 K」「田中M.S」）から
+// 苗字部分のみを抽出する。テンプレ側で「様邸」を後ろに付けるため、ここでは「様」「邸」も除去する。
 function extractSurname(propName) {
   if (!propName) return '';
-  return propName.replace(/[\s　A-Za-z.\-]+$/, '').trim();
+  // 全角英字 → 半角に正規化
+  let s = propName.replace(/[Ａ-Ｚａ-ｚ]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+  // 「様」「邸」「様邸」を除去（位置問わず）
+  s = s.replace(/[様邸]/g, '');
+  // 末尾の英字・空白・全角空白・ピリオド/中黒/ハイフンを除去
+  s = s.replace(/[\s　A-Za-z.\-．・]+$/, '').trim();
+  return s;
 }
 
 // ================================================================
@@ -966,6 +973,14 @@ function addPickerEntry() {
   saveVendorMaster();
   input.value = '';
   renderPickerList();
+}
+
+// IME変換中のEnterで誤登録されないようガード（isComposing / keyCode 229）
+function onPickerKeydown(e) {
+  if (e.key !== 'Enter') return;
+  if (e.isComposing || e.keyCode === 229) return;
+  e.preventDefault();
+  addPickerEntry();
 }
 
 // ================================================================

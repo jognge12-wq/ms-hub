@@ -318,8 +318,12 @@
     display: flex; align-items: center;
     background: #fff;
     line-height: 1.2;
-    min-height: 6mm;
+    height: 7mm;                /* 固定高さ：長い業者名でも改行で表が変形しない */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
+  .vendors > div > * { min-width: 0; }
 
   .notes {
     display: grid;
@@ -347,6 +351,9 @@
     padding: 0;
     background: transparent;
     min-height: auto;
+    overflow: hidden;          /* スケール変換でレイアウト幅が残るためスクロール抑止 */
+    width: 100vw;
+    height: 100vh;
   }
   body.embed .toolbar { display: none; }
   body.embed .page-wrap {
