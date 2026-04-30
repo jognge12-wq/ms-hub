@@ -783,10 +783,65 @@ window.addEventListener('message', async e => {
   if (!e.data) return;
   if (e.data.type === 'applyData') {
     applyData(e.data.data);
+  } else if (e.data.type === 'generatePdfBlob') {
+    // 新フロー：Blobを生成して親ウィンドウへ返す（保存は親側で実施）
+    await generateAndSendPdfBlob(e.data.filename || 'お客様工程表.pdf', e.source);
   } else if (e.data.type === 'savePdf') {
+    // 旧フロー（後方互換）
     await savePdfFromWindow(e.data.filename || 'お客様工程表.pdf');
   }
 });
+
+// PDF Blob を生成して親ウィンドウへ送信
+async function generateAndSendPdfBlob(filename, sourceWin) {
+  const elem = document.querySelector('.page');
+  if (!elem || typeof html2pdf === 'undefined') {
+    if (sourceWin) sourceWin.postMessage({ type: 'pdfBlobError', message: 'html2pdf読込失敗' }, '*');
+    return;
+  }
+  showSaveStatus('画像読み込み中...');
+
+  // 画像 / フォントロード待ち
+  const images = Array.from(elem.querySelectorAll('img'));
+  await Promise.all(images.map(img => {
+    if (img.complete && img.naturalWidth > 0) {
+      return img.decode ? img.decode().catch(() => {}) : Promise.resolve();
+    }
+    return new Promise(res => {
+      img.addEventListener('load', res, { once: true });
+      img.addEventListener('error', res, { once: true });
+      setTimeout(res, 8000);
+    });
+  }));
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch (_) {}
+  }
+
+  // print-mode に切替
+  document.body.classList.remove('embed');
+  document.body.classList.add('print-mode');
+  await new Promise(r => setTimeout(r, 100));
+
+  showSaveStatus('PDF生成中...<br><small style="opacity:0.8;font-weight:400;font-size:13px;">A3横サイズで作成しています（数秒かかります）</small>');
+
+  try {
+    const worker = html2pdf().from(elem).set({
+      margin: 0,
+      filename,
+      image: { type: 'jpeg', quality: 0.92 },
+      html2canvas: { scale: 1.5, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'mm', format: 'a3', orientation: 'landscape' },
+    });
+    const blob = await worker.outputPdf('blob');
+    showSaveStatus('保存中...');
+    if (sourceWin) sourceWin.postMessage({ type: 'pdfBlob', blob, filename }, '*');
+    showSaveStatus('保存完了 ✓<br><small style="opacity:0.8;font-weight:400;font-size:13px;">このウィンドウは自動的に閉じます</small>');
+  } catch (err) {
+    console.error('PDF生成失敗:', err);
+    hideSaveStatus();
+    if (sourceWin) sourceWin.postMessage({ type: 'pdfBlobError', message: err.message }, '*');
+  }
+}
 
 // 進捗オーバーレイ
 function showSaveStatus(text) {

@@ -992,9 +992,11 @@ function escapeHtml(s) {
   }[c]));
 }
 
-// 新ウィンドウでテンプレートを ?print=1 で開き、html2pdf で直接PDFダウンロード
-// （ブラウザの印刷ダイアログを介さないので、保存先選択がスタックする問題を回避）
-function createPdf() {
+// PDF生成フロー：
+// 1. 保存ダイアログを「先に」開く（ユーザークリック直後の user activation を使う）
+// 2. ダイアログで保存先確定後 → 新ウィンドウで PDF生成
+// 3. 生成された Blob を親ウィンドウで受け取り、確定済みのファイルハンドルへ書き込み
+async function createPdf() {
   if (!selectedPropName) {
     alert('物件を選択してください');
     return;
@@ -1002,12 +1004,61 @@ function createPdf() {
   const data = collectPreviewData();
   const surname = data.surname || '○';
   const filename = `${surname}様邸お客様工程表.pdf`;
+
+  // 1) ユーザークリック直後（activation 有効）に保存ダイアログを開く
+  let fileHandle = null;
+  if ('showSaveFilePicker' in window) {
+    try {
+      fileHandle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: 'PDF Document', accept: { 'application/pdf': ['.pdf'] } }],
+      });
+    } catch (e) {
+      if (e.name === 'AbortError') return;  // ユーザーキャンセル
+      console.warn('保存ダイアログ失敗、通常ダウンロードへフォールバック:', e);
+      fileHandle = null;
+    }
+  }
+
+  // 2) 新ウィンドウを開いて PDF 生成
   const url = '../mockup-customer-schedule.html?print=1';
   const win = window.open(url, '_blank');
   if (!win) {
     alert('ポップアップがブロックされました。ポップアップ許可してから再度お試しください。');
     return;
   }
+
+  // 3) 新ウィンドウからの Blob を受信して書き込み
+  const onMessage = async (e) => {
+    if (e.source !== win || !e.data) return;
+    if (e.data.type === 'pdfBlob' && e.data.blob) {
+      window.removeEventListener('message', onMessage);
+      const blob = e.data.blob;
+      try {
+        if (fileHandle) {
+          const writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+        } else {
+          // showSaveFilePicker 非対応 / フォールバック：通常ダウンロード
+          const dlUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = dlUrl; a.download = filename;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(dlUrl), 1000);
+        }
+      } catch (writeErr) {
+        console.error('PDF保存失敗:', writeErr);
+        alert('PDF保存に失敗しました: ' + writeErr.message);
+      }
+      try { win.close(); } catch (_) {}
+    } else if (e.data.type === 'pdfBlobError') {
+      window.removeEventListener('message', onMessage);
+      alert('PDF生成失敗：' + (e.data.message || '不明なエラー'));
+      try { win.close(); } catch (_) {}
+    }
+  };
+  window.addEventListener('message', onMessage);
 
   let triggered = false;
   const onReady = () => {
@@ -1016,11 +1067,9 @@ function createPdf() {
     try {
       if (typeof win.applyData === 'function') win.applyData(data);
       win.document.title = `${surname}様邸お客様工程表`;
-      // html2pdf 起動を新ウィンドウへ通知（mockup側の savePdfFromWindow を呼ぶ）
-      win.postMessage({ type: 'savePdf', filename }, '*');
+      win.postMessage({ type: 'generatePdfBlob', filename }, '*');
     } catch (e) {
-      console.error('PDF生成エラー:', e);
-      alert('PDF生成準備中にエラーが発生しました。もう一度お試しください。');
+      console.error('PDF生成準備エラー:', e);
     }
   };
 
