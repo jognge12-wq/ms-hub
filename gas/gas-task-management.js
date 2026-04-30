@@ -1026,19 +1026,28 @@ const SCHEDULE_KEYWORDS = [
 function buildScheduleData(propName, city) {
   if (!propName) throw new Error('propName required');
 
+  // 物件名（例：「藤本S」）からイニシャル等を除いた苗字（例：「藤本」）
+  // GCalタイトルがイニシャルなしの場合のフォールバック用
+  const surname = propName.replace(/[\s　A-Za-z.\-]+$/, '').trim();
+
   const now = new Date();
   const from = new Date(now.getFullYear() - 1, 0, 1);
   const to   = new Date(now.getFullYear() + 2, 11, 31);
 
-  // 全カレンダーから {苗字}様 or {苗字}邸 をタイトルに含み、
-  // かつ 場所フィールドに 市町村 を含むイベントを集める（同姓判別）
+  // 全カレンダーからタイトル＋市町村でマッチするイベントを集める
+  // タイトルは {物件名}様/邸 を優先、無ければ {苗字}様/邸 にフォールバック
+  // 同姓物件の混同を市町村で防止
   const calendars = CalendarApp.getAllCalendars();
   const matched = [];
   calendars.forEach(cal => {
     cal.getEvents(from, to).forEach(ev => {
       const title = ev.getTitle() || '';
       const loc = ev.getLocation() || '';
-      const titleHit = title.indexOf(propName + '様') >= 0 || title.indexOf(propName + '邸') >= 0;
+      const titleHit =
+        title.indexOf(propName + '様') >= 0 ||
+        title.indexOf(propName + '邸') >= 0 ||
+        (surname && surname !== propName &&
+          (title.indexOf(surname + '様') >= 0 || title.indexOf(surname + '邸') >= 0));
       const cityHit = !city || loc.indexOf(city) >= 0;
       if (titleHit && cityHit) matched.push(ev);
     });

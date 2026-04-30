@@ -1382,15 +1382,13 @@ function collectPreviewData() {
   };
 }
 // 物件選択時に GAS から GCal日程を取得（取得失敗時はサンプルにフォールバック）
-// GCalのイベント名は「○○様邸建て方」、場所フィールドに「○○市」が入る運用ルール。
-// 同姓物件の判別のため、苗字（タイトル一致）と市町村（場所一致）の両方で絞り込む。
+// GCalのイベント名は同姓判別用にイニシャルが入る場合があるので（例: 藤本S様邸）、
+// 物件名そのまま（イニシャル込み）+ 市町村 を GAS に渡す。GAS側で苗字フォールバックも実施。
 async function fetchScheduleDates(propName) {
   if (!propName) { scheduleDates = SAMPLE_DATES; return; }
-  const surname = extractSurname(propName);
-  if (!surname) { scheduleDates = SAMPLE_DATES; return; }
   const city = (propertyMap[propName] && propertyMap[propName].city) || '';
   try {
-    let url = GAS_URLS.TASK + '?mode=getCustomerScheduleData&prop=' + encodeURIComponent(surname);
+    let url = GAS_URLS.TASK + '?mode=getCustomerScheduleData&prop=' + encodeURIComponent(propName);
     if (city) url += '&city=' + encodeURIComponent(city);
     const res = await fetch(url);
     const json = await res.json();
