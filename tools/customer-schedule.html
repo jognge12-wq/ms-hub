@@ -773,6 +773,7 @@ function getMasterList(key) {
 // 状態
 // ================================================================
 let selectedPropName = '';
+let propertyMap = {};  // { '藤本T': { city: '本巣市' }, ... } 同姓判別用
 
 // 物件名（例：「山田T」「山田Ｔ」「山田T様」「山田様邸T」「佐藤 K」「田中M.S」）から
 // 苗字部分のみを抽出する。テンプレ側で「様邸」を後ろに付けるため、ここでは「様」「邸」も除去する。
@@ -797,11 +798,13 @@ async function loadProperties() {
     const json = await res.json();
     if (json.ok && json.data && json.data.length > 0) {
       sel.innerHTML = '<option value="">-- 物件を選択 --</option>';
+      propertyMap = {};
       json.data.forEach(p => {
         const name = p.name || p.物件名 || p.title || '';
         if (!name) return;
         const prog = p.progress || '';
         if (prog === '竣工' || prog.includes('引渡')) return;
+        propertyMap[name] = { city: p.city || '' };
         const opt = document.createElement('option');
         opt.value = name; opt.textContent = name;
         sel.appendChild(opt);
@@ -1379,14 +1382,16 @@ function collectPreviewData() {
   };
 }
 // 物件選択時に GAS から GCal日程を取得（取得失敗時はサンプルにフォールバック）
-// GCalのイベント名は「○○様邸建て方」のように苗字+様邸+キーワード形式なので、
-// イニシャル抜きの苗字だけを GAS に渡してマッチングする
+// GCalのイベント名は「○○様邸建て方」、場所フィールドに「○○市」が入る運用ルール。
+// 同姓物件の判別のため、苗字（タイトル一致）と市町村（場所一致）の両方で絞り込む。
 async function fetchScheduleDates(propName) {
   if (!propName) { scheduleDates = SAMPLE_DATES; return; }
   const surname = extractSurname(propName);
   if (!surname) { scheduleDates = SAMPLE_DATES; return; }
+  const city = (propertyMap[propName] && propertyMap[propName].city) || '';
   try {
-    const url = GAS_URLS.TASK + '?mode=getCustomerScheduleData&prop=' + encodeURIComponent(surname);
+    let url = GAS_URLS.TASK + '?mode=getCustomerScheduleData&prop=' + encodeURIComponent(surname);
+    if (city) url += '&city=' + encodeURIComponent(city);
     const res = await fetch(url);
     const json = await res.json();
     if (json.ok && json.data) {
