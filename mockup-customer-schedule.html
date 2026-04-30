@@ -788,7 +788,7 @@ window.addEventListener('message', async e => {
   }
 });
 
-// html2pdf でブラウザ印刷ダイアログを介さず直接PDFをダウンロード
+// html2pdf で PDFを生成 → File System Access API（保存ダイアログ）で保存先選択可
 async function savePdfFromWindow(filename) {
   const elem = document.querySelector('.page');
   if (!elem || typeof html2pdf === 'undefined') {
@@ -815,30 +815,61 @@ async function savePdfFromWindow(filename) {
   }
 
   // print-mode に切替（スケール変換を無効化、A3原寸でレンダリング）
-  const wasEmbed = document.body.classList.contains('embed');
   document.body.classList.remove('embed');
   document.body.classList.add('print-mode');
 
   await new Promise(r => setTimeout(r, 100));
 
   try {
-    await html2pdf().from(elem).set({
+    // PDFをBlobとして生成
+    const worker = html2pdf().from(elem).set({
       margin: 0,
       filename: filename,
       image: { type: 'jpeg', quality: 0.95 },
       html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' },
       jsPDF: { unit: 'mm', format: 'a3', orientation: 'landscape' },
-    }).save();
-    // 完了通知 → 親ウィンドウ側で window.close() できるよう
+    });
+    const blob = await worker.outputPdf('blob');
+
+    // 保存ダイアログ（Chrome/Edge）で保存先選択 → 非対応なら通常ダウンロード
+    let savedOk = false;
+    if ('showSaveFilePicker' in window) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description: 'PDF Document', accept: { 'application/pdf': ['.pdf'] } }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        savedOk = true;
+      } catch (e) {
+        if (e.name === 'AbortError') {
+          // ユーザーがキャンセル → ウィンドウは閉じずに残しておく
+          return;
+        }
+        // その他のエラー → フォールバック
+        console.warn('showSaveFilePicker失敗、通常ダウンロードへ:', e);
+      }
+    }
+    if (!savedOk) {
+      // Safari/Firefox 等：通常のダウンロード（ダウンロードフォルダへ）
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    // 完了通知 → 親ウィンドウへ
     if (window.opener) window.opener.postMessage({ type: 'pdfSaved' }, '*');
     setTimeout(() => { try { window.close(); } catch (e) {} }, 800);
   } catch (err) {
     console.error('PDF生成失敗:', err);
     alert('PDF生成に失敗しました: ' + err.message);
-    if (wasEmbed) {
-      document.body.classList.remove('print-mode');
-      document.body.classList.add('embed');
-    }
   }
 }
 
