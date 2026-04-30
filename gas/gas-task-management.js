@@ -424,6 +424,9 @@ function doGet(e) {
       case 'updatePropertyCheck'    : result = _apiUpdatePropertyCheck(e.parameter);    break;
       case 'getProgressOptions'     : result = _apiGetProgressOptions();                break;
       case 'updatePropertyProgress' : result = _apiUpdatePropertyProgress(e.parameter); break;
+      case 'moveTask'         : result = _apiMoveTask(e.parameter);                     break;
+      case 'reorderTask'      : result = _apiReorderTask(e.parameter);                  break;
+      case 'getCustomerScheduleData' : result = buildScheduleData(e.parameter.prop || '', e.parameter.city || ''); break;
       default: result = { error: 'unknown mode: ' + mode };
     }
     output.setContent(JSON.stringify({ ok: true, data: result }));
@@ -994,3 +997,107 @@ function _writeHistory(taskId, taskName, property, field, before, after) {
   _getSS().getSheetByName(SH.HISTORY)
     .appendRow([new Date(), taskId, taskName, property, field, String(before), String(after)]);
 }
+
+
+// ═══════════════════════════════════════════════════════════════
+//  タスク移動・並び替え（既存 _apiUpdateTask の薄いラッパー）
+// ═══════════════════════════════════════════════════════════════
+function _apiMoveTask(params) {
+  return _apiUpdateTask({ id: params.id, field: 'phase', value: params.phase });
+}
+function _apiReorderTask(params) {
+  return _apiUpdateTask({ id: params.id, field: 'order', value: params.order });
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+//  お客様工程表 — GCal日程取得
+//  ?mode=getCustomerScheduleData&prop={苗字}&city={市町村}
+//  GCalイベント例: 「⚒藤本様邸建て方」 場所: 「本巣市」
+// ═══════════════════════════════════════════════════════════════
+const GCAL_ID = 'primary';
+
+const SCHEDULE_KEYWORDS = [
+  '地縄立会い', '本体着工', '基礎検査', '建て方', '木完検査',
+  '竣工検査', '引渡し', '構造立会い', '木完立会い', '竣工立会い',
+  '配筋検査', '構造検査', '雨仕舞い検査',
+];
+
+function buildScheduleData(propName, city) {
+  if (!propName) throw new Error('propName required');
+
+  const now = new Date();
+  const from = new Date(now.getFullYear() - 1, 0, 1);
+  const to   = new Date(now.getFullYear() + 2, 11, 31);
+
+  // 全カレンダーから {苗字}様 or {苗字}邸 をタイトルに含み、
+  // かつ 場所フィールドに 市町村 を含むイベントを集める（同姓判別）
+  const calendars = CalendarApp.getAllCalendars();
+  const matched = [];
+  calendars.forEach(cal => {
+    cal.getEvents(from, to).forEach(ev => {
+      const title = ev.getTitle() || '';
+      const loc = ev.getLocation() || '';
+      const titleHit = title.indexOf(propName + '様') >= 0 || title.indexOf(propName + '邸') >= 0;
+      const cityHit = !city || loc.indexOf(city) >= 0;
+      if (titleHit && cityHit) matched.push(ev);
+    });
+  });
+
+  const dateMap = {};
+  matched.forEach(ev => {
+    const t = ev.getTitle();
+    const d = ev.getStartTime();
+    SCHEDULE_KEYWORDS.forEach(kw => {
+      if (t.indexOf(kw) >= 0 && !dateMap[kw]) dateMap[kw] = d;
+    });
+  });
+
+  return {
+    workDates: {
+      jinawa:       _fmtMD(dateMap['地縄立会い']),
+      chakkou:      _fmtMD(dateMap['本体着工']),
+      kiso:         _fmtJun(dateMap['基礎検査']),
+      dodai:        _fmtJun(dateMap['建て方']),
+      tatekata:     _fmtMD(dateMap['建て方']),
+      yane:         _fmtJun(_addDays(dateMap['建て方'], 14)),
+      gaiheki:      _fmtJun(_addDays(dateMap['木完検査'], -5)),
+      mokkan:       _fmtMD(dateMap['木完検査']),
+      naibu:        _fmtJun(_addDays(dateMap['竣工検査'], -7)),
+      shunkou:      _fmtMD(dateMap['竣工検査']),
+      hikiwatashi:  _fmtMD(dateMap['引渡し']),
+    },
+    meetingDates: {
+      jinawa:  _fmtMD(dateMap['地縄立会い']),
+      kinjo:   _fmtMD(dateMap['地縄立会い']),
+      kouzou:  _fmtMD(dateMap['構造立会い']),
+      mokkan:  _fmtMD(dateMap['木完立会い']),
+      shunkou: _fmtMD(dateMap['竣工立会い']),
+    },
+    publicInspDates: {
+      '1':         _fmtJun(dateMap['配筋検査']),
+      '2':         _fmtJun(dateMap['構造検査']),
+      '3':         _fmtJun(_addDays(dateMap['雨仕舞い検査'], 10)),
+      '4':         _fmtMD(dateMap['竣工検査']),
+      completion:  _fmtMD(dateMap['竣工検査']),
+    },
+  };
+}
+
+function _fmtMD(d) {
+  if (!d) return '';
+  return '（' + _pad2(d.getMonth() + 1) + '/' + _pad2(d.getDate()) + '）';
+}
+function _fmtJun(d) {
+  if (!d) return '';
+  const dd = d.getDate();
+  const lbl = dd <= 10 ? '上旬' : dd <= 20 ? '中旬' : '下旬';
+  return '（' + (d.getMonth() + 1) + '月' + lbl + '）';
+}
+function _addDays(d, n) {
+  if (!d) return null;
+  const r = new Date(d.getTime());
+  r.setDate(r.getDate() + n);
+  return r;
+}
+function _pad2(n) { return n < 10 ? '0' + n : '' + n; }
