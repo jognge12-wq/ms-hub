@@ -1379,10 +1379,14 @@ function collectPreviewData() {
   };
 }
 // 物件選択時に GAS から GCal日程を取得（取得失敗時はサンプルにフォールバック）
+// GCalのイベント名は「○○様邸建て方」のように苗字+様邸+キーワード形式なので、
+// イニシャル抜きの苗字だけを GAS に渡してマッチングする
 async function fetchScheduleDates(propName) {
   if (!propName) { scheduleDates = SAMPLE_DATES; return; }
+  const surname = extractSurname(propName);
+  if (!surname) { scheduleDates = SAMPLE_DATES; return; }
   try {
-    const url = GAS_URLS.TASK + '?mode=getCustomerScheduleData&prop=' + encodeURIComponent(propName);
+    const url = GAS_URLS.TASK + '?mode=getCustomerScheduleData&prop=' + encodeURIComponent(surname);
     const res = await fetch(url);
     const json = await res.json();
     if (json.ok && json.data) {
