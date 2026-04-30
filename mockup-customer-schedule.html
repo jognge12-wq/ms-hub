@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>お客様工程表 モックアップ — m's hub</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -778,9 +779,68 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // postMessage 経由でも更新可能
-window.addEventListener('message', e => {
-  if (e.data && e.data.type === 'applyData') applyData(e.data.data);
+window.addEventListener('message', async e => {
+  if (!e.data) return;
+  if (e.data.type === 'applyData') {
+    applyData(e.data.data);
+  } else if (e.data.type === 'savePdf') {
+    await savePdfFromWindow(e.data.filename || 'お客様工程表.pdf');
+  }
 });
+
+// html2pdf でブラウザ印刷ダイアログを介さず直接PDFをダウンロード
+async function savePdfFromWindow(filename) {
+  const elem = document.querySelector('.page');
+  if (!elem || typeof html2pdf === 'undefined') {
+    alert('html2pdf ライブラリの読込に失敗しました');
+    return;
+  }
+
+  // 画像完全ロード待ち
+  const images = Array.from(elem.querySelectorAll('img'));
+  await Promise.all(images.map(img => {
+    if (img.complete && img.naturalWidth > 0) {
+      return img.decode ? img.decode().catch(() => {}) : Promise.resolve();
+    }
+    return new Promise(res => {
+      img.addEventListener('load', res, { once: true });
+      img.addEventListener('error', res, { once: true });
+      setTimeout(res, 8000);
+    });
+  }));
+
+  // フォントロード待ち
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch (e) {}
+  }
+
+  // print-mode に切替（スケール変換を無効化、A3原寸でレンダリング）
+  const wasEmbed = document.body.classList.contains('embed');
+  document.body.classList.remove('embed');
+  document.body.classList.add('print-mode');
+
+  await new Promise(r => setTimeout(r, 100));
+
+  try {
+    await html2pdf().from(elem).set({
+      margin: 0,
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'mm', format: 'a3', orientation: 'landscape' },
+    }).save();
+    // 完了通知 → 親ウィンドウ側で window.close() できるよう
+    if (window.opener) window.opener.postMessage({ type: 'pdfSaved' }, '*');
+    setTimeout(() => { try { window.close(); } catch (e) {} }, 800);
+  } catch (err) {
+    console.error('PDF生成失敗:', err);
+    alert('PDF生成に失敗しました: ' + err.message);
+    if (wasEmbed) {
+      document.body.classList.remove('print-mode');
+      document.body.classList.add('embed');
+    }
+  }
+}
 
 // 埋め込み時、親に「準備OK」を通知（ツール側でロード完了を待つ用）
 if (window !== window.top) {

@@ -992,8 +992,8 @@ function escapeHtml(s) {
   }[c]));
 }
 
-// 新ウィンドウでテンプレートを ?print=1 で開き、画像・フォントの完全ロード待ち → print()
-// 画像未ロードのまま print() を叩くと、PDF保存時にブラウザが画像待ちで固まる
+// 新ウィンドウでテンプレートを ?print=1 で開き、html2pdf で直接PDFダウンロード
+// （ブラウザの印刷ダイアログを介さないので、保存先選択がスタックする問題を回避）
 function createPdf() {
   if (!selectedPropName) {
     alert('物件を選択してください');
@@ -1001,6 +1001,7 @@ function createPdf() {
   }
   const data = collectPreviewData();
   const surname = data.surname || '○';
+  const filename = `${surname}様邸お客様工程表.pdf`;
   const url = '../mockup-customer-schedule.html?print=1';
   const win = window.open(url, '_blank');
   if (!win) {
@@ -1009,33 +1010,14 @@ function createPdf() {
   }
 
   let triggered = false;
-  const onReady = async () => {
+  const onReady = () => {
     if (triggered) return;
     triggered = true;
     try {
       if (typeof win.applyData === 'function') win.applyData(data);
       win.document.title = `${surname}様邸お客様工程表`;
-
-      // 1) 画像の完全ロード待ち（イラスト12枚＝約5MB）
-      const images = Array.from(win.document.querySelectorAll('img'));
-      await Promise.all(images.map(img => {
-        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-        return new Promise(res => {
-          img.addEventListener('load', res, { once: true });
-          img.addEventListener('error', res, { once: true });
-          setTimeout(res, 8000);  // セーフティタイムアウト
-        });
-      }));
-
-      // 2) フォントロード待ち
-      if (win.document.fonts && win.document.fonts.ready) {
-        await win.document.fonts.ready;
-      }
-
-      // 3) レイアウト確定を少し待ってから印刷ダイアログ
-      await new Promise(r => setTimeout(r, 200));
-      win.focus();
-      win.print();
+      // html2pdf 起動を新ウィンドウへ通知（mockup側の savePdfFromWindow を呼ぶ）
+      win.postMessage({ type: 'savePdf', filename }, '*');
     } catch (e) {
       console.error('PDF生成エラー:', e);
       alert('PDF生成準備中にエラーが発生しました。もう一度お試しください。');
@@ -1043,10 +1025,9 @@ function createPdf() {
   };
 
   win.addEventListener('load', onReady);
-  // 既にロード済みのケースに備えて
   setTimeout(() => {
     if (win.document && win.document.readyState === 'complete') onReady();
-  }, 100);
+  }, 200);
 }
 
 // ================================================================
